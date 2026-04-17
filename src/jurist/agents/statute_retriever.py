@@ -54,7 +54,7 @@ async def run(input: StatuteRetrieverIn) -> AsyncIterator[TraceEvent]:
         previous = aid
 
     # Final "done" tool call.
-    selected = [FAKE_VISIT_PATH[0], FAKE_VISIT_PATH[3]]
+    selected = [FAKE_VISIT_PATH[0], FAKE_VISIT_PATH[1]]
     yield TraceEvent(
         type="tool_call_started",
         data={"tool": "done", "args": {"selected_ids": selected}},
@@ -76,7 +76,7 @@ async def run(input: StatuteRetrieverIn) -> AsyncIterator[TraceEvent]:
             body_text=by_id[aid].body_text,
             reason="Primary rule governing this question."
             if i == 0
-            else "Sets the maximum percentage this question depends on.",
+            else "Governs the notice requirements and conditions for a valid rent-increase proposal.",
         )
         for i, aid in enumerate(selected)
     ]
