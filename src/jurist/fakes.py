@@ -78,8 +78,8 @@ _NODES: list[ArticleNode] = [
 ]
 
 
-def _edge(a: str, b: str, kind: str = "explicit") -> ArticleEdge:
-    return ArticleEdge(from_id=a, to_id=b, kind=kind)  # type: ignore[arg-type]
+def _edge(a: str, b: str) -> ArticleEdge:
+    return ArticleEdge(from_id=a, to_id=b)
 
 
 _EDGES: list[ArticleEdge] = [
@@ -98,7 +98,7 @@ _EDGES: list[ArticleEdge] = [
 
 FAKE_KG: tuple[list[ArticleNode], list[ArticleEdge]] = (_NODES, _EDGES)
 
-FAKE_VISIT_PATH: list[str] = [_A248, _A249, _A250, _UHW6, _A252]
+FAKE_VISIT_PATH: list[str] = [_A248, _A249, _A250, _A254, _A255]
 
 FAKE_CASES: list[CitedCase] = [
     CitedCase(

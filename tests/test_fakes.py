@@ -25,11 +25,14 @@ def test_fake_kg_edges_reference_existing_nodes():
 
 
 def test_fake_visit_path_is_subset_of_kg():
-    nodes, _ = FAKE_KG
+    nodes, edges = FAKE_KG
     ids = {n.article_id for n in nodes}
+    edge_set = {(e.from_id, e.to_id) for e in edges}
     assert len(FAKE_VISIT_PATH) >= 3
     for aid in FAKE_VISIT_PATH:
         assert aid in ids
+    for a, b in zip(FAKE_VISIT_PATH, FAKE_VISIT_PATH[1:]):
+        assert (a, b) in edge_set, f"no edge {a} -> {b} in KG"
 
 
 def test_fake_cases_three_entries_with_real_looking_ecli():
