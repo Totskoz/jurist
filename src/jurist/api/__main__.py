@@ -8,7 +8,7 @@ def main() -> None:
     uvicorn.run(
         "jurist.api.app:app",
         host="127.0.0.1",
-        port=8765,
+        port=8766,
         reload=True,
         log_level="info",
     )
