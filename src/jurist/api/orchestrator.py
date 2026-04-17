@@ -19,7 +19,6 @@ from jurist.schemas import (
     DecomposerOut,
     StatuteRetrieverIn,
     StatuteRetrieverOut,
-    StructuredAnswer,
     SynthesizerIn,
     SynthesizerOut,
     TraceEvent,
