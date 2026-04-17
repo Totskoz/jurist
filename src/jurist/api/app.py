@@ -13,6 +13,7 @@ from sse_starlette.sse import EventSourceResponse
 from jurist.api.orchestrator import run_question
 from jurist.api.sse import EventBuffer
 from jurist.config import settings
+from jurist.fakes import FAKE_KG
 
 app = FastAPI(title="Jurist", version="0.1.0")
 
@@ -63,3 +64,12 @@ async def stream(question_id: str):
 @app.get("/api/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/api/kg")
+async def kg() -> dict:
+    nodes, edges = FAKE_KG
+    return {
+        "nodes": [n.model_dump() for n in nodes],
+        "edges": [e.model_dump() for e in edges],
+    }
