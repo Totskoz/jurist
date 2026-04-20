@@ -6,6 +6,7 @@ from jurist.llm.client import (
     Coerced,
     Done,
     LoopEvent,
+    ToolResultEvent,
     _history_to_anthropic_messages,
     run_tool_loop,
 )
@@ -228,3 +229,54 @@ async def test_wall_clock_coerces_on_tight_cap(monkeypatch):
         final = ev
     assert isinstance(final, Coerced)
     assert final.reason == "wall_clock"
+
+
+@pytest.mark.asyncio
+async def test_dup_two_consecutive_triggers_advisory():
+    kg = _kg()
+    call = ScriptedToolUse(name="get_article", args={"article_id": "A"})
+    script = [
+        ScriptedTurn(tool_uses=[call]),
+        ScriptedTurn(tool_uses=[call]),  # duplicate — should advisory
+        ScriptedTurn(tool_uses=[ScriptedToolUse(
+            name="done",
+            args={"selected": [{"article_id": "A", "reason": "ok"}]},
+        )]),
+    ]
+    mock = MockAnthropicClient(script)
+    executor = ToolExecutor(kg)
+
+    events: list[LoopEvent] = []
+    async for ev in run_tool_loop(
+        mock=mock, executor=executor, system="<sys>", tools=[],
+        user_message="q", max_iters=15, wall_clock_cap_s=90,
+    ):
+        events.append(ev)
+    tool_results = [e for e in events if isinstance(e, ToolResultEvent)]
+    # First get_article succeeds; second is an advisory error; done succeeds.
+    assert tool_results[0].result.is_error is False
+    assert tool_results[1].result.is_error is True
+    assert "already" in tool_results[1].result.result_summary.lower()
+    assert isinstance(events[-1], Done)
+
+
+@pytest.mark.asyncio
+async def test_dup_three_consecutive_coerces():
+    kg = _kg()
+    call = ScriptedToolUse(name="get_article", args={"article_id": "A"})
+    script = [
+        ScriptedTurn(tool_uses=[call]),
+        ScriptedTurn(tool_uses=[call]),
+        ScriptedTurn(tool_uses=[call]),
+    ]
+    mock = MockAnthropicClient(script)
+    executor = ToolExecutor(kg)
+
+    final = None
+    async for ev in run_tool_loop(
+        mock=mock, executor=executor, system="<sys>", tools=[],
+        user_message="q", max_iters=15, wall_clock_cap_s=90,
+    ):
+        final = ev
+    assert isinstance(final, Coerced)
+    assert final.reason == "dup_loop"

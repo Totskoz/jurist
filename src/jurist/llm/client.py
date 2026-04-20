@@ -75,6 +75,8 @@ async def run_tool_loop(
     # Visit-recency log of article_ids touched by get_article / follow_cross_ref.
     visited: list[str] = []
     done_errors = 0  # counts consecutive done failures
+    last_call: tuple[str, str] | None = None
+    dup_count = 0
 
     async def _next_turn(hist: list[dict[str, Any]]) -> ModelTurn:
         if mock is not None:
@@ -121,6 +123,35 @@ async def run_tool_loop(
             },
         })
         for tu in turn.tool_uses:
+            _args_key = sorted(tu.args.items()) if isinstance(tu.args, dict) else tu.args
+            call_sig = (tu.name, repr(_args_key))
+            if last_call == call_sig:
+                dup_count += 1
+            else:
+                dup_count = 0
+            last_call = call_sig
+
+            if dup_count >= 2:
+                yield Coerced(reason="dup_loop",
+                              selected=_coerce_selection("dup_loop"))
+                return
+            if dup_count == 1 and tu.name != "done":
+                advisory = ToolResult(
+                    result_summary=(
+                        "You already called this tool with identical "
+                        "arguments. Try get_article, follow_cross_ref, "
+                        "list_neighbors, or done with a different plan."
+                    ),
+                    is_error=True,
+                )
+                yield ToolResultEvent(name=tu.name, args=tu.args, result=advisory)
+                history.append({
+                    "role": "user",
+                    "content": {"tool_result": {"advice": advisory.result_summary},
+                                "is_error": True},
+                })
+                continue
+
             yield ToolUseStart(name=tu.name, args=tu.args)
             if tu.name == "done":
                 result = await executor.execute("done", tu.args)
