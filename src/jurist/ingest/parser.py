@@ -50,20 +50,14 @@ def parse_bwb_xml(
         body_text = _extract_body_text(art)
 
         outgoing_ids: list[str] = []
-        for ref in art.iter("intref"):
+        seen_targets: set[str] = set()
+        for ref in list(art.iter("intref")) + list(art.iter("extref")):
             tid = _ref_to_article_id(ref)
-            if tid is not None:
-                outgoing_ids.append(tid)
-                edges.append(
-                    ArticleEdge(from_id=article_id, to_id=tid, kind="explicit", context=None)
-                )
-        for ref in art.iter("extref"):
-            tid = _ref_to_article_id(ref)
-            if tid is not None:
-                outgoing_ids.append(tid)
-                edges.append(
-                    ArticleEdge(from_id=article_id, to_id=tid, kind="explicit", context=None)
-                )
+            if tid is None or tid in seen_targets:
+                continue
+            seen_targets.add(tid)
+            outgoing_ids.append(tid)
+            edges.append(ArticleEdge(from_id=article_id, to_id=tid, kind="explicit", context=None))
 
         nodes.append(
             ArticleNode(

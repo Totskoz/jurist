@@ -78,3 +78,20 @@ def test_article_title_inherits_nearest_container_titel():
     assert a248 is not None
     assert a248.title, "expected non-empty title for art. 248"
     assert a248.title == "Huurprijzen", f"expected 'Huurprijzen', got '{a248.title}'"
+
+
+def test_duplicate_references_deduplicated_per_article():
+    """Art. 248 cites Uhw art 10 multiple times; outgoing_refs and edges must dedup."""
+    fixture = Path(__file__).parent / "fixtures" / "BWBR0005290_excerpt.xml"
+    nodes, edges = parse_bwb_xml(fixture.read_bytes(), "BWBR0005290", _bw7_entry())
+
+    a248 = next(n for n in nodes if n.article_id.endswith("/Artikel248"))
+    # outgoing_refs must have no duplicates
+    assert len(a248.outgoing_refs) == len(set(a248.outgoing_refs)), (
+        f"outgoing_refs has duplicates: {a248.outgoing_refs}"
+    )
+    # edges from 248 must have no (from_id, to_id) duplicates
+    from_248_pairs = [(e.from_id, e.to_id) for e in edges if e.from_id.endswith("/Artikel248")]
+    assert len(from_248_pairs) == len(set(from_248_pairs)), (
+        f"duplicate 248-origin edges: {from_248_pairs}"
+    )
