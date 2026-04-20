@@ -5,6 +5,7 @@ from jurist.agents.statute_retriever_tools import (
     ToolResult,
     build_catalog,
     make_snippet,
+    tool_definitions,
 )
 from jurist.kg.networkx_kg import NetworkXKG
 from jurist.schemas import ArticleEdge, ArticleNode, KGSnapshot
@@ -261,3 +262,22 @@ def test_build_catalog_truncates_long_bodies(fixture_kg):
     # With snippet_chars=10, "Body of A with refs to B." → truncated + "…"
     row_a = [line for line in lines if line.startswith("[A]")][0]
     assert "…" in row_a
+
+
+def test_tool_definitions_include_all_five():
+    tools = tool_definitions()
+    names = {t["name"] for t in tools}
+    assert names == {"search_articles", "list_neighbors", "get_article",
+                     "follow_cross_ref", "done"}
+    # Each has input_schema with required fields
+    for t in tools:
+        assert t["input_schema"]["type"] == "object"
+        assert "properties" in t["input_schema"]
+
+
+def test_done_schema_requires_selected_of_objects_with_article_id_and_reason():
+    tools = tool_definitions()
+    done = next(t for t in tools if t["name"] == "done")
+    selected = done["input_schema"]["properties"]["selected"]
+    assert selected["type"] == "array"
+    assert selected["items"]["required"] == ["article_id", "reason"]

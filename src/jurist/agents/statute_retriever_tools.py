@@ -264,3 +264,84 @@ def build_catalog(kg: KnowledgeGraph, snippet_chars: int = 200) -> str:
             f'[{node.article_id}] "{node.label}" — {node.title}: {snippet}'
         )
     return "\n".join(rows)
+
+
+def tool_definitions() -> list[dict[str, Any]]:
+    """Anthropic `tools` array for the statute retriever loop."""
+    return [
+        {
+            "name": "search_articles",
+            "description": (
+                "Lexical search over the article corpus."
+                " Use when the catalog doesn't show obvious candidates."
+            ),
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "top_k": {"type": "integer", "minimum": 1, "maximum": 10, "default": 5},
+                },
+                "required": ["query"],
+            },
+        },
+        {
+            "name": "list_neighbors",
+            "description": (
+                "Return labels + titles for articles connected by outgoing"
+                " cross-references. Cheap \u2014 use to survey before loading bodies."
+            ),
+            "input_schema": {
+                "type": "object",
+                "properties": {"article_id": {"type": "string"}},
+                "required": ["article_id"],
+            },
+        },
+        {
+            "name": "get_article",
+            "description": "Return the full article body plus its outgoing_refs.",
+            "input_schema": {
+                "type": "object",
+                "properties": {"article_id": {"type": "string"}},
+                "required": ["article_id"],
+            },
+        },
+        {
+            "name": "follow_cross_ref",
+            "description": (
+                "Same as get_article(to_id) but records the traversal."
+                " The edge (from_id, to_id) must exist in the corpus."
+            ),
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "from_id": {"type": "string"},
+                    "to_id": {"type": "string"},
+                },
+                "required": ["from_id", "to_id"],
+            },
+        },
+        {
+            "name": "done",
+            "description": (
+                "Terminate with selected articles."
+                " Each entry needs an article_id present in the corpus and a short reason."
+            ),
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "selected": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "article_id": {"type": "string"},
+                                "reason": {"type": "string"},
+                            },
+                            "required": ["article_id", "reason"],
+                        },
+                    },
+                },
+                "required": ["selected"],
+            },
+        },
+    ]
