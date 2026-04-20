@@ -1,7 +1,6 @@
 import pytest
 
 from jurist.agents import statute_retriever
-from jurist.agents.statute_retriever_tools import ToolExecutor
 from jurist.config import RunContext
 from jurist.kg.networkx_kg import NetworkXKG
 from jurist.schemas import (
