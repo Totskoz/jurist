@@ -252,3 +252,15 @@ class ToolExecutor:
             result_summary=f"{len(selected)} selected",
             extra={"selected_count": len(selected), "selected": selected},
         )
+
+
+def build_catalog(kg: KnowledgeGraph, snippet_chars: int = 200) -> str:
+    """Render the full KG as a one-article-per-line catalog for the system prompt."""
+    rows: list[str] = []
+    nodes = sorted(kg.all_nodes(), key=lambda n: n.article_id)
+    for node in nodes:
+        snippet = make_snippet(node.body_text, snippet_chars)
+        rows.append(
+            f'[{node.article_id}] "{node.label}" — {node.title}: {snippet}'
+        )
+    return "\n".join(rows)

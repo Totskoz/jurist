@@ -235,3 +235,27 @@ async def test_done_rejects_missing_reason(fixture_kg):
         {"selected": [{"article_id": "A"}]},  # no reason
     )
     assert r.is_error
+
+
+from jurist.agents.statute_retriever_tools import build_catalog
+
+
+def test_build_catalog_formats_rows(fixture_kg):
+    text = build_catalog(fixture_kg, snippet_chars=200)
+    lines = text.strip().split("\n")
+    assert len(lines) == 3  # 3 fixture nodes
+    # Sorted by article_id (A, B, C)
+    assert lines[0].startswith("[A]")
+    assert lines[1].startswith("[B]")
+    assert lines[2].startswith("[C]")
+    assert '"Art A"' in lines[0]
+    assert "Title A" in lines[0]
+    assert "Body of A" in lines[0]
+
+
+def test_build_catalog_truncates_long_bodies(fixture_kg):
+    text = build_catalog(fixture_kg, snippet_chars=10)
+    lines = text.strip().split("\n")
+    # With snippet_chars=10, "Body of A with refs to B." → truncated + "…"
+    row_a = [l for l in lines if l.startswith("[A]")][0]
+    assert "…" in row_a
