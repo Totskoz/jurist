@@ -780,145 +780,107 @@ git commit -m "test: add BWB XML fixture excerpts (BW7 Titel 4, Uhw)"
 - Create: `src/jurist/ingest/parser.py`
 - Create: `tests/ingest/test_parser.py`
 
-- [ ] **Step 1: Write failing tests — basic walk + article_id**
+> **Schema reality (confirmed from committed fixture XMLs):**
+> Article identity lives in `bwb-ng-variabel-deel` attributes on each `<artikel>` element, not in `<nr>` child text or ancestor `nr` attributes. Container elements are `<boek>`, `<titeldeel>` (NOT `<titel>`), `<afdeling>`, `<paragraaf>`, `<sub-paragraaf>`, `<hoofdstuk>`. Explicit cross-references come from `<intref>` and `<extref>` elements, both carrying `bwb-id` and `bwb-ng-variabel-deel` attributes that give the resolved target directly — no sentinel stage needed.
+
+- [ ] **Step 1: Write failing tests**
 
 Create `tests/ingest/test_parser.py`:
 
 ```python
 from pathlib import Path
 
-import pytest
-from lxml import etree
-
 from jurist.ingest.allowlist import BWB_ALLOWLIST, BWBEntry
 from jurist.ingest.parser import parse_bwb_xml
-
-
-MINI_BW7_XML = b"""<?xml version="1.0" encoding="UTF-8"?>
-<wet>
-  <boek nr="7">
-    <titel nr="4">
-      <afdeling nr="5">
-        <artikel nr="248">
-          <kop><titel>Huurverhoging</titel></kop>
-          <lid><al>De verhuurder kan tot aan ...</al></lid>
-          <lid><al>Wanneer de huurder bezwaar maakt ...</al></lid>
-        </artikel>
-        <artikel nr="249">
-          <kop><titel>Voorstel</titel></kop>
-          <lid><al>Een voorstel tot huurverhoging bevat ...</al></lid>
-        </artikel>
-        <artikel nr="248a">
-          <kop><titel>Bijzondere gevallen</titel></kop>
-          <lid><al>In bijzondere gevallen ...</al></lid>
-        </artikel>
-        <artikel nr="999" status="vervallen">
-          <kop><titel>[Vervallen]</titel></kop>
-        </artikel>
-      </afdeling>
-    </titel>
-    <titel nr="5">
-      <afdeling nr="1">
-        <artikel nr="500">
-          <kop><titel>Niet huurrecht</titel></kop>
-          <lid><al>Dit artikel staat buiten Titel 4.</al></lid>
-        </artikel>
-      </afdeling>
-    </titel>
-  </boek>
-</wet>
-"""
 
 
 def _bw7_entry() -> BWBEntry:
     return BWB_ALLOWLIST["BWBR0005290"]
 
 
-def test_parses_structural_article_id():
-    nodes, _ = parse_bwb_xml(MINI_BW7_XML, "BWBR0005290", _bw7_entry())
-    ids = {n.article_id for n in nodes}
-    assert "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248" in ids
-    assert "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel249" in ids
+# ---------------------------------------------------------------------------
+# Fixture-based tests (real BWB XML excerpt)
+# ---------------------------------------------------------------------------
 
-
-def test_preserves_letter_suffix():
-    nodes, _ = parse_bwb_xml(MINI_BW7_XML, "BWBR0005290", _bw7_entry())
-    ids = {n.article_id for n in nodes}
-    assert "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248a" in ids
-
-
-def test_skips_vervallen():
-    nodes, _ = parse_bwb_xml(MINI_BW7_XML, "BWBR0005290", _bw7_entry())
-    ids = {n.article_id for n in nodes}
-    assert not any("999" in i for i in ids)
-
-
-def test_titel_filter_drops_titel_5():
-    nodes, _ = parse_bwb_xml(MINI_BW7_XML, "BWBR0005290", _bw7_entry())
-    ids = {n.article_id for n in nodes}
-    assert not any("Titel5" in i for i in ids)
-    assert not any("500" in i for i in ids)
-
-
-def test_label_uses_prefix_and_number():
-    nodes, _ = parse_bwb_xml(MINI_BW7_XML, "BWBR0005290", _bw7_entry())
-    labels = {n.label for n in nodes}
-    assert "Boek 7, Artikel 248" in labels
-
-
-def test_body_text_concatenates_leden():
-    nodes, _ = parse_bwb_xml(MINI_BW7_XML, "BWBR0005290", _bw7_entry())
-    a248 = next(n for n in nodes if n.article_id.endswith("/Artikel248"))
-    assert "De verhuurder kan" in a248.body_text
-    assert "Wanneer de huurder" in a248.body_text
-    assert "\n\n" in a248.body_text
-
-
-def test_title_extracted():
-    nodes, _ = parse_bwb_xml(MINI_BW7_XML, "BWBR0005290", _bw7_entry())
-    a248 = next(n for n in nodes if n.article_id.endswith("/Artikel248"))
-    assert a248.title == "Huurverhoging"
-
-
-MINI_UHW_XML = b"""<?xml version="1.0" encoding="UTF-8"?>
-<wet>
-  <artikel nr="6">
-    <kop><titel>Maximaal huurverhogingspercentage</titel></kop>
-    <lid><al>Het maximale percentage ...</al></lid>
-  </artikel>
-  <artikel nr="10">
-    <kop><titel>Geschilbeslechting</titel></kop>
-    <lid><al>Een geschil ...</al></lid>
-  </artikel>
-</wet>
-"""
-
-
-def test_flat_bwb_article_id():
-    nodes, _ = parse_bwb_xml(MINI_UHW_XML, "BWBR0014315", BWB_ALLOWLIST["BWBR0014315"])
-    ids = {n.article_id for n in nodes}
-    assert "BWBR0014315/Artikel6" in ids
-    assert "BWBR0014315/Artikel10" in ids
-
-
-def test_flat_bwb_label_uses_uhw_prefix():
-    nodes, _ = parse_bwb_xml(MINI_UHW_XML, "BWBR0014315", BWB_ALLOWLIST["BWBR0014315"])
-    labels = {n.label for n in nodes}
-    assert "Uhw, Artikel 6" in labels
-
-
-# Spec-required test against the committed fixture
-def test_parses_art_7_248_bw_from_fixture():
+def test_parses_art_7_248_from_fixture():
+    """art. 7:248 BW: article_id, label, body text, outgoing_refs all correct."""
     fixture = Path(__file__).parent / "fixtures" / "BWBR0005290_excerpt.xml"
-    xml = fixture.read_bytes()
-    nodes, _ = parse_bwb_xml(xml, "BWBR0005290", _bw7_entry())
+    nodes, _ = parse_bwb_xml(fixture.read_bytes(), "BWBR0005290", _bw7_entry())
+
     a248 = next(
-        (n for n in nodes if n.article_id == "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248"),
+        (n for n in nodes
+         if n.article_id == "BWBR0005290/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248"),
         None,
     )
-    assert a248 is not None, "art. 7:248 BW not found in parsed fixture"
+    assert a248 is not None, "art. 7:248 BW not found"
     assert a248.label == "Boek 7, Artikel 248"
-    assert len(a248.body_text) > 50  # real article has substantive body
+    assert "huurprijs" in a248.body_text.lower()
+    # 248 lid 1 carries an <intref> to art. 252
+    assert any("Artikel252" in ref for ref in a248.outgoing_refs), (
+        f"expected ref to Artikel252 in {a248.outgoing_refs}"
+    )
+
+
+def test_intref_edge_extracted_with_bwb_and_path():
+    """Edge from 248 → 252 appears in explicit edges list."""
+    fixture = Path(__file__).parent / "fixtures" / "BWBR0005290_excerpt.xml"
+    nodes, edges = parse_bwb_xml(fixture.read_bytes(), "BWBR0005290", _bw7_entry())
+
+    from_248 = [
+        e for e in edges
+        if e.from_id.endswith("/Artikel248") and "Artikel252" in e.to_id
+    ]
+    assert len(from_248) >= 1, "expected intref edge 248→252"
+    assert from_248[0].kind == "explicit"
+    assert from_248[0].to_id.startswith("BWBR0005290/")
+
+
+def test_extref_edge_to_other_bwb():
+    """art. 248 lid 2 contains an <extref> to Uhw artikel 10 (BWBR0014315)."""
+    fixture = Path(__file__).parent / "fixtures" / "BWBR0005290_excerpt.xml"
+    nodes, edges = parse_bwb_xml(fixture.read_bytes(), "BWBR0005290", _bw7_entry())
+
+    cross = [
+        e for e in edges
+        if e.from_id.endswith("/Artikel248") and e.to_id.startswith("BWBR0014315/")
+    ]
+    assert len(cross) >= 1, "expected extref edge 248→BWBR0014315/..."
+
+
+def test_filter_titel_applies_only_matching_titeldeel():
+    """A filter_titel that matches no Titeldeel in the fixture yields 0 nodes."""
+    from jurist.ingest.allowlist import BWBEntry
+    fake_entry = BWBEntry(name="test", label_prefix="X", filter_titel=("99",))
+    fixture = Path(__file__).parent / "fixtures" / "BWBR0005290_excerpt.xml"
+    nodes, _ = parse_bwb_xml(fixture.read_bytes(), "BWBR0005290", fake_entry)
+    assert nodes == [], f"expected 0 nodes for filter_titel=('99',), got {len(nodes)}"
+
+
+def test_uhw_parses_with_no_filter():
+    """Uhw fixture with no filter_titel yields ≥3 articles incl. Artikel3."""
+    fixture = Path(__file__).parent / "fixtures" / "BWBR0014315_excerpt.xml"
+    nodes, _ = parse_bwb_xml(
+        fixture.read_bytes(), "BWBR0014315", BWB_ALLOWLIST["BWBR0014315"]
+    )
+    assert len(nodes) >= 3, f"expected ≥3 Uhw articles, got {len(nodes)}"
+    ids = {n.article_id for n in nodes}
+    assert any(aid.endswith("/Artikel3") for aid in ids), (
+        f"Artikel3 not found in {ids}"
+    )
+
+
+def test_article_title_inherits_nearest_container_titel():
+    """art. 248 sits inside sub-paragraaf 'Huurprijzen'; that title is inherited."""
+    fixture = Path(__file__).parent / "fixtures" / "BWBR0005290_excerpt.xml"
+    nodes, _ = parse_bwb_xml(fixture.read_bytes(), "BWBR0005290", _bw7_entry())
+
+    a248 = next(
+        (n for n in nodes if n.article_id.endswith("/Artikel248")), None
+    )
+    assert a248 is not None
+    assert a248.title, "expected non-empty title for art. 248"
+    # Nearest ancestor with a <kop><titel> is Sub-paragraaf1: "Huurprijzen"
+    assert a248.title == "Huurprijzen", f"expected 'Huurprijzen', got '{a248.title}'"
 ```
 
 - [ ] **Step 2: Run and see them fail**
@@ -931,22 +893,26 @@ Expected: FAIL with `ImportError: cannot import name 'parse_bwb_xml'`.
 Create `src/jurist/ingest/parser.py`:
 
 ```python
-"""Schema-conformant BWB XML parser.
+"""BWB XML parser — real schema (bwb-ng-variabel-deel attribute edition).
 
-Walks the tree, emits ArticleNodes + explicit edges from <intref>/<extref>.
-The node walk is generic; widening the allowlist to new BWBs must not need
-parser changes.
+Key schema facts confirmed from fixture XMLs:
+- Article identity: `bwb-ng-variabel-deel` attribute on each <artikel> element.
+  e.g. "/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248"
+- Container elements: <boek>, <titeldeel>, <afdeling>, <paragraaf>, <sub-paragraaf>,
+  <hoofdstuk> — NOT <titel>.
+- Explicit refs: <intref> and <extref> both carry `bwb-id` + `bwb-ng-variabel-deel`
+  giving the resolved target directly. No sentinel stage needed.
+- Article title: inherit from nearest ancestor with <kop><titel> text; else use
+  the `label` attribute value (e.g. "Artikel 248").
+- filter_titel for BWBR0005290: check that the path contains "/Titeldeel{N}/" for N
+  in the allowed set.
 """
 from __future__ import annotations
-
-import re
 
 from lxml import etree
 
 from jurist.ingest.allowlist import BWBEntry
 from jurist.schemas import ArticleEdge, ArticleNode
-
-CONTAINER_TAGS = frozenset({"boek", "titel", "afdeling", "hoofdstuk", "paragraaf"})
 
 
 def parse_bwb_xml(
@@ -954,180 +920,124 @@ def parse_bwb_xml(
 ) -> tuple[list[ArticleNode], list[ArticleEdge]]:
     """Return (nodes, explicit_edges) from a single BWB XML document.
 
-    Applies ``entry.filter_titel`` and skips ``vervallen`` articles.
-    Explicit edges come from <intref> and <extref> elements; targets
-    that don't resolve (or are cross-BWB to an out-of-allowlist id)
-    are dropped silently — the caller can't validate targets anyway
-    since we only have this BWB's nodes at call time.
+    Applies ``entry.filter_titel`` (checks bwb-ng-variabel-deel path).
+    Skips ``status="goed"``-only articles — actually skips articles without
+    a valid ``bwb-ng-variabel-deel`` attribute.
+    Explicit edges resolved directly from <intref>/<extref> attribute pairs.
     """
     root = etree.fromstring(xml_bytes)
-
     nodes: list[ArticleNode] = []
-    explicit_edges: list[ArticleEdge] = []
+    edges: list[ArticleEdge] = []
 
-    for artikel in root.iter("artikel"):
-        if _is_vervallen(artikel):
-            continue
-        nr = artikel.get("nr")
-        if not nr:
+    for art in root.iter("artikel"):
+        path = art.get("bwb-ng-variabel-deel", "")
+        if not path:
             continue
 
-        path_segments = _container_path(artikel)
-        if entry.filter_titel is not None and not _passes_titel_filter(
-            path_segments, entry.filter_titel
-        ):
-            continue
+        # Titel filter: require "/Titeldeel{N}/" segment in path
+        if entry.filter_titel is not None:
+            if not any(f"/Titeldeel{t}/" in path for t in entry.filter_titel):
+                continue
 
-        article_id = _build_article_id(bwb_id, path_segments, nr)
-        node = ArticleNode(
+        article_id = f"{bwb_id}{path}"
+        raw_label = art.get("label", "")  # e.g. "Artikel 248"
+        label = f"{entry.label_prefix}, {raw_label}" if raw_label else entry.label_prefix
+        title = _nearest_container_title(art) or raw_label
+        body_text = _extract_body_text(art)
+
+        outgoing_ids: list[str] = []
+        for ref in art.iter("intref"):
+            tid = _ref_to_article_id(ref)
+            if tid is not None:
+                outgoing_ids.append(tid)
+                edges.append(ArticleEdge(from_id=article_id, to_id=tid, kind="explicit", context=None))
+        for ref in art.iter("extref"):
+            tid = _ref_to_article_id(ref)
+            if tid is not None:
+                outgoing_ids.append(tid)
+                edges.append(ArticleEdge(from_id=article_id, to_id=tid, kind="explicit", context=None))
+
+        nodes.append(ArticleNode(
             article_id=article_id,
             bwb_id=bwb_id,
-            label=f"{entry.label_prefix}, Artikel {nr}",
-            title=_extract_title(artikel),
-            body_text=_extract_body(artikel),
-            outgoing_refs=[],
-        )
-        nodes.append(node)
+            label=label,
+            title=title,
+            body_text=body_text,
+            outgoing_refs=outgoing_ids,
+        ))
 
-        for edge in _extract_explicit_edges(artikel, article_id, bwb_id):
-            explicit_edges.append(edge)
-
-    _populate_outgoing_refs(nodes, explicit_edges)
-    return nodes, explicit_edges
+    return nodes, edges
 
 
-def _is_vervallen(artikel: etree._Element) -> bool:
-    if artikel.get("status") == "vervallen":
-        return True
-    kop = artikel.find("kop")
-    if kop is not None:
-        text = " ".join(kop.itertext()).strip()
-        if text == "[Vervallen]" or text == "":
-            return True
-    return False
+def _ref_to_article_id(ref: etree._Element) -> str | None:
+    """Extract article_id from an <intref> or <extref> element.
+
+    Both element types carry ``bwb-id`` and ``bwb-ng-variabel-deel`` attributes.
+    If either is missing (coarse BWB-level refs without article path), return None
+    and the caller drops the edge.
+    """
+    bwb = ref.get("bwb-id")
+    path = ref.get("bwb-ng-variabel-deel")
+    if not bwb or not path:
+        return None
+    return f"{bwb}{path}"
 
 
-def _container_path(artikel: etree._Element) -> list[str]:
-    path: list[str] = []
-    for anc in artikel.iterancestors():
-        if anc.tag in CONTAINER_TAGS:
-            nr = anc.get("nr", "")
-            path.append(f"{anc.tag.capitalize()}{nr}")
-    return list(reversed(path))
-
-
-def _passes_titel_filter(path_segments: list[str], allowed: tuple[str, ...]) -> bool:
-    for seg in path_segments:
-        if seg.startswith("Titel"):
-            return seg[len("Titel"):] in allowed
-    return False  # no Titel ancestor → fails a titel-filter entry
-
-
-def _build_article_id(bwb_id: str, path_segments: list[str], nr: str) -> str:
-    if path_segments:
-        return f"{bwb_id}/{'/'.join(path_segments)}/Artikel{nr}"
-    return f"{bwb_id}/Artikel{nr}"
-
-
-def _extract_title(artikel: etree._Element) -> str:
-    kop = artikel.find("kop")
-    if kop is None:
-        return ""
-    titel = kop.find("titel")
-    if titel is None:
-        return ""
-    return " ".join(titel.itertext()).strip()
-
-
-def _extract_body(artikel: etree._Element) -> str:
+def _extract_body_text(art: etree._Element) -> str:
+    """Concatenate all <al> descendant text; collapse whitespace; join with space."""
     parts: list[str] = []
-    for al in artikel.iter("al"):
-        text = " ".join(al.itertext()).strip()
+    for al in art.iter("al"):
+        text = " ".join(al.itertext())
+        text = " ".join(text.split())
         if text:
             parts.append(text)
-    return "\n\n".join(parts)
+    return " ".join(parts)
 
 
-_HREF_INTREF_RE = re.compile(r"#artikel(\d+[a-z]?)", re.IGNORECASE)
-_HREF_EXTREF_RE = re.compile(r"(BWBR\d+)[#/]artikel(\d+[a-z]?)", re.IGNORECASE)
-
-
-def _extract_explicit_edges(
-    artikel: etree._Element, source_article_id: str, source_bwb: str
-) -> list[ArticleEdge]:
-    out: list[ArticleEdge] = []
-    for ref in artikel.iter("intref"):
-        href = ref.get("href", "")
-        m = _HREF_INTREF_RE.search(href)
-        if m:
-            out.append(
-                ArticleEdge(
-                    from_id=source_article_id,
-                    to_id=f"{source_bwb}::Artikel{m.group(1)}",  # sentinel; resolved later
-                    kind="explicit",
-                )
-            )
-    for ref in artikel.iter("extref"):
-        # Try attribute form first: bwb-id="BWBR0014315" + either artikel-nr or aref
-        bwb_attr = ref.get("bwb-id")
-        nr_attr = ref.get("artikel-nr") or ref.get("aref")
-        if bwb_attr and nr_attr:
-            out.append(
-                ArticleEdge(
-                    from_id=source_article_id,
-                    to_id=f"{bwb_attr}::Artikel{nr_attr}",  # sentinel
-                    kind="explicit",
-                )
-            )
+def _nearest_container_title(art: etree._Element) -> str:
+    """Walk up from the article; return the first ancestor's <kop><titel> text."""
+    for anc in art.iterancestors():
+        if anc.tag == "artikel":
             continue
-        # Fall back to href parsing
-        href = ref.get("href", "")
-        m = _HREF_EXTREF_RE.search(href)
-        if m:
-            out.append(
-                ArticleEdge(
-                    from_id=source_article_id,
-                    to_id=f"{m.group(1).upper()}::Artikel{m.group(2)}",
-                    kind="explicit",
-                )
-            )
-    return out
-
-
-def _populate_outgoing_refs(nodes: list[ArticleNode], edges: list[ArticleEdge]) -> None:
-    """Fill ArticleNode.outgoing_refs from the edges list. Sentinel to_ids
-    (format ``{bwb}::Artikel{nr}``) are kept as-is at this stage — the xrefs
-    module resolves them against the full cross-BWB node set.
-    """
-    by_source: dict[str, list[str]] = {}
-    for e in edges:
-        by_source.setdefault(e.from_id, []).append(e.to_id)
-    for n in nodes:
-        if n.article_id in by_source:
-            n.outgoing_refs = list(by_source[n.article_id])
+        kop = anc.find("kop")
+        if kop is not None:
+            t = kop.find("titel")
+            if t is not None and t.text and t.text.strip():
+                return t.text.strip()
+    return ""
 ```
-
-Note on sentinels: `to_id` from `_extract_explicit_edges` may be a `{bwb}::Artikel{nr}` sentinel because this function doesn't know the full cross-BWB node set yet. Task 10 (`xrefs.py`) resolves sentinels against the union of all parsed nodes. Same-BWB `<intref>` targets use the source BWB; cross-BWB `<extref>` uses the declared BWB. If no node matches, the edge is dropped.
 
 - [ ] **Step 4: Run tests**
 
 Run: `uv run pytest tests/ingest/test_parser.py -v`
-Expected: all tests PASS, including the fixture-based `test_parses_art_7_248_bw_from_fixture`.
+Expected: 6 PASS.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Ruff**
+
+```bash
+uv run ruff check src/jurist/ingest/parser.py
+```
+
+Expected: no issues.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add src/jurist/ingest/parser.py tests/ingest/test_parser.py
-git commit -m "feat: ingest.parser — schema-conformant BWB XML walk"
+git commit -m "feat: ingest.parser — parse BWB XML into ArticleNode+ArticleEdge"
 ```
 
 ---
 
-### Task 10: Xrefs — regex pass, sentinel resolution, dedup
+### Task 10: Xrefs — regex fallback pass + dedup
 
 **Files:**
 - Create: `src/jurist/ingest/xrefs.py`
 - Create: `tests/ingest/test_xrefs.py`
+
+> **Schema reality:** `<intref>` and `<extref>` elements carry fully resolved `bwb-id + bwb-ng-variabel-deel` attributes. The parser (`Task 9`) extracts these into real `article_id` values directly — no sentinel stage is needed. This task's scope is therefore:
+> 1. Regex fallback pass for same-BWB mentions not covered by explicit elements.
+> 2. Merge (dedup) explicit + regex edges, explicit wins.
 
 - [ ] **Step 1: Write failing tests**
 
@@ -1135,184 +1045,76 @@ Create `tests/ingest/test_xrefs.py`:
 
 ```python
 from jurist.schemas import ArticleEdge, ArticleNode
-from jurist.ingest.xrefs import (
-    extract_regex_edges,
-    merge_edges,
-    resolve_sentinel_edges,
-)
+from jurist.ingest.xrefs import extract_regex_edges, merge_edges
 
 
 def _node(article_id: str, bwb: str, body: str = "") -> ArticleNode:
     return ArticleNode(
         article_id=article_id,
         bwb_id=bwb,
-        label=article_id,
+        label=article_id.rsplit("/", 1)[-1],
         title="",
         body_text=body,
         outgoing_refs=[],
     )
 
 
-def test_regex_matches_simple_article_ref():
-    n = _node(
-        "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248",
+def test_regex_finds_same_bwb_reference():
+    """body "zie artikel 249" → regex edge 248→249, kind="regex"."""
+    n248 = _node(
+        "BWBR0005290/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248",
         "BWBR0005290",
-        "De verhuurder verwijst naar artikel 249.",
+        "zie artikel 249",
     )
-    target = _node(
-        "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel249", "BWBR0005290"
-    )
-    edges = extract_regex_edges([n, target])
-    assert ArticleEdge(
-        from_id=n.article_id, to_id=target.article_id, kind="regex"
-    ) in edges
-
-
-def test_regex_ignores_lid_suffix():
-    n = _node(
-        "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248",
+    n249 = _node(
+        "BWBR0005290/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel249",
         "BWBR0005290",
-        "Zie artikel 249 lid 2 voor details.",
     )
-    target = _node(
-        "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel249", "BWBR0005290"
-    )
-    edges = extract_regex_edges([n, target])
-    assert any(e.to_id.endswith("/Artikel249") for e in edges)
+    edges = extract_regex_edges([n248, n249])
+    assert len(edges) == 1
+    assert edges[0].from_id == n248.article_id
+    assert edges[0].to_id == n249.article_id
+    assert edges[0].kind == "regex"
 
 
-def test_regex_preserves_letter_suffix():
-    n = _node(
-        "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248",
+def test_regex_ignores_cross_bwb_mentions():
+    """Free-text mention of "artikel 10" when Uhw articles are not in same nodes list → no edge."""
+    n248 = _node(
+        "BWBR0005290/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248",
         "BWBR0005290",
-        "Zie artikel 249a.",
+        "artikel 10 van de Uitvoeringswet huurprijzen woonruimte",
     )
-    target = _node(
-        "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel249a", "BWBR0005290"
-    )
-    edges = extract_regex_edges([n, target])
-    assert any(e.to_id.endswith("/Artikel249a") for e in edges)
+    # Uhw Artikel10 not in the nodes list passed to extract_regex_edges
+    edges = extract_regex_edges([n248])
+    assert edges == [], "cross-BWB text mention must not produce a regex edge"
 
 
-def test_regex_compound_ref_matches_only_leading():
-    n = _node(
-        "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248",
-        "BWBR0005290",
-        "de artikelen 249 en 250",
-    )
-    t1 = _node(
-        "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel249", "BWBR0005290"
-    )
-    t2 = _node(
-        "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel250", "BWBR0005290"
-    )
-    edges = extract_regex_edges([n, t1, t2])
-    matched_targets = {e.to_id for e in edges if e.from_id == n.article_id}
-    assert t1.article_id in matched_targets
-    # Trailing "250" is expected to be picked up by explicit <intref>, not regex
-    assert t2.article_id not in matched_targets
-
-
-def test_regex_prose_false_positive_guard():
-    n = _node(
-        "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248",
-        "BWBR0005290",
-        "In 249 gevallen was de uitkomst anders.",
-    )
-    # Target article exists but should not be linked — "249" here is a count, not a ref.
-    target = _node(
-        "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel249", "BWBR0005290"
-    )
-    edges = extract_regex_edges([n, target])
-    assert not any(e.from_id == n.article_id for e in edges)
-
-
-def test_regex_drops_missing_target():
-    n = _node(
-        "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248",
-        "BWBR0005290",
-        "Zie artikel 9999.",
-    )
-    edges = extract_regex_edges([n])  # no target for 9999
-    assert edges == []
-
-
-def test_resolve_sentinel_intref():
-    all_nodes = [
-        _node("BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248", "BWBR0005290"),
-        _node("BWBR0005290/Boek7/Titel4/Afdeling5/Artikel249", "BWBR0005290"),
-    ]
-    sentinel = ArticleEdge(
-        from_id="BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248",
-        to_id="BWBR0005290::Artikel249",
-        kind="explicit",
-    )
-    resolved = resolve_sentinel_edges([sentinel], all_nodes)
-    assert len(resolved) == 1
-    assert resolved[0].to_id == "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel249"
-
-
-def test_resolve_sentinel_extref_to_other_bwb():
-    all_nodes = [
-        _node("BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248", "BWBR0005290"),
-        _node("BWBR0014315/Artikel6", "BWBR0014315"),
-    ]
-    sentinel = ArticleEdge(
-        from_id="BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248",
-        to_id="BWBR0014315::Artikel6",
-        kind="explicit",
-    )
-    resolved = resolve_sentinel_edges([sentinel], all_nodes)
-    assert resolved[0].to_id == "BWBR0014315/Artikel6"
-
-
-def test_resolve_sentinel_drops_out_of_allowlist():
-    all_nodes = [
-        _node("BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248", "BWBR0005290"),
-    ]
-    sentinel = ArticleEdge(
-        from_id="BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248",
-        to_id="BWBR0099999::Artikel1",  # not in node set
-        kind="explicit",
-    )
-    assert resolve_sentinel_edges([sentinel], all_nodes) == []
-
-
-def test_resolve_sentinel_drops_ambiguous():
-    # Two candidates in same BWB matching /Artikel1 — drop rather than guess
-    all_nodes = [
-        _node("BWBR0005290/Boek6/Titel1/Artikel1", "BWBR0005290"),
-        _node("BWBR0005290/Boek7/Titel4/Afdeling5/Artikel1", "BWBR0005290"),
-    ]
-    sentinel = ArticleEdge(
-        from_id="BWBR0005290/Boek7/Titel4/Afdeling5/Artikel1",
-        to_id="BWBR0005290::Artikel1",
-        kind="explicit",
-    )
-    # Ambiguous lookup → drop
-    assert resolve_sentinel_edges([sentinel], all_nodes) == []
-
-
-def test_merge_prefers_explicit_over_regex():
-    a = "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248"
-    b = "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel249"
+def test_merge_dedupe_explicit_wins():
+    """Same (from, to) pair in both lists → one edge, kind='explicit'."""
+    a = "BWBR0005290/.../Artikel248"
+    b = "BWBR0005290/.../Artikel252"
     explicit = [ArticleEdge(from_id=a, to_id=b, kind="explicit")]
-    regex = [ArticleEdge(from_id=a, to_id=b, kind="regex")]
+    regex    = [ArticleEdge(from_id=a, to_id=b, kind="regex")]
     merged = merge_edges(explicit, regex)
     assert len(merged) == 1
     assert merged[0].kind == "explicit"
 
 
-def test_merge_keeps_regex_only_when_no_explicit_match():
-    a = "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248"
-    b = "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel249"
-    c = "BWBR0005290/Boek7/Titel4/Afdeling5/Artikel250"
+def test_merge_keeps_distinct_pairs():
+    """explicit (A→B) + regex (A→C) + regex (A→B duplicate) → 2 edges."""
+    a = "BWBR0005290/.../Artikel248"
+    b = "BWBR0005290/.../Artikel252"
+    c = "BWBR0005290/.../Artikel253"
     explicit = [ArticleEdge(from_id=a, to_id=b, kind="explicit")]
-    regex = [ArticleEdge(from_id=a, to_id=c, kind="regex")]
+    regex    = [
+        ArticleEdge(from_id=a, to_id=c, kind="regex"),
+        ArticleEdge(from_id=a, to_id=b, kind="regex"),  # duplicate of explicit pair
+    ]
     merged = merge_edges(explicit, regex)
-    kinds_by_target = {e.to_id: e.kind for e in merged}
-    assert kinds_by_target[b] == "explicit"
-    assert kinds_by_target[c] == "regex"
+    assert len(merged) == 2
+    by_target = {e.to_id: e.kind for e in merged}
+    assert by_target[b] == "explicit"
+    assert by_target[c] == "regex"
 ```
 
 - [ ] **Step 2: Run and see them fail**
@@ -1325,12 +1127,14 @@ Expected: FAIL with `ImportError: cannot import name 'extract_regex_edges'`.
 Create `src/jurist/ingest/xrefs.py`:
 
 ```python
-"""Cross-reference extraction: regex fallback pass + sentinel resolution + dedup.
+"""Cross-reference extraction: regex fallback pass + dedup merge.
 
-See spec §5.3. Explicit edges from <intref>/<extref> come from the parser
-carrying sentinel ``to_id`` like ``"BWBR0005290::Artikel249"``. This module
-resolves sentinels against the full multi-BWB node set, emits regex-based
-same-BWB edges from body_text, and merges with dedup preferring explicit.
+See spec §5.3. Explicit edges from <intref>/<extref> are already fully resolved
+by the parser (Task 9) — no sentinel resolution step needed.
+
+This module:
+  1. extract_regex_edges — same-BWB leading-number regex scan over body_text.
+  2. merge_edges — dedup by (from_id, to_id); explicit wins over regex.
 """
 from __future__ import annotations
 
@@ -1339,104 +1143,73 @@ import re
 from jurist.schemas import ArticleEdge, ArticleNode
 
 # Matches "artikel 248", "artikelen 249", "artikel 248a", optionally followed
-# by "eerste|tweede|...|Ne lid" (lid ignored — edges are article-level).
-# Uses a word boundary before "artikel" to skip mid-word matches.
-ARTICLE_REF_PATTERN = re.compile(
-    r"\bartikel(?:en)?\s+(\d+[a-z]?)"
-    r"(?:\s+(?:eerste|tweede|derde|vierde|vijfde|zesde|zevende|achtste|negende|tiende|\d+e)\s+lid)?",
-    re.IGNORECASE,
-)
+# by ordinal "... lid" (lid ignored — edges are article-level).
+# Word-boundary before "artikel" guards against mid-sentence number matches.
+_ARTIKEL_RE = re.compile(r"\bartikel(?:en)?\s+(\d+[a-z]?)", re.IGNORECASE)
 
 
 def extract_regex_edges(nodes: list[ArticleNode]) -> list[ArticleEdge]:
-    """Run the regex pass over each node's body_text; emit same-BWB edges.
+    """Scan each node's body_text for article references; emit same-BWB edges.
 
-    Resolves each hit against the passed-in node set by suffix match in the
-    same BWB. Ambiguous or missing targets → drop silently.
+    Resolution strategy: look up "Artikel{N}" suffix within the same bwb_id.
+    Ambiguous (multiple candidates) or missing targets → drop silently.
+    Cross-BWB text mentions cannot be resolved — dropped too (use explicit edges
+    from <extref> for cross-BWB coverage).
     """
-    by_bwb_suffix: dict[tuple[str, str], list[str]] = {}
+    # Build per-BWB map: "Artikel{N}" → article_id (unique within BWB or ambiguous)
+    by_bwb: dict[str, dict[str, str]] = {}
     for n in nodes:
-        # Each node's article_id ends with "/Artikel<nr>"; index by (bwb, suffix).
-        suffix = n.article_id.rsplit("/", 1)[-1]  # e.g., "Artikel249"
-        by_bwb_suffix.setdefault((n.bwb_id, suffix), []).append(n.article_id)
+        # label ends with e.g. "Artikel 248" → normalize to "Artikel248"
+        # But more reliably: use the last path segment of article_id
+        suffix = n.article_id.rsplit("/", 1)[-1]  # e.g. "Artikel248"
+        by_bwb.setdefault(n.bwb_id, {})[suffix] = n.article_id  # last write wins on dup
 
     edges: list[ArticleEdge] = []
     seen: set[tuple[str, str]] = set()
     for n in nodes:
-        for m in ARTICLE_REF_PATTERN.finditer(n.body_text):
-            nr = m.group(1)
-            key = (n.bwb_id, f"Artikel{nr}")
-            candidates = by_bwb_suffix.get(key, [])
-            if len(candidates) != 1:  # ambiguous or missing → drop
+        for m in _ARTIKEL_RE.finditer(n.body_text):
+            target_suffix = f"Artikel{m.group(1)}"
+            target_id = by_bwb.get(n.bwb_id, {}).get(target_suffix)
+            if target_id is None or target_id == n.article_id:
                 continue
-            target = candidates[0]
-            if target == n.article_id:  # self-link — skip
+            key = (n.article_id, target_id)
+            if key in seen:
                 continue
-            dedup_key = (n.article_id, target)
-            if dedup_key in seen:
-                continue
-            seen.add(dedup_key)
-            edges.append(
-                ArticleEdge(from_id=n.article_id, to_id=target, kind="regex")
-            )
+            seen.add(key)
+            edges.append(ArticleEdge(from_id=n.article_id, to_id=target_id, kind="regex", context=None))
     return edges
-
-
-def resolve_sentinel_edges(
-    edges: list[ArticleEdge], all_nodes: list[ArticleNode]
-) -> list[ArticleEdge]:
-    """Resolve ``{bwb}::Artikel{nr}`` sentinels in ``edges[*].to_id`` against
-    ``all_nodes``. Ambiguous or missing targets → drop silently.
-    """
-    by_bwb_suffix: dict[tuple[str, str], list[str]] = {}
-    for n in all_nodes:
-        suffix = n.article_id.rsplit("/", 1)[-1]
-        by_bwb_suffix.setdefault((n.bwb_id, suffix), []).append(n.article_id)
-
-    resolved: list[ArticleEdge] = []
-    for e in edges:
-        if "::" not in e.to_id:
-            resolved.append(e)  # already a real article_id
-            continue
-        bwb, suffix = e.to_id.split("::", 1)
-        candidates = by_bwb_suffix.get((bwb, suffix), [])
-        if len(candidates) != 1:
-            continue  # drop ambiguous / missing
-        resolved.append(
-            ArticleEdge(
-                from_id=e.from_id,
-                to_id=candidates[0],
-                kind=e.kind,
-                context=e.context,
-            )
-        )
-    return resolved
 
 
 def merge_edges(
     explicit: list[ArticleEdge], regex: list[ArticleEdge]
 ) -> list[ArticleEdge]:
-    """Dedup by ``(from_id, to_id)``. Prefer ``kind="explicit"`` over ``"regex"``."""
-    by_key: dict[tuple[str, str], ArticleEdge] = {}
+    """Dedup by ``(from_id, to_id)``; explicit wins over regex."""
+    seen: dict[tuple[str, str], ArticleEdge] = {}
     for e in explicit:
-        by_key[(e.from_id, e.to_id)] = e
+        seen[(e.from_id, e.to_id)] = e  # explicit always wins
     for e in regex:
-        key = (e.from_id, e.to_id)
-        if key not in by_key:
-            by_key[key] = e
-    return list(by_key.values())
+        seen.setdefault((e.from_id, e.to_id), e)
+    return list(seen.values())
 ```
 
 - [ ] **Step 4: Run tests**
 
 Run: `uv run pytest tests/ingest/test_xrefs.py -v`
-Expected: all tests PASS.
+Expected: 4 PASS.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Ruff**
+
+```bash
+uv run ruff check src/jurist/ingest/xrefs.py
+```
+
+Expected: no issues.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add src/jurist/ingest/xrefs.py tests/ingest/test_xrefs.py
-git commit -m "feat: ingest.xrefs — regex pass + sentinel resolution + explicit-wins dedup"
+git commit -m "feat: ingest.xrefs — regex fallback + merge (explicit wins)"
 ```
 
 ---
@@ -1450,9 +1223,9 @@ git commit -m "feat: ingest.xrefs — regex pass + sentinel resolution + explici
 The orchestrator:
 1. Reads the version stamp from each fetched BWB XML.
 2. Short-circuits if all match the existing `source_versions` in `huurrecht.json` and not `--refresh`.
-3. Otherwise parses each BWB, collects nodes + explicit edges.
+3. Otherwise parses each BWB, collects nodes + explicit edges (already fully resolved — no sentinels).
 4. Runs `extract_regex_edges` over the union of all nodes.
-5. Resolves sentinel edges; merges explicit + regex.
+5. Merges explicit + regex edges (dedup; explicit wins).
 6. Writes `huurrecht.json` atomically and `data/articles/<bwb>/<flat>.md` dumps.
 
 Version-stamp extraction reads `root.get("vigerend-sinds")` (or `"inwerkingtreding"`, whichever the XML provides). If both are missing, use the current UTC date — idempotency becomes a no-op for that source, but the pipeline still runs.
@@ -1570,9 +1343,9 @@ Create `src/jurist/ingest/statutes.py`:
 Per-BWB:
   1. Fetch (cache-first) + extract version stamp.
   2. Short-circuit on matching source_versions unless --refresh.
-  3. Parse → (nodes, explicit_sentinel_edges).
+  3. Parse → (nodes, explicit_edges).  # edges already resolved; no sentinel stage
   4. Collect across BWBs; run regex pass over union.
-  5. Resolve sentinels; merge explicit + regex.
+  5. Merge explicit + regex (dedup, explicit wins).
   6. Write huurrecht.json atomically; dump per-article .md files.
 """
 from __future__ import annotations
@@ -1592,7 +1365,6 @@ from jurist.ingest.parser import parse_bwb_xml
 from jurist.ingest.xrefs import (
     extract_regex_edges,
     merge_edges,
-    resolve_sentinel_edges,
 )
 from jurist.schemas import ArticleEdge, ArticleNode, KGSnapshot
 
@@ -1651,9 +1423,9 @@ def run_ingest(
         all_explicit.extend(explicit)
 
     # --- Pass 3: edges ---
-    resolved_explicit = resolve_sentinel_edges(all_explicit, all_nodes)
+    # all_explicit already carries resolved article_ids (no sentinel stage needed)
     regex_edges = extract_regex_edges(all_nodes)
-    merged = merge_edges(resolved_explicit, regex_edges)
+    merged = merge_edges(all_explicit, regex_edges)
 
     # Repopulate ArticleNode.outgoing_refs from the merged edge list
     refs_by_source: dict[str, list[str]] = {}

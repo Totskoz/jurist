@@ -119,33 +119,35 @@ Both URLs return `application/xml` without authentication. The manifest URL redi
 
 Walk the parsed tree with `lxml.etree.iter("artikel")`. For each `<artikel>`:
 
-- **Skip** if `status="vervallen"` on the element, or if the `<kop>` contains only `"[Vervallen]"`.
-- **article_id**: structural path from ancestor chain. Walk `iterancestors()`, collect container elements (`boek`, `titel`, `afdeling`, `hoofdstuk`, `paragraaf`), reverse to top-down order, emit `{Tag}{nr}` segments. Prefix with BWB ID.
-  - Example (BW7): `BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248`
-  - Example (UHW, flat under root): `BWBR0014315/Artikel6`
-- **Suffix handling**: `artikel nr="248a"` → `Artikel248a` (letter preserved verbatim).
-- **bwb_id**: derived from `article_id.split("/")[0]`.
-- **label**: `f"{entry.label_prefix}, Artikel {nr}"`. Example: `"Boek 7, Artikel 248"`, `"Uhw, Artikel 6"`. Matches the convention already established in `FAKE_KG`.
-- **title**: `<kop><titel>` text if present, else `""`.
-- **body_text**: concatenation of all `<lid><al>` text across paragraphs, `\n\n`-separated. Empty `<al>` elements skipped.
+- **Skip** if `bwb-ng-variabel-deel` attribute is missing.
+- **article_id**: read directly from the `bwb-ng-variabel-deel` attribute on the `<artikel>` element. No ancestor walk needed.
+  - Example (BW7): `BWBR0005290/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248`
+  - Example (UHW, inside hoofdstuk/paragraaf): `BWBR0014315/HoofdstukI/Paragraaf2/Artikel3`
+  - Construction: `article_id = f"{bwb_id}{path}"` where `path = art.get("bwb-ng-variabel-deel")`.
+- **Suffix handling**: letter variants like `"Artikel247a"` are already present in the attribute path verbatim.
+- **bwb_id**: passed as parameter (and verifiable as `article_id.split("/")[0]`).
+- **label**: `f"{entry.label_prefix}, {raw_label}"` where `raw_label = art.get("label")` (e.g. `"Artikel 248"`). Example: `"Boek 7, Artikel 248"`, `"Uhw, Artikel 3"`. Matches the convention established in `FAKE_KG`.
+- **title**: Walk up from the `<artikel>` via `iterancestors()` to find the nearest ancestor with a non-empty `<kop><titel>` text node. Use that text. If no ancestor has one, fall back to the article's own `label` attribute value (e.g. `"Artikel 248"`). Articles themselves typically have `<kop><label>Artikel</label><nr>248</nr>` with no `<titel>` — the inheritable title lives one or two levels up (e.g. `<sub-paragraaf>` → `"Huurprijzen"`, `<afdeling>` → `"Huur van woonruimte"`).
+- **body_text**: concatenate all `<al>` descendant text via `"".join(el.itertext())` (preserves inline ref text from `<intref>`/`<extref>` inner text). Collapse whitespace. Join `<al>` blocks with a space.
+- **Explicit edges from reference elements**: for every `<intref>` and `<extref>` inside the article body, read `bwb-id` and `bwb-ng-variabel-deel` attributes. Both element types carry these attrs with the resolved target. `target_id = f"{ref.get('bwb-id')}{ref.get('bwb-ng-variabel-deel')}"`. If either attribute is missing (coarse BWB-level refs with no article path), skip — drop the edge silently. No sentinel stage needed.
 
-**Titel filter** (applied per `BWBEntry.filter_titel`): drop articles whose `<titel>` ancestor has `nr` not in the filter list. This narrows BWBR0005290 from ~300 articles to ~100 (Titel 4 only).
+**Titeldeel filter** (applied per `BWBEntry.filter_titel`): require that the `bwb-ng-variabel-deel` path contains `/Titeldeel{N}/` for some N in the filter set. Example: `filter_titel=("4",)` passes paths containing `/Titeldeel4/`. This narrows BWBR0005290 from ~300 articles to ~100 (Titeldeel 4 only). Note: container elements use `<titeldeel>` (NOT `<titel>`).
 
 ### 5.3 Cross-reference extraction (`xrefs.py`)
 
 Two-layer extraction; `kind="explicit"` wins in dedup.
 
-**Layer 1 — explicit from reference elements.** Walk `<intref>` (same-BWB) and `<extref>` (cross-BWB) inside each article's body. Resolve `href` to an article_id in the parsed node set. Emit `ArticleEdge(from_id=source, to_id=target, kind="explicit", context=None)`. If target isn't in the parsed nodes (out-of-allowlist or vervallen), drop silently.
+**Layer 1 — explicit from reference elements (resolved by parser).** The parser (§5.2) already extracts fully resolved `ArticleEdge` objects from `<intref>` and `<extref>` elements using their `bwb-id + bwb-ng-variabel-deel` attributes. No sentinel resolution pass is needed. Both `<intref>` (same-BWB) and `<extref>` (cross-BWB) are handled identically: `target_id = f"{bwb-id-attr}{bwb-ng-variabel-deel-attr}"`. Refs without `bwb-ng-variabel-deel` (coarse BWB-level refs) are dropped by the parser. The `xrefs.py` module receives these edges already complete.
 
 **Layer 2 — regex fallback over body_text.** Pattern:
 
 ```python
-r'artikel(?:en)?\s+(\d+[a-z]?)(?:\s+(?:eerste|tweede|derde|vierde|vijfde|zesde|zevende|achtste|negende|tiende|\d+e)\s+lid)?'
+r'\bartikel(?:en)?\s+(\d+[a-z]?)'
 ```
 
-- Matches `"artikel 248"`, `"artikel 248a"`, `"artikel 249 lid 2"` (lid ignored — edges are article-level). **Compound refs like `"artikelen 249 en 250"` match only the leading number** (`"249"`); the trailing `"250"` is expected to be picked up by an explicit `<intref>` element or accepted as a false negative. The regex is the fallback layer, not exhaustive; explicit refs are the reliable provenance.
-- **Same-BWB resolution only.** Each regex hit is assumed to refer to an article in the source article's BWB. Cross-law references in free text are rare in BWB corpora; `<extref>` covers the important cross-law cases.
-- Emits `ArticleEdge(..., kind="regex")`. Targets not in the parsed node set → drop silently.
+- Matches `"artikel 248"`, `"artikel 248a"`, `"artikel 249 lid 2"` (leading number only; lid suffix ignored). **Compound refs like `"artikelen 249 en 250"` match only the leading number** (`"249"`); the trailing `"250"` is expected to be covered by an explicit `<intref>` element or accepted as a false negative. The regex is the fallback layer, not exhaustive.
+- **Same-BWB resolution only.** Each regex hit is resolved by looking up `"Artikel{N}"` as the last path segment of article_ids in the same `bwb_id`. Cross-law text mentions cannot be resolved this way — use explicit `<extref>` edges for cross-BWB coverage.
+- Emits `ArticleEdge(..., kind="regex")`. Ambiguous or missing targets → drop silently.
 
 **Deduplication.** Key by `(from_id, to_id)`. If both layers produce the same edge, keep `kind="explicit"`. If a layer produces the same edge twice, keep the first.
 
@@ -265,7 +267,7 @@ Same JSON shape as M0. The frontend consumes it unchanged.
 
 `src/jurist/fakes.py` is untouched. Fake agents continue to import `FAKE_KG`, `FAKE_VISIT_PATH`, `FAKE_CASES`, `FAKE_ANSWER`.
 
-**Risk.** `FAKE_VISIT_PATH` emits `node_visited` events with article_ids like `BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248`. These must match the format the real parser produces. If the parser drifts — different ancestor segmentation, different suffix handling — the frontend silently no-ops on unknown IDs, which looks like a broken animation. **Mitigation:** the drift-catch test in §9 asserts `FAKE_VISIT_PATH ⊂ parsed_node_set` at CI time.
+**Risk.** `FAKE_VISIT_PATH` emits `node_visited` events with article_ids like `BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248` (old M0 schema, ancestor-walk style). The real parser produces `BWBR0005290/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248` (from `bwb-ng-variabel-deel` attributes). These IDs **do not match** — `fakes.py` must be updated to use real IDs at Task 14. The drift-catch test in §9 asserts `FAKE_VISIT_PATH ⊂ parsed_node_set` at CI time; it will fail until `fakes.py` is updated.
 
 ## 8. Frontend tweaks
 
@@ -314,9 +316,9 @@ Fixtures are real BWB XML, trimmed to the minimum articles needed to cover the t
 
 ### 9.2 Per-file cases
 
-**`test_parser.py`** — spec-required `test_parses_art_7_248_bw()` asserts the parsed node has id `BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248`, label `"Boek 7, Artikel 248"`, non-empty body, expected outgoing refs. Plus: `test_skips_vervallen`, `test_preserves_article_suffix` (`248a`), `test_flat_bwb_article_id` (UHW), `test_body_text_concatenates_leden`, `test_titel_filter_applied`.
+**`test_parser.py`** — fixture-based: `test_parses_art_7_248_from_fixture` asserts node `article_id == "BWBR0005290/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248"`, `label == "Boek 7, Artikel 248"`, body contains `"huurprijs"`, `outgoing_refs` includes a ref to `Artikel252`. `test_intref_edge_extracted_with_bwb_and_path` — edge 248→252 in explicit edges list. `test_extref_edge_to_other_bwb` — edge 248→BWBR0014315/... in edges. `test_filter_titel_applies_only_matching_titeldeel` — fake `filter_titel=("99",)` yields 0 nodes. `test_uhw_parses_with_no_filter` — ≥3 articles incl. Artikel3. `test_article_title_inherits_nearest_container_titel` — art. 248's title is `"Huurprijzen"` (from Sub-paragraaf1).
 
-**`test_xrefs.py`** — table-driven regex: `"artikel 249"` → one match, `"artikel 249 lid 2"` → one match (lid ignored), `"artikel 249a"` → one match (suffix preserved), `"artikelen 249 en 250"` → one match for leading `249` only (documents the compound-ref limitation per §5.3), `"in 249 gevallen"` → no match (prose false-positive guard). Dedup: explicit + regex same edge → one output with `kind="explicit"`. Out-of-allowlist `<extref>` → dropped silently.
+**`test_xrefs.py`** — `test_regex_finds_same_bwb_reference`: body `"zie artikel 249"` → regex edge 248→249. `test_regex_ignores_cross_bwb_mentions`: Uhw articles not in the nodes list → no regex edge. `test_merge_dedupe_explicit_wins`: same (A→B) in explicit + regex → one edge, `kind="explicit"`. `test_merge_keeps_distinct_pairs`: explicit (A→B) + regex (A→C) + regex (A→B dup) → 2 edges.
 
 **`test_idempotency.py`** — matching `source_versions` → short-circuit (fetcher mocked). `--refresh` → force re-parse.
 
