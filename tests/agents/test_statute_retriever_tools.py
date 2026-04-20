@@ -1,6 +1,11 @@
 import pytest
 
-from jurist.agents.statute_retriever_tools import ToolExecutor, ToolResult, make_snippet
+from jurist.agents.statute_retriever_tools import (
+    ToolExecutor,
+    ToolResult,
+    build_catalog,
+    make_snippet,
+)
 from jurist.kg.networkx_kg import NetworkXKG
 from jurist.schemas import ArticleEdge, ArticleNode, KGSnapshot
 
@@ -237,9 +242,6 @@ async def test_done_rejects_missing_reason(fixture_kg):
     assert r.is_error
 
 
-from jurist.agents.statute_retriever_tools import build_catalog
-
-
 def test_build_catalog_formats_rows(fixture_kg):
     text = build_catalog(fixture_kg, snippet_chars=200)
     lines = text.strip().split("\n")
@@ -257,5 +259,5 @@ def test_build_catalog_truncates_long_bodies(fixture_kg):
     text = build_catalog(fixture_kg, snippet_chars=10)
     lines = text.strip().split("\n")
     # With snippet_chars=10, "Body of A with refs to B." → truncated + "…"
-    row_a = [l for l in lines if l.startswith("[A]")][0]
+    row_a = [line for line in lines if line.startswith("[A]")][0]
     assert "…" in row_a
