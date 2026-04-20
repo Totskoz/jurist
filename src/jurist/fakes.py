@@ -14,7 +14,10 @@ from jurist.schemas import (
 )
 
 BWB_BW7 = "BWBR0005290"
-BWB_UHW = "BWBR0002888"
+BWB_UHW = "BWBR0014315"
+
+_BW7_PREFIX = f"{BWB_BW7}/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2"
+_UHW_PREFIX = BWB_UHW
 
 
 def _node(aid: str, label: str, title: str, body: str, refs: list[str]) -> ArticleNode:
@@ -28,21 +31,21 @@ def _node(aid: str, label: str, title: str, body: str, refs: list[str]) -> Artic
     )
 
 
-_A248 = f"{BWB_BW7}/Boek7/Titel4/Afdeling5/Artikel248"
-_A249 = f"{BWB_BW7}/Boek7/Titel4/Afdeling5/Artikel249"
-_A250 = f"{BWB_BW7}/Boek7/Titel4/Afdeling5/Artikel250"
-_A252 = f"{BWB_BW7}/Boek7/Titel4/Afdeling5/Artikel252"
-_A253 = f"{BWB_BW7}/Boek7/Titel4/Afdeling5/Artikel253"
-_A254 = f"{BWB_BW7}/Boek7/Titel4/Afdeling5/Artikel254"
-_A255 = f"{BWB_BW7}/Boek7/Titel4/Afdeling5/Artikel255"
-_UHW6 = f"{BWB_UHW}/Artikel6"
-_UHW10 = f"{BWB_UHW}/Artikel10"
+_A248 = f"{_BW7_PREFIX}/Sub-paragraaf1/Artikel248"
+_A249 = f"{_BW7_PREFIX}/Sub-paragraaf1/Artikel249"
+_A250 = f"{_BW7_PREFIX}/Sub-paragraaf1/Artikel250"
+_A252 = f"{_BW7_PREFIX}/Sub-paragraaf1/Artikel252"
+_A253 = f"{_BW7_PREFIX}/Sub-paragraaf1/Artikel253"
+_A254 = f"{_BW7_PREFIX}/Sub-paragraaf1/Artikel254"
+_A255 = f"{_BW7_PREFIX}/Sub-paragraaf1/Artikel255"
+_UHW3 = f"{_UHW_PREFIX}/HoofdstukI/Paragraaf2/Artikel3"
+_UHW10 = f"{_UHW_PREFIX}/HoofdstukIII/Paragraaf1/Artikel10"
 
 _NODES: list[ArticleNode] = [
     _node(_A248, "Boek 7, Artikel 248",
           "Jaarlijkse huurverhoging — bevoegdheid verhuurder",
           "De verhuurder kan tot aan het tijdstip dat ... (fake body text)",
-          [_A249, _A252, _UHW6]),
+          [_A249, _A252, _UHW3]),
     _node(_A249, "Boek 7, Artikel 249",
           "Huurverhoging — voorwaarden en kennisgeving",
           "Een voorstel tot huurverhoging ... (fake body text)",
@@ -67,7 +70,7 @@ _NODES: list[ArticleNode] = [
           "Beroep tegen uitspraak huurcommissie",
           "Beroep staat open bij de kantonrechter ... (fake body text)",
           []),
-    _node(_UHW6, "Uhw, Artikel 6",
+    _node(_UHW3, "Uhw, Artikel 3",
           "Huurverhogingspercentage",
           "Het maximale huurverhogingspercentage ... (fake body text)",
           [_UHW10]),
@@ -85,7 +88,7 @@ def _edge(a: str, b: str) -> ArticleEdge:
 _EDGES: list[ArticleEdge] = [
     _edge(_A248, _A249),
     _edge(_A248, _A252),
-    _edge(_A248, _UHW6),
+    _edge(_A248, _UHW3),
     _edge(_A249, _A248),
     _edge(_A249, _A250),
     _edge(_A250, _A249),
@@ -93,7 +96,7 @@ _EDGES: list[ArticleEdge] = [
     _edge(_A252, _A253),
     _edge(_A253, _UHW10),
     _edge(_A254, _A255),
-    _edge(_UHW6, _UHW10),
+    _edge(_UHW3, _UHW10),
 ]
 
 FAKE_KG: tuple[list[ArticleNode], list[ArticleEdge]] = (_NODES, _EDGES)
@@ -149,10 +152,11 @@ FAKE_ANSWER: StructuredAnswer = StructuredAnswer(
         ),
         WetArtikelCitation(
             bwb_id=BWB_UHW,
-            article_label="Uhw, Artikel 6",
-            quote="Het maximale huurverhogingspercentage ...",
+            article_label="Uhw, Artikel 10",
+            quote="Het puntenstelsel bepaalt ...",
             explanation=(
-                "Stelt het maximale percentage vast; 15% ligt daar ruim boven voor gereguleerde huur."
+                "Stelt het maximale percentage vast via het puntenstelsel; "
+                "15% ligt daar ruim boven voor gereguleerde huur."
             ),
         ),
     ],
