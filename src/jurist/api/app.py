@@ -20,6 +20,16 @@ from jurist.config import RunContext, settings
 from jurist.kg.interface import KnowledgeGraph
 from jurist.kg.networkx_kg import NetworkXKG
 
+# Ensure our jurist.* INFO logs surface when uvicorn's reload worker imports
+# this module without running jurist.api.__main__.main(). basicConfig is a
+# no-op if the root logger already has handlers, so the __main__ call still
+# wins when the process is launched directly.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    datefmt="%H:%M:%S",
+)
+
 logger = logging.getLogger(__name__)
 
 

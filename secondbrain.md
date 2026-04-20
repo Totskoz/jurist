@@ -43,6 +43,50 @@ Scope we dropped from M1 to keep it shippable:
 - **Rest of BW7 Titel 4** — M1 only ingests all of BW7 Titel 4 already. Check whether any other *titels* of Boek 7 are relevant to huurrecht edge cases before widening further.
 - **Cross-corpus extrefs** — currently we drop dangling edges that point at article IDs outside the loaded corpus. Widening the corpus will resolve some of these. Worth logging which edges get dropped so we know what's missing.
 
+## M2 fallback ladder: what to try if Jaccard recall disappoints
+
+We picked agentic tool-use over the KG with lexical (Jaccard) `search_articles` for M2. If on real runs the user's phrasing ("huur 15% verhogen") doesn't surface the right statutory terms ("huurprijswijziging", "huurverhoging", "puntentelling"), here's the upgrade path in order of cost:
+
+1. **Query expansion (HyDE-lite).** Cheapest. Have the decomposer (M4) — or a one-shot Sonnet call before the loop — rewrite the user phrase into 2–3 statutory-vocabulary paraphrases. OR each through the existing `search_articles` and dedupe. No new index, no new tool, reuses everything. This is the "Lightweight seeding" middle option already noted in `discussions.md`.
+2. **Add a `vector_search_articles` tool.** Build a bge-m3 embedding index over the 218 articles (we'll already have bge-m3 standing up for M3 cases — reuse it). Expose as a second retrieval tool alongside Jaccard; let Sonnet pick. ~218 vectors is trivial to host, in-memory or LanceDB.
+3. **Real HyDE.** Generate a hypothetical statute passage, embed it, dense-retrieve. Only worth it once (2) is in place and still missing recall. Most useful when corpus widens past the point where the article catalog still fits in the cached system prompt.
+
+**Skip: full GraphRAG.** Community detection + per-community summarization solves "what's in this giant corpus?" not "find the right article." At 218 nodes / 283 edges the model can already see the whole catalog in cache; community summaries add a layer of indirection without adding signal. Revisit only if M1.5 + cross-corpus extrefs push us past ~2k nodes *and* the questions start being thematic/global rather than article-specific.
+
+## M2 cost + behaviour observations (from real runs on 2026-04-20)
+
+Two real end-to-end runs of the locked question against the live API, plus token-size measurements. Noting these down so we don't re-derive them next time the cost conversation comes up.
+
+**Baseline per-run profile.**
+
+- ~90K tokens input, ~1.7K tokens output, ~32s wall clock end-to-end; statute retriever is ~26s of that across 3 model turns.
+- At naive Sonnet 4.6 pricing (~$3 / $15 per MTok) that's ~$0.30 per question — reasonable for a demo.
+- *Effective* cost depends on prompt-cache hit rate. With per-turn `cache_read_input_tokens` now logged (see `jurist.llm.client`), we can verify the cache is actually earning its 10%-of-miss discount. Until we check a live log, treat the $0.30 as an upper bound.
+
+**Catalog trimming is the cheapest lever we haven't pulled.**
+
+System prompt is 64,585 chars (~18-20K tokens) — 60%+ of the per-turn input. The catalog renders each article as `[<id>] "<label>" — <title>: <snippet[200]>`. Dropping `JURIST_STATUTE_CATALOG_SNIPPET_CHARS` cuts it hard:
+
+| `snippet_chars` | catalog chars | approx savings |
+| --- | --- | --- |
+| 200 (default)   | 64,585 | — |
+| 100             | 45,737 | ~30% |
+| 60              | 37,701 | ~40% |
+| 0 (title only)  | 26,173 | ~60% |
+
+Pull the trigger when: cache telemetry shows we're paying cache-write more than we recover via cache-reads, OR the corpus widens past the point where 200-char snippets still fit comfortably (M1.5+ territory). One-line default change in `jurist.config`. No code changes elsewhere — the renderer already honours the setting.
+
+**The retriever isn't really traversing the KG.**
+
+In both observed real runs the model went: read catalog → fire parallel `get_article(id)` → `done`. It never called `search_articles`, `list_neighbors`, or `follow_cross_ref`. Rational behaviour: the catalog in the system prompt *is* the lookup index, so the neighbour/search/follow tools are redundant for questions where the relevant article_ids are already visible in the cached preamble.
+
+Consequences:
+- For the **demo narrative** ("Sonnet traverses the legal graph") this is weak — the KG is being used as a lookup table, not walked. The UI's `node_visited` animation still fires, so visually it looks like traversal.
+- When the **corpus widens** past the cached-preamble budget (M1.5+), the catalog won't fit verbatim and the traversal tools will start to earn their keep. Revisit tool usefulness at that point rather than now.
+- Not worth pruning the tools today — they're cheap to keep defined, and a sharper question (one where the right article isn't in the catalog's snippet) might still use them.
+
+Related: `secondbrain.md#M2 fallback ladder` already covers the retrieval-quality upgrade path (HyDE-lite → vector tool → real HyDE). This observation is orthogonal: it's about whether the *existing* non-Jaccard tools are being exercised, not about whether we need more tools.
+
 ## Environment quirks worth capturing (not yet in CLAUDE.md)
 
 - **Zombie python3.11 processes on port 8766.** Observed 5 stale processes from prior sessions holding the port and serving the old `FAKE_KG`, which made the frontend show 9 nodes after M1 shipped. `tasklist | grep python` + `taskkill /F /PID <pid>` to clean up. Consider adding to CLAUDE.md "Environment quirks" or moving the API to a fresh port.

@@ -10,6 +10,7 @@ run_tool_loop. Task 13 wires a real-client path that lives in the same file.
 """
 from __future__ import annotations
 
+import logging
 import time
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
@@ -17,6 +18,8 @@ from typing import Any  # noqa: UP035 — Any lives in typing, not collections.a
 
 from jurist.agents.statute_retriever_tools import ToolExecutor, ToolResult
 from jurist.llm.turn import ModelToolUse, ModelTurn
+
+logger = logging.getLogger(__name__)
 
 # ---------------- LoopEvent ADT ----------------
 
@@ -52,6 +55,24 @@ class Coerced:
 LoopEvent = TextDelta | ToolUseStart | ToolResultEvent | Done | Coerced
 
 
+def _log_usage_total(usage_per_turn: list[dict[str, int]]) -> None:
+    """Log aggregate Anthropic usage across all turns in a run."""
+    if not usage_per_turn:
+        return
+    total_in = sum(u.get("input_tokens") or 0 for u in usage_per_turn)
+    total_out = sum(u.get("output_tokens") or 0 for u in usage_per_turn)
+    total_write = sum(u.get("cache_creation_input_tokens") or 0 for u in usage_per_turn)
+    total_read = sum(u.get("cache_read_input_tokens") or 0 for u in usage_per_turn)
+    cache_hit = (
+        f"{100 * total_read / (total_read + total_write):.0f}%"
+        if (total_read + total_write) > 0 else "n/a"
+    )
+    logger.info(
+        "loop usage total: turns=%d in=%d out=%d cache_write=%d cache_read=%d (hit=%s)",
+        len(usage_per_turn), total_in, total_out, total_write, total_read, cache_hit,
+    )
+
+
 # ---------------- Driver ----------------
 
 async def run_tool_loop(
@@ -77,15 +98,19 @@ async def run_tool_loop(
     done_errors = 0  # counts consecutive done failures
     last_call: tuple[str, str] | None = None
     dup_count = 0
+    usage_per_turn: list[dict[str, int]] = []
 
     async def _next_turn(hist: list[dict[str, Any]]) -> ModelTurn:
         if mock is not None:
             return mock.next_turn(hist)
-        return await _anthropic_next_turn(
+        turn, usage = await _anthropic_next_turn(
             client=client, model=model, temperature=temperature,
             max_tokens=max_tokens, system=system, tools=tools,
             messages=_history_to_anthropic_messages(hist),
         )
+        if usage is not None:
+            usage_per_turn.append(usage)
+        return turn
 
     def _coerce_selection(reason: str) -> list[dict[str, Any]]:
         # Deduplicate preserving last-occurrence (recency-ordered).
@@ -103,6 +128,7 @@ async def run_tool_loop(
     for _ in range(max_iters):
         if (time.monotonic() - started) > wall_clock_cap_s:
             yield Coerced(reason="wall_clock", selected=_coerce_selection("wall_clock"))
+            _log_usage_total(usage_per_turn)
             return
         turn = await _next_turn(history)
         for delta in turn.text_deltas:
@@ -110,6 +136,7 @@ async def run_tool_loop(
         if not turn.tool_uses:
             if not turn.text_deltas:
                 yield Coerced(reason="stall", selected=_coerce_selection("stall"))
+                _log_usage_total(usage_per_turn)
                 return
             history.append({"role": "assistant", "content": "".join(turn.text_deltas)})
             continue
@@ -134,6 +161,7 @@ async def run_tool_loop(
             if dup_count >= 2:
                 yield Coerced(reason="dup_loop",
                               selected=_coerce_selection("dup_loop"))
+                _log_usage_total(usage_per_turn)
                 return
             if dup_count == 1 and tu.name != "done":
                 advisory = ToolResult(
@@ -165,11 +193,13 @@ async def run_tool_loop(
                 yield ToolResultEvent(name="done", args=tu.args, result=result)
                 if not result.is_error:
                     yield Done(selected=list(tu.args.get("selected", [])))
+                    _log_usage_total(usage_per_turn)
                     return
                 done_errors += 1
                 if done_errors >= 2:
                     yield Coerced(reason="done_error",
                                   selected=_coerce_selection("done_error"))
+                    _log_usage_total(usage_per_turn)
                     return
                 # Inject the error tool_result for the model to correct next turn.
                 history.append({
@@ -198,6 +228,7 @@ async def run_tool_loop(
             })
     # Loop exhausted without done.
     yield Coerced(reason="max_iter", selected=_coerce_selection("max_iter"))
+    _log_usage_total(usage_per_turn)
 
 
 # ---------------- Anthropic message translators ----------------
@@ -265,8 +296,11 @@ async def _anthropic_next_turn(
     system: str,
     tools: list[dict[str, Any]],
     messages: list[dict[str, Any]],
-) -> ModelTurn:
-    """Stream one Anthropic turn and assemble a ModelTurn."""
+) -> tuple[ModelTurn, dict[str, int] | None]:
+    """Stream one Anthropic turn. Returns (ModelTurn, usage-dict-or-None).
+    `usage` mirrors the SDK's `final.usage` fields we care about:
+      input_tokens, output_tokens, cache_creation_input_tokens, cache_read_input_tokens.
+    """
     text_deltas: list[str] = []
     tool_uses: list[ModelToolUse] = []
     async with client.messages.stream(
@@ -290,4 +324,21 @@ async def _anthropic_next_turn(
     for block in final.content:
         if getattr(block, "type", None) == "tool_use":
             tool_uses.append(ModelToolUse(name=block.name, args=dict(block.input)))
-    return ModelTurn(text_deltas=text_deltas, tool_uses=tool_uses)
+
+    usage: dict[str, int] | None = None
+    raw = getattr(final, "usage", None)
+    if raw is not None:
+        usage = {
+            "input_tokens": getattr(raw, "input_tokens", 0) or 0,
+            "output_tokens": getattr(raw, "output_tokens", 0) or 0,
+            "cache_creation_input_tokens": getattr(raw, "cache_creation_input_tokens", 0) or 0,
+            "cache_read_input_tokens": getattr(raw, "cache_read_input_tokens", 0) or 0,
+        }
+        logger.info(
+            "turn usage: in=%d out=%d cache_write=%d cache_read=%d "
+            "text_blocks=%d tool_uses=%d",
+            usage["input_tokens"], usage["output_tokens"],
+            usage["cache_creation_input_tokens"], usage["cache_read_input_tokens"],
+            len(text_deltas), len(tool_uses),
+        )
+    return ModelTurn(text_deltas=text_deltas, tool_uses=tool_uses), usage

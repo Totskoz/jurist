@@ -1,6 +1,8 @@
 """Chains the four fake agents + validator stub; stamps events; emits to a buffer."""
 from __future__ import annotations
 
+import logging
+import time
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 
@@ -26,6 +28,8 @@ from jurist.schemas import (
     ValidatorIn,
     ValidatorOut,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _now_iso() -> str:
@@ -59,6 +63,8 @@ async def run_question(
     ctx: RunContext | None = None,
 ) -> None:
     """End-to-end run. In M2+ requires a RunContext for the statute retriever."""
+    run_started_at = time.monotonic()
+    logger.info("run_started id=%s q=%r", run_id, question[:80])
     await buffer.put(
         TraceEvent(
             type="run_started",
@@ -96,6 +102,10 @@ async def run_question(
             buffer,
         )
     except Exception as exc:  # noqa: BLE001 — surface all LLM/network errors
+        logger.exception(
+            "run_failed id=%s reason=llm_error detail=%s: %s",
+            run_id, type(exc).__name__, exc,
+        )
         await buffer.put(
             TraceEvent(
                 type="run_failed",
@@ -156,6 +166,13 @@ async def run_question(
             ts=_now_iso(),
             data={"final_answer": synth_out.answer.model_dump()},
         )
+    )
+    logger.info(
+        "run_finished id=%s elapsed_s=%.2f cited_articles=%d cited_cases=%d",
+        run_id,
+        time.monotonic() - run_started_at,
+        len(stat_out.cited_articles),
+        len(case_out.cited_cases),
     )
 
 
