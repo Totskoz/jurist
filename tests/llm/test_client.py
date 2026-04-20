@@ -181,3 +181,50 @@ async def test_max_iter_coerces_with_visited_recency_capped():
     assert final.selected[-1]["article_id"] == "N2"
     for entry in final.selected:
         assert "coerced: max_iter" in entry["reason"]
+
+
+class _SlowMock:
+    """Sleeps on every turn so the wall-clock cap fires quickly."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def next_turn(self, history):
+        self.calls += 1
+        # Block the event loop briefly by yielding a synchronous turn
+        # that does nothing; the loop advances monotonic time via sleeps
+        # only when we await, so we inject an await via a sentinel. The
+        # wall-clock test instead uses a very short cap.
+        return ScriptedTurn(
+            text_deltas=["…"],
+            tool_uses=[ScriptedToolUse(name="get_article", args={"article_id": "A"})],
+        )
+
+
+@pytest.mark.asyncio
+async def test_wall_clock_coerces_on_tight_cap(monkeypatch):
+    kg = _kg()
+    mock = _SlowMock()
+    executor = ToolExecutor(kg)
+
+    # Force monotonic time to jump forward each call.
+    import jurist.llm.client as client_mod
+
+    _times = [0.0, 0.0, 0.0, 1000.0]
+    _call_count = [0]
+
+    def _fake_monotonic() -> float:
+        val = _times[min(_call_count[0], len(_times) - 1)]
+        _call_count[0] += 1
+        return val
+
+    monkeypatch.setattr(client_mod.time, "monotonic", _fake_monotonic)
+
+    final = None
+    async for ev in run_tool_loop(
+        mock=mock, executor=executor, system="<sys>", tools=[],
+        user_message="q", max_iters=15, wall_clock_cap_s=10.0,
+    ):
+        final = ev
+    assert isinstance(final, Coerced)
+    assert final.reason == "wall_clock"
