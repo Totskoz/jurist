@@ -20,34 +20,44 @@ def test_fetch_returns_cached_bytes_without_http(tmp_path: Path, monkeypatch):
 
 def test_fetch_live_writes_cache_then_returns_bytes(tmp_path: Path, monkeypatch):
     monkeypatch.setattr("jurist.ingest.fetch.CACHE_DIR", tmp_path)
-    fake_resp = MagicMock()
-    fake_resp.content = b"<wet>fresh</wet>"
-    fake_resp.raise_for_status.return_value = None
+
+    manifest_resp = MagicMock()
+    manifest_resp.text = '<work _latestItem="some/path.xml">'
+    manifest_resp.raise_for_status.return_value = None
+
+    xml_resp = MagicMock()
+    xml_resp.content = b"<wet>fresh</wet>"
+    xml_resp.raise_for_status.return_value = None
 
     fake_client = MagicMock()
     fake_client.__enter__.return_value = fake_client
-    fake_client.get.return_value = fake_resp
+    fake_client.get.side_effect = [manifest_resp, xml_resp]
 
     with patch("jurist.ingest.fetch.httpx.Client", return_value=fake_client):
-        result = fetch_bwb_xml("BWBR0002888")
+        result = fetch_bwb_xml("BWBR0014315")
 
     assert result == b"<wet>fresh</wet>"
-    assert (tmp_path / "BWBR0002888.xml").read_bytes() == b"<wet>fresh</wet>"
+    assert (tmp_path / "BWBR0014315.xml").read_bytes() == b"<wet>fresh</wet>"
 
 
 def test_fetch_refresh_bypasses_cache(tmp_path: Path, monkeypatch):
     monkeypatch.setattr("jurist.ingest.fetch.CACHE_DIR", tmp_path)
-    (tmp_path / "BWBR0003402.xml").write_bytes(b"<wet>old</wet>")
+    (tmp_path / "BWBR0014315.xml").write_bytes(b"<wet>old</wet>")
 
-    fake_resp = MagicMock()
-    fake_resp.content = b"<wet>new</wet>"
-    fake_resp.raise_for_status.return_value = None
+    manifest_resp = MagicMock()
+    manifest_resp.text = '<work _latestItem="some/path.xml">'
+    manifest_resp.raise_for_status.return_value = None
+
+    xml_resp = MagicMock()
+    xml_resp.content = b"<wet>new</wet>"
+    xml_resp.raise_for_status.return_value = None
+
     fake_client = MagicMock()
     fake_client.__enter__.return_value = fake_client
-    fake_client.get.return_value = fake_resp
+    fake_client.get.side_effect = [manifest_resp, xml_resp]
 
     with patch("jurist.ingest.fetch.httpx.Client", return_value=fake_client):
-        result = fetch_bwb_xml("BWBR0003402", refresh=True)
+        result = fetch_bwb_xml("BWBR0014315", refresh=True)
 
     assert result == b"<wet>new</wet>"
 
@@ -63,13 +73,11 @@ def test_fetch_http_error_does_not_write_cache(tmp_path: Path, monkeypatch):
     import httpx as _httpx
     monkeypatch.setattr("jurist.ingest.fetch.CACHE_DIR", tmp_path)
 
-    fake_resp = MagicMock()
-    fake_resp.raise_for_status.side_effect = _httpx.HTTPStatusError(
-        "404", request=MagicMock(), response=MagicMock()
-    )
     fake_client = MagicMock()
     fake_client.__enter__.return_value = fake_client
-    fake_client.get.return_value = fake_resp
+    fake_client.get.side_effect = _httpx.HTTPStatusError(
+        "404", request=MagicMock(), response=MagicMock()
+    )
 
     with patch("jurist.ingest.fetch.httpx.Client", return_value=fake_client):
         with pytest.raises(_httpx.HTTPStatusError):
@@ -88,3 +96,19 @@ def test_fetch_rejects_path_traversal_in_bwb_id(tmp_path: Path, monkeypatch):
     # no_fetch=True then raises — proving the traversal was neutralized.
     with pytest.raises(FileNotFoundError):
         fetch_bwb_xml("../../BWBR0005290", no_fetch=True)
+
+
+def test_fetch_raises_on_manifest_missing_latest_item(tmp_path: Path, monkeypatch):
+    monkeypatch.setattr("jurist.ingest.fetch.CACHE_DIR", tmp_path)
+
+    manifest_resp = MagicMock()
+    manifest_resp.text = "<work>no attr here</work>"
+    manifest_resp.raise_for_status.return_value = None
+
+    fake_client = MagicMock()
+    fake_client.__enter__.return_value = fake_client
+    fake_client.get.return_value = manifest_resp
+
+    with patch("jurist.ingest.fetch.httpx.Client", return_value=fake_client):
+        with pytest.raises(ValueError, match="manifest missing _latestItem"):
+            fetch_bwb_xml("BWBR0014315")

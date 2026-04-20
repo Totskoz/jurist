@@ -1,4 +1,4 @@
-"""Single scope knob for ingestion. M1 ships 3 core BWBs; M1.5 widens."""
+"""Single scope knob for ingestion. M1 ships 2 core BWBs; M1.5 widens."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -17,12 +17,8 @@ BWB_ALLOWLIST: dict[str, BWBEntry] = {
         label_prefix="Boek 7",
         filter_titel=("4",),   # Huur only
     ),
-    "BWBR0002888": BWBEntry(
+    "BWBR0014315": BWBEntry(
         name="Uitvoeringswet huurprijzen woonruimte",
         label_prefix="Uhw",
-    ),
-    "BWBR0003402": BWBEntry(
-        name="Besluit huurprijzen woonruimte",
-        label_prefix="Besluit huurprijzen",
     ),
 }

@@ -37,7 +37,7 @@ M0 is complete (tag `m0-skeleton`): the end-to-end pipeline, orchestrator, SSE t
 src/jurist/
 ├── ingest/
 │   ├── __init__.py
-│   ├── allowlist.py       # 3 core BWBs with display names (M1.5 widens this)
+│   ├── allowlist.py       # 2 core BWBs with display names (M1.5 widens this)
 │   ├── fetch.py           # GET BWB XML → data/cache/bwb/{bwb_id}.xml
 │   ├── parser.py          # lxml walk → list[ArticleNode]; structural article_id
 │   ├── xrefs.py           # explicit <intref>/<extref> edges + same-BWB regex fallback
@@ -66,7 +66,7 @@ src/jurist/
 
 ## 4. Allowlist
 
-`src/jurist/ingest/allowlist.py` is the single scope knob. M1 version:
+`src/jurist/ingest/allowlist.py` is the single scope knob. M1 ships 2 core BWBs:
 
 ```python
 from dataclasses import dataclass
@@ -75,26 +75,22 @@ from dataclasses import dataclass
 class BWBEntry:
     name: str                               # full legal title
     label_prefix: str                       # human-readable prefix for ArticleNode.label
-    filter_titel: list[str] | None = None   # None = no filter; e.g., ["4"] = only Titel 4
+    filter_titel: tuple[str, ...] | None = None   # None = no filter; e.g., ("4",) = only Titel 4
 
 BWB_ALLOWLIST: dict[str, BWBEntry] = {
     "BWBR0005290": BWBEntry(
         name="Burgerlijk Wetboek Boek 7",
         label_prefix="Boek 7",
-        filter_titel=["4"],   # Huur only
+        filter_titel=("4",),   # Huur only
     ),
-    "BWBR0002888": BWBEntry(
+    "BWBR0014315": BWBEntry(
         name="Uitvoeringswet huurprijzen woonruimte",
         label_prefix="Uhw",
-    ),
-    "BWBR0003402": BWBEntry(
-        name="Besluit huurprijzen woonruimte",
-        label_prefix="Besluit huurprijzen",
     ),
 }
 ```
 
-**M1.5 will add (without parser code changes):** BW Boek 6, Wet doorstroming huurmarkt 2015, Wet goed verhuurderschap, Overlegwet, Huisvestingswet 2014.
+**M1.5 will add (without parser code changes):** Besluit huurprijzen woonruimte, BW Boek 6, Wet doorstroming huurmarkt 2015, Wet goed verhuurderschap, Overlegwet, Huisvestingswet 2014.
 
 The parser is schema-conformant (walks the XML tree generically); widening the allowlist must not require parser changes. If M1.5 uncovers BWB XML patterns the parser doesn't handle, that's a parser bug — an edge case the schema-conformant walk missed.
 
@@ -105,13 +101,19 @@ The parser is schema-conformant (walks the XML tree generically); widening the a
 Single entry point:
 
 ```python
-def fetch_bwb_xml(bwb_id: str) -> bytes: ...
+def fetch_bwb_xml(bwb_id: str, *, refresh: bool = False, no_fetch: bool = False) -> bytes: ...
 ```
 
-- URL template lives as a module-level constant (`BWB_XML_URL_TEMPLATE`). The exact URL is confirmed during implementation — KOOP / wetten.overheid.nl endpoint shapes have shifted over the years. Candidates: `https://wetten.overheid.nl/xml.php?regelingid={bwb_id}`, or the KOOP FRBR repository URL pattern. The spec commits to the function signature, not the URL.
+Two-step KOOP repository lookup (base: `https://repository.officiele-overheidspublicaties.nl/bwb`):
+1. GET `{base}/{bwb_id}/manifest.xml` (follow redirects). Parse the `_latestItem` attribute from the root element.
+2. GET `{base}/{bwb_id}/{_latestItem}` to retrieve the versioned XML.
+
+Both URLs return `application/xml` without authentication. The manifest URL redirects from the bare `/bwb/{bwb_id}/` path; using `/manifest.xml` suffix avoids the redirect.
+
 - Cache path: `data/cache/bwb/{bwb_id}.xml`. Overwritten on `--refresh`.
 - `--no-fetch` mode: cache-only; raises `FileNotFoundError` if missing.
-- HTTP client: `httpx.Client` (sync — ingest is a one-shot CLI).
+- HTTP client: `httpx.Client` with `follow_redirects=True` (sync — ingest is a one-shot CLI).
+- Atomic write: writes `.tmp` sibling, then replaces; prevents torn reads on crash.
 
 ### 5.2 Parser (`parser.py`)
 
@@ -120,10 +122,10 @@ Walk the parsed tree with `lxml.etree.iter("artikel")`. For each `<artikel>`:
 - **Skip** if `status="vervallen"` on the element, or if the `<kop>` contains only `"[Vervallen]"`.
 - **article_id**: structural path from ancestor chain. Walk `iterancestors()`, collect container elements (`boek`, `titel`, `afdeling`, `hoofdstuk`, `paragraaf`), reverse to top-down order, emit `{Tag}{nr}` segments. Prefix with BWB ID.
   - Example (BW7): `BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248`
-  - Example (UHW, flat under root): `BWBR0002888/Artikel6`
+  - Example (UHW, flat under root): `BWBR0014315/Artikel6`
 - **Suffix handling**: `artikel nr="248a"` → `Artikel248a` (letter preserved verbatim).
 - **bwb_id**: derived from `article_id.split("/")[0]`.
-- **label**: `f"{entry.label_prefix}, Artikel {nr}"`. Example: `"Boek 7, Artikel 248"`, `"Uhw, Artikel 6"`, `"Besluit huurprijzen, Artikel 1"`. Matches the convention already established in `FAKE_KG`.
+- **label**: `f"{entry.label_prefix}, Artikel {nr}"`. Example: `"Boek 7, Artikel 248"`, `"Uhw, Artikel 6"`. Matches the convention already established in `FAKE_KG`.
 - **title**: `<kop><titel>` text if present, else `""`.
 - **body_text**: concatenation of all `<lid><al>` text across paragraphs, `\n\n`-separated. Empty `<al>` elements skipped.
 
@@ -276,14 +278,13 @@ Same JSON shape as M0. The frontend consumes it unchanged.
 ```ts
 const BWB_COLORS: Record<string, string> = {
   'BWBR0005290': '#1e40af',  // Boek 7 — blue
-  'BWBR0002888': '#be185d',  // Uhw — pink
-  'BWBR0003402': '#047857',  // Besluit — green
+  'BWBR0014315': '#be185d',  // Uhw — pink
 };
 const bwbBorder = (article_id: string) =>
   BWB_COLORS[article_id.split('/')[0]] ?? '#6b7280';
 ```
 
-- **Inline legend:** small 3-entry legend in a corner of the KGPanel (colored dot + BWB short name). ~10 lines of JSX within the same file.
+- **Inline legend:** small 2-entry legend in a corner of the KGPanel (colored dot + BWB short name). ~10 lines of JSX within the same file.
 
 **Explicitly not in M1:** node click → detail side panel (v2, spec §14); BWB clustering via React Flow compound nodes (M5); filter/search/focus-subgraph UI.
 
@@ -296,8 +297,7 @@ tests/
 ├── ingest/
 │   ├── fixtures/
 │   │   ├── BWBR0005290_excerpt.xml    # BW7 Titel 4, includes art. 246-265
-│   │   ├── BWBR0002888_excerpt.xml    # UHW, incl. art. 6 + 10
-│   │   └── BWBR0003402_excerpt.xml    # Besluit, minimal
+│   │   └── BWBR0014315_excerpt.xml    # Uhw, incl. art. 3, 10, 16
 │   ├── test_parser.py
 │   ├── test_xrefs.py
 │   └── test_idempotency.py
@@ -324,7 +324,7 @@ Fixtures are real BWB XML, trimmed to the minimum articles needed to cover the t
 
 **`test_kg_endpoint.py`** — `TestClient` with `settings.kg_path` pointing to a small fixture JSON; `GET /api/kg` returns expected shape and node/edge counts. Missing KG file → `TestClient` context manager raises `RuntimeError` during startup (the hard-fail contract).
 
-**`test_ingest_end_to_end.py`** — runs the full ingest pipeline in-process against the 3 fixture XMLs; asserts output JSON validates against the v1 §7.3 shape; markdown dumps written for each parsed article.
+**`test_ingest_end_to_end.py`** — runs the full ingest pipeline in-process against the 2 fixture XMLs; asserts output JSON validates against the v1 §7.3 shape; markdown dumps written for each parsed article.
 
 **`test_fake_paths_in_real_kg.py`** — runs the same in-process ingest, then asserts every article_id in `FAKE_VISIT_PATH` and every `(bwb_id, article_label)` in `FAKE_ANSWER.relevante_wetsartikelen` resolves to a parsed node. Drift-catch for the M1→M2 transition.
 
@@ -338,7 +338,7 @@ All existing M0 tests must pass unchanged.
 
 ### 10.1 v1 design §2 — Scope
 
-Widen the `In.` clause from 3 BWBs to the ~8-BWB target corpus (BW Boek 7 Titel 4, Uitvoeringswet huurprijzen woonruimte, Besluit huurprijzen woonruimte, BW Boek 6, Wet doorstroming huurmarkt 2015, Wet goed verhuurderschap, Overlegwet, Huisvestingswet 2014). Note that M1 ships the first three ("core") and M1.5 widens to the rest.
+Widen the `In.` clause from 2 BWBs to the ~8-BWB target corpus (BW Boek 7 Titel 4, Uitvoeringswet huurprijzen woonruimte, Besluit huurprijzen woonruimte, BW Boek 6, Wet doorstroming huurmarkt 2015, Wet goed verhuurderschap, Overlegwet, Huisvestingswet 2014). Note that M1 ships the first two ("core") and M1.5 widens to the rest.
 
 ### 10.2 v1 design §11 — Milestones
 
@@ -347,7 +347,7 @@ Insert new milestone **M1.5 — Full-corpus widen** between M1 and M2:
 > **M1.5 — Full-corpus widen**
 >
 > Done when:
-> - `src/jurist/ingest/allowlist.py` widens to the full huurrecht corpus (8 BWBs): the three M1 cores plus BW Boek 6, Wet doorstroming huurmarkt 2015, Wet goed verhuurderschap, Overlegwet, Huisvestingswet 2014.
+> - `src/jurist/ingest/allowlist.py` widens to the full huurrecht corpus (8 BWBs): the two M1 cores plus Besluit huurprijzen woonruimte, BW Boek 6, Wet doorstroming huurmarkt 2015, Wet goed verhuurderschap, Overlegwet, Huisvestingswet 2014.
 > - `uv run python -m jurist.ingest.statutes --refresh` runs without parser code changes (schema-conformance check).
 > - Output KG contains ≥400 article nodes with cross-references across BWBs.
 > - KG panel still loads without crash; dense-layout readability is a separate concern (post-M1.5 polish if needed).
@@ -361,9 +361,9 @@ On M1 landing (not as part of the spec delta — as part of the implementation c
 ## 11. Risks and open items
 
 - **BWB XML endpoint URL.** Confirmed during implementation, not in this spec. Contract: `fetch_bwb_xml(bwb_id) -> bytes`. If the endpoint requires authentication, breaks under load, or changes shape, fall back to "manually download via browser → drop into `data/cache/bwb/`". The `--no-fetch` mode exists for exactly this scenario.
-- **Parser schema-conformance assumption.** M1 tests parser correctness on 3 BWB excerpts. M1.5 extends to 5 more BWBs, potentially uncovering parser bugs on less-common XML shapes (older legislation with deprecated tags, mixed namespace versions, bijlage-style structures). The parser's fixture-agnostic tree walk is designed for this, but M1.5 is the real test.
+- **Parser schema-conformance assumption.** M1 tests parser correctness on 2 BWB excerpts. M1.5 extends to 6 more BWBs, potentially uncovering parser bugs on less-common XML shapes (older legislation with deprecated tags, mixed namespace versions, bijlage-style structures). The parser's fixture-agnostic tree walk is designed for this, but M1.5 is the real test.
 - **Fake-path drift.** If the real parser produces `article_id` formats that don't match `FAKE_VISIT_PATH`, the drift-catch test fails at CI time. Fix: align the parser output, or update `FAKE_VISIT_PATH` to match real output. The fakes are scaffolding; they're allowed to change.
-- **KG panel legibility at M1.5.** 3-BWB KG at ~80 nodes renders fine with dagre LR. 8-BWB KG at ~500 nodes will be visually dense. Not an M1 concern, but the v1 spec's "readable on a laptop screen" promise will need compound-nodes / cluster-by-BWB work as part of M5 polish.
+- **KG panel legibility at M1.5.** 2-BWB KG at ~80 nodes renders fine with dagre LR. 8-BWB KG at ~500 nodes will be visually dense. Not an M1 concern, but the v1 spec's "readable on a laptop screen" promise will need compound-nodes / cluster-by-BWB work as part of M5 polish.
 
 ## 12. Decisions log
 
@@ -380,6 +380,7 @@ On M1 landing (not as part of the spec delta — as part of the implementation c
 | 9 | Frontend option (b): legibility tweaks, no side panel | No frontend change; add click-to-detail side panel | (a) risks ugly demo; (c) pre-builds v2. (b) is ~25 lines of change that materially improves the demo. |
 | 10 | Drift-catch test asserts `FAKE_VISIT_PATH ⊂` real KG | No test; manually verify | Silent no-op on unknown IDs is a demo failure mode; CI catches the drift cheaply. |
 | 11 | Title-filter lives in allowlist entry, not parser | Hardcode BW7 Titel 4 filter in parser | Keeps parser generic; widening via allowlist.py stays a data change. |
+| 12 | M1 allowlist corrected to 2 BWBs after brainstorm hallucinations | Keep the original 3 | BWBR0003402 was hallucinated (actually an adult-education regulation) and BWBR0002888 was mis-identified (real Uhw is BWBR0014315, confirmed via BW7 extref). M1 now ships 2 BWBs; the Besluit huurprijzen woonruimte is deferred to M1.5. |
 
 ---
 

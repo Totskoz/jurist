@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.11+, uv, FastAPI (lifespan), Pydantic 2, `lxml`, `httpx`, `networkx`, pytest, pytest-asyncio. Frontend: Vite + React + TypeScript (KGPanel tweaks only — no new components).
 
-**Scope note:** This plan covers **M1 only** per the design spec. M1 ships the 3 core BWBs (BW7 Titel 4, Uhw, Besluit huurprijzen). The widened ~8-BWB corpus is deferred to **M1.5**, which requires no parser code changes.
+**Scope note:** This plan covers **M1 only** per the design spec. M1 ships the 2 core BWBs (BW7 Titel 4, Uhw). The Besluit huurprijzen woonruimte and the widened ~8-BWB corpus are deferred to **M1.5**, which requires no parser code changes.
 
 **Authoritative design:** `docs/superpowers/specs/2026-04-20-jurist-m1-design.md` (parent: `docs/superpowers/specs/2026-04-17-jurist-v1-design.md`).
 
@@ -52,8 +52,7 @@
 | --- | --- |
 | `tests/ingest/__init__.py` | Package marker. |
 | `tests/ingest/fixtures/BWBR0005290_excerpt.xml` | Real BW7 XML excerpt (Titel 4, incl. art. 246-265). |
-| `tests/ingest/fixtures/BWBR0002888_excerpt.xml` | Real Uhw excerpt (incl. art. 6 + 10). |
-| `tests/ingest/fixtures/BWBR0003402_excerpt.xml` | Real Besluit excerpt (a few articles). |
+| `tests/ingest/fixtures/BWBR0014315_excerpt.xml` | Real Uhw excerpt (incl. art. 3, 10, 16). |
 | `tests/ingest/test_parser.py` | Parser behavior — inline mini-XML + fixture-based `test_parses_art_7_248_bw`. |
 | `tests/ingest/test_xrefs.py` | Regex pass + dedup merge, table-driven. |
 | `tests/ingest/test_idempotency.py` | `source_versions` short-circuit; `--refresh` bypass. |
@@ -61,7 +60,7 @@
 | `tests/kg/test_networkx_kg.py` | JSON roundtrip; `get_node`; dup detection. |
 | `tests/api/test_kg_endpoint.py` | `/api/kg` shape with tmp-dir KG; hard-fail on missing file. |
 | `tests/integration/__init__.py` | Package marker. |
-| `tests/integration/test_ingest_end_to_end.py` | Full pipeline on 3 fixture XMLs. |
+| `tests/integration/test_ingest_end_to_end.py` | Full pipeline on 2 fixture XMLs. |
 | `tests/integration/test_fake_paths_in_real_kg.py` | Drift catch — `FAKE_VISIT_PATH ⊂ parsed_nodes`. |
 
 ---
@@ -479,10 +478,10 @@ Create `src/jurist/ingest/__init__.py` (empty).
 Create `src/jurist/ingest/allowlist.py`:
 
 ```python
-"""Single scope knob for ingestion. M1 ships 3 core BWBs; M1.5 widens."""
+"""Single scope knob for ingestion. M1 ships 2 core BWBs; M1.5 widens."""
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
@@ -498,13 +497,9 @@ BWB_ALLOWLIST: dict[str, BWBEntry] = {
         label_prefix="Boek 7",
         filter_titel=("4",),   # Huur only
     ),
-    "BWBR0002888": BWBEntry(
+    "BWBR0014315": BWBEntry(
         name="Uitvoeringswet huurprijzen woonruimte",
         label_prefix="Uhw",
-    ),
-    "BWBR0003402": BWBEntry(
-        name="Besluit huurprijzen woonruimte",
-        label_prefix="Besluit huurprijzen",
     ),
 }
 ```
@@ -512,13 +507,13 @@ BWB_ALLOWLIST: dict[str, BWBEntry] = {
 - [ ] **Step 3: Smoke-import and spot-check**
 
 Run: `uv run python -c "from jurist.ingest.allowlist import BWB_ALLOWLIST; print(len(BWB_ALLOWLIST), list(BWB_ALLOWLIST))"`
-Expected: `3 ['BWBR0005290', 'BWBR0002888', 'BWBR0003402']`.
+Expected: `2 ['BWBR0005290', 'BWBR0014315']`.
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add src/jurist/ingest/__init__.py src/jurist/ingest/allowlist.py
-git commit -m "feat: ingest.allowlist — 3 core BWBs with filter_titel"
+git commit -m "feat: ingest.allowlist — 2 core BWBs with filter_titel"
 ```
 
 ---
@@ -532,7 +527,7 @@ git commit -m "feat: ingest.allowlist — 3 core BWBs with filter_titel"
 
 The fetcher returns BWB XML bytes. The cache layer avoids repeated network hits. `--no-fetch` mode is cache-only.
 
-The exact upstream URL template is a known unknown — see spec §5.1. Start with a reasonable default (`https://wetten.overheid.nl/xml.php?regelingid={bwb_id}`) and be prepared to update in Task 18 verification if the endpoint returns non-XML or 404. Tests mock the HTTP call, so the URL template isn't exercised in CI.
+The fetcher uses a 2-step KOOP repository lookup — see spec §5.1. The manifest URL `https://repository.officiele-overheidspublicaties.nl/bwb/{bwb_id}/manifest.xml` returns the latest-version path via the `_latestItem` attribute, which is then fetched as the versioned XML. Tests mock both HTTP calls, so the live URLs are not exercised in CI.
 
 - [ ] **Step 1: Create test package marker**
 
@@ -565,34 +560,44 @@ def test_fetch_returns_cached_bytes_without_http(tmp_path: Path, monkeypatch):
 
 def test_fetch_live_writes_cache_then_returns_bytes(tmp_path: Path, monkeypatch):
     monkeypatch.setattr("jurist.ingest.fetch.CACHE_DIR", tmp_path)
-    fake_resp = MagicMock()
-    fake_resp.content = b"<wet>fresh</wet>"
-    fake_resp.raise_for_status.return_value = None
+
+    manifest_resp = MagicMock()
+    manifest_resp.text = '<work _latestItem="some/path.xml">'
+    manifest_resp.raise_for_status.return_value = None
+
+    xml_resp = MagicMock()
+    xml_resp.content = b"<wet>fresh</wet>"
+    xml_resp.raise_for_status.return_value = None
 
     fake_client = MagicMock()
     fake_client.__enter__.return_value = fake_client
-    fake_client.get.return_value = fake_resp
+    fake_client.get.side_effect = [manifest_resp, xml_resp]
 
     with patch("jurist.ingest.fetch.httpx.Client", return_value=fake_client):
-        result = fetch_bwb_xml("BWBR0002888")
+        result = fetch_bwb_xml("BWBR0014315")
 
     assert result == b"<wet>fresh</wet>"
-    assert (tmp_path / "BWBR0002888.xml").read_bytes() == b"<wet>fresh</wet>"
+    assert (tmp_path / "BWBR0014315.xml").read_bytes() == b"<wet>fresh</wet>"
 
 
 def test_fetch_refresh_bypasses_cache(tmp_path: Path, monkeypatch):
     monkeypatch.setattr("jurist.ingest.fetch.CACHE_DIR", tmp_path)
-    (tmp_path / "BWBR0003402.xml").write_bytes(b"<wet>old</wet>")
+    (tmp_path / "BWBR0014315.xml").write_bytes(b"<wet>old</wet>")
 
-    fake_resp = MagicMock()
-    fake_resp.content = b"<wet>new</wet>"
-    fake_resp.raise_for_status.return_value = None
+    manifest_resp = MagicMock()
+    manifest_resp.text = '<work _latestItem="some/path.xml">'
+    manifest_resp.raise_for_status.return_value = None
+
+    xml_resp = MagicMock()
+    xml_resp.content = b"<wet>new</wet>"
+    xml_resp.raise_for_status.return_value = None
+
     fake_client = MagicMock()
     fake_client.__enter__.return_value = fake_client
-    fake_client.get.return_value = fake_resp
+    fake_client.get.side_effect = [manifest_resp, xml_resp]
 
     with patch("jurist.ingest.fetch.httpx.Client", return_value=fake_client):
-        result = fetch_bwb_xml("BWBR0003402", refresh=True)
+        result = fetch_bwb_xml("BWBR0014315", refresh=True)
 
     assert result == b"<wet>new</wet>"
 
@@ -601,6 +606,22 @@ def test_fetch_no_fetch_mode_raises_when_cache_missing(tmp_path: Path, monkeypat
     monkeypatch.setattr("jurist.ingest.fetch.CACHE_DIR", tmp_path)
     with pytest.raises(FileNotFoundError, match="cache miss"):
         fetch_bwb_xml("BWBR0009999", no_fetch=True)
+
+
+def test_fetch_raises_on_manifest_missing_latest_item(tmp_path: Path, monkeypatch):
+    monkeypatch.setattr("jurist.ingest.fetch.CACHE_DIR", tmp_path)
+
+    manifest_resp = MagicMock()
+    manifest_resp.text = "<work>no attr here</work>"
+    manifest_resp.raise_for_status.return_value = None
+
+    fake_client = MagicMock()
+    fake_client.__enter__.return_value = fake_client
+    fake_client.get.return_value = manifest_resp
+
+    with patch("jurist.ingest.fetch.httpx.Client", return_value=fake_client):
+        with pytest.raises(ValueError, match="manifest missing _latestItem"):
+            fetch_bwb_xml("BWBR0014315")
 ```
 
 - [ ] **Step 3: Run and see them fail**
@@ -613,29 +634,32 @@ Expected: FAIL with `ImportError: cannot import name 'fetch_bwb_xml'`.
 Create `src/jurist/ingest/fetch.py`:
 
 ```python
-"""BWB XML fetcher — cache-first with live httpx fallback."""
+"""BWB XML fetcher — cache-first with live KOOP repository fallback."""
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import httpx
 
 from jurist.config import settings
 
-BWB_XML_URL_TEMPLATE = "https://wetten.overheid.nl/xml.php?regelingid={bwb_id}"
+BWB_REPO_BASE = "https://repository.officiele-overheidspublicaties.nl/bwb"
 CACHE_DIR: Path = settings.data_dir / "cache" / "bwb"
 
 
 def fetch_bwb_xml(bwb_id: str, *, refresh: bool = False, no_fetch: bool = False) -> bytes:
-    """Return BWB XML bytes for ``bwb_id``.
+    """Return latest BWB XML bytes for ``bwb_id`` from KOOP repository.
 
     Order of operations:
       1. If cache hit and not ``refresh``, return cached bytes.
       2. If ``no_fetch``, raise FileNotFoundError on cache miss.
-      3. Otherwise GET from the upstream endpoint, write to cache, return bytes.
+      3. Otherwise GET the manifest, extract ``_latestItem``, GET that XML,
+         atomically write to cache, return bytes.
     """
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    cache_path = CACHE_DIR / f"{bwb_id}.xml"
+    safe_id = Path(bwb_id).name
+    cache_path = CACHE_DIR / f"{safe_id}.xml"
 
     if cache_path.exists() and not refresh:
         return cache_path.read_bytes()
@@ -643,14 +667,35 @@ def fetch_bwb_xml(bwb_id: str, *, refresh: bool = False, no_fetch: bool = False)
     if no_fetch:
         raise FileNotFoundError(f"cache miss for {bwb_id} and --no-fetch is set")
 
-    url = BWB_XML_URL_TEMPLATE.format(bwb_id=bwb_id)
-    with httpx.Client(timeout=30.0) as client:
-        resp = client.get(url)
-        resp.raise_for_status()
-        data = resp.content
+    with httpx.Client(timeout=30.0, follow_redirects=True) as client:
+        manifest_url = f"{BWB_REPO_BASE}/{bwb_id}/manifest.xml"
+        m_resp = client.get(manifest_url)
+        m_resp.raise_for_status()
+        latest_item = _parse_latest_item(m_resp.text)
 
-    cache_path.write_bytes(data)
+        xml_url = f"{BWB_REPO_BASE}/{bwb_id}/{latest_item}"
+        x_resp = client.get(xml_url)
+        x_resp.raise_for_status()
+        data = x_resp.content
+
+    tmp_path = cache_path.with_suffix(".tmp")
+    try:
+        tmp_path.write_bytes(data)
+        tmp_path.replace(cache_path)
+    finally:
+        tmp_path.unlink(missing_ok=True)
     return data
+
+
+_LATEST_ITEM_RE = re.compile(r'_latestItem="([^"]+)"')
+
+
+def _parse_latest_item(manifest_xml: str) -> str:
+    """Extract the _latestItem attribute from a BWB manifest root element."""
+    m = _LATEST_ITEM_RE.search(manifest_xml)
+    if not m:
+        raise ValueError("BWB manifest missing _latestItem attribute")
+    return m.group(1)
 ```
 
 - [ ] **Step 5: Run tests**
@@ -673,8 +718,7 @@ Fixtures are real BWB XML excerpts trimmed to the minimum articles needed. They 
 
 **Files:**
 - Create: `tests/ingest/fixtures/BWBR0005290_excerpt.xml`
-- Create: `tests/ingest/fixtures/BWBR0002888_excerpt.xml`
-- Create: `tests/ingest/fixtures/BWBR0003402_excerpt.xml`
+- Create: `tests/ingest/fixtures/BWBR0014315_excerpt.xml`
 
 - [ ] **Step 1: Create the fixtures directory**
 
@@ -686,21 +730,19 @@ Run:
 ```bash
 uv run python -c "
 from jurist.ingest.fetch import fetch_bwb_xml
-for bwb in ['BWBR0005290', 'BWBR0002888', 'BWBR0003402']:
+for bwb in ['BWBR0005290', 'BWBR0014315']:
     data = fetch_bwb_xml(bwb, refresh=True)
     print(bwb, len(data), 'bytes')
 "
 ```
 
-Expected: three lines with byte counts. If any line shows an HTML 404 or connection error, the upstream endpoint has shifted — update `BWB_XML_URL_TEMPLATE` in `fetch.py` (candidates in spec §5.1) and re-run. If nothing works, manually download via browser from `https://wetten.overheid.nl/BWBR0005290` (there's an XML link) and drop files into `data/cache/bwb/`.
+Expected: two lines with byte counts (BW7 ~4.4 MB, Uhw ~430 KB). If any line shows an HTML 404 or connection error, the upstream KOOP endpoint may have changed — check spec §5.1 for the manifest-then-latest URL structure and verify `BWB_REPO_BASE` in `fetch.py`. As a last resort, manually download via browser from `https://wetten.overheid.nl/BWBR0005290` and drop into `data/cache/bwb/`.
 
 - [ ] **Step 3: Trim each cached XML to an excerpt**
 
 Open `data/cache/bwb/BWBR0005290.xml` in an editor. Keep the document root + wrapper elements (wet/intref-metadata) and the `<boek nr="7">` → `<titel nr="4">` → `<afdeling nr="5">` → articles. Specifically preserve articles 246 through 265 (plus any needed wrapping afdelingen in Titel 4). Remove Titels 1-3, 5+, and Afdelingen outside of Titel 4. Save to `tests/ingest/fixtures/BWBR0005290_excerpt.xml`. Aim for ≤100 KB.
 
-For `BWBR0002888.xml`: keep at least articles 6 and 10 plus minimal wrapping. Save to `tests/ingest/fixtures/BWBR0002888_excerpt.xml`.
-
-For `BWBR0003402.xml`: keep any 2-3 articles (skip the bijlage). Save to `tests/ingest/fixtures/BWBR0003402_excerpt.xml`.
+For `BWBR0014315.xml` (Uhw): keep at least articles 3, 10, and 16 plus minimal wrapping (these are cross-referenced by BW7). Save to `tests/ingest/fixtures/BWBR0014315_excerpt.xml`.
 
 - [ ] **Step 4: Validate excerpts parse as XML**
 
@@ -716,7 +758,7 @@ for p in Path('tests/ingest/fixtures').glob('*.xml'):
 "
 ```
 
-Expected: three lines; BWBR0005290 excerpt shows ≥15 articles, BWBR0002888 shows ≥2, BWBR0003402 shows ≥2.
+Expected: two lines; BWBR0005290 excerpt shows ≥15 articles, BWBR0014315 shows ≥3.
 
 - [ ] **Step 5: Confirm file sizes**
 
@@ -727,7 +769,7 @@ Expected: each file ≤100 KB.
 
 ```bash
 git add tests/ingest/fixtures/
-git commit -m "test: add BWB XML fixture excerpts (BW7 Titel 4, Uhw, Besluit)"
+git commit -m "test: add BWB XML fixture excerpts (BW7 Titel 4, Uhw)"
 ```
 
 ---
@@ -853,14 +895,14 @@ MINI_UHW_XML = b"""<?xml version="1.0" encoding="UTF-8"?>
 
 
 def test_flat_bwb_article_id():
-    nodes, _ = parse_bwb_xml(MINI_UHW_XML, "BWBR0002888", BWB_ALLOWLIST["BWBR0002888"])
+    nodes, _ = parse_bwb_xml(MINI_UHW_XML, "BWBR0014315", BWB_ALLOWLIST["BWBR0014315"])
     ids = {n.article_id for n in nodes}
-    assert "BWBR0002888/Artikel6" in ids
-    assert "BWBR0002888/Artikel10" in ids
+    assert "BWBR0014315/Artikel6" in ids
+    assert "BWBR0014315/Artikel10" in ids
 
 
 def test_flat_bwb_label_uses_uhw_prefix():
-    nodes, _ = parse_bwb_xml(MINI_UHW_XML, "BWBR0002888", BWB_ALLOWLIST["BWBR0002888"])
+    nodes, _ = parse_bwb_xml(MINI_UHW_XML, "BWBR0014315", BWB_ALLOWLIST["BWBR0014315"])
     labels = {n.label for n in nodes}
     assert "Uhw, Artikel 6" in labels
 
@@ -1026,7 +1068,7 @@ def _extract_explicit_edges(
                 )
             )
     for ref in artikel.iter("extref"):
-        # Try attribute form first: bwb-id="BWBR0002888" + either artikel-nr or aref
+        # Try attribute form first: bwb-id="BWBR0014315" + either artikel-nr or aref
         bwb_attr = ref.get("bwb-id")
         nr_attr = ref.get("artikel-nr") or ref.get("aref")
         if bwb_attr and nr_attr:
@@ -1213,15 +1255,15 @@ def test_resolve_sentinel_intref():
 def test_resolve_sentinel_extref_to_other_bwb():
     all_nodes = [
         _node("BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248", "BWBR0005290"),
-        _node("BWBR0002888/Artikel6", "BWBR0002888"),
+        _node("BWBR0014315/Artikel6", "BWBR0014315"),
     ]
     sentinel = ArticleEdge(
         from_id="BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248",
-        to_id="BWBR0002888::Artikel6",
+        to_id="BWBR0014315::Artikel6",
         kind="explicit",
     )
     resolved = resolve_sentinel_edges([sentinel], all_nodes)
-    assert resolved[0].to_id == "BWBR0002888/Artikel6"
+    assert resolved[0].to_id == "BWBR0014315/Artikel6"
 
 
 def test_resolve_sentinel_drops_out_of_allowlist():
@@ -1457,7 +1499,7 @@ def _isolate(tmp_path, monkeypatch):
     from jurist.ingest.allowlist import BWBEntry
     monkeypatch.setattr(
         "jurist.ingest.statutes.BWB_ALLOWLIST",
-        {"BWBR0002888": BWBEntry(name="Test", label_prefix="Test")},
+        {"BWBR0014315": BWBEntry(name="Test", label_prefix="Test")},
     )
     return data_dir
 
@@ -1504,13 +1546,13 @@ def test_version_change_triggers_reparse(tmp_path: Path, monkeypatch):
 
     out = data_dir / "kg" / "huurrecht.json"
     snap_before = json.loads(out.read_text(encoding="utf-8"))
-    assert snap_before["source_versions"]["BWBR0002888"] == "2024-01-01"
+    assert snap_before["source_versions"]["BWBR0014315"] == "2024-01-01"
 
     with patch("jurist.ingest.statutes.fetch_bwb_xml", return_value=MINI_XML_V2):
         run_ingest(refresh=False, no_fetch=False, bwb_ids=None, limit=None)
 
     snap_after = json.loads(out.read_text(encoding="utf-8"))
-    assert snap_after["source_versions"]["BWBR0002888"] == "2025-06-01"
+    assert snap_after["source_versions"]["BWBR0014315"] == "2025-06-01"
 ```
 
 - [ ] **Step 2: Run and see them fail**
@@ -2191,8 +2233,7 @@ Near the top of the file (after the existing type declarations, before `layout`)
 ```ts
 const BWB_COLORS: Record<string, string> = {
   'BWBR0005290': '#1e40af',  // Boek 7 — blue
-  'BWBR0002888': '#be185d',  // Uhw — pink
-  'BWBR0003402': '#047857',  // Besluit — green
+  'BWBR0014315': '#be185d',  // Uhw — pink
 };
 
 function bwbBorder(articleId: string): string {
@@ -2274,7 +2315,7 @@ Inside the component's returned JSX, wrap `<ReactFlow>` in a container `<div cla
 ```tsx
 <div className="absolute top-2 right-2 z-10 bg-white/90 border rounded px-2 py-1 text-xs space-y-0.5">
   {Object.entries(BWB_COLORS).map(([bwb, color]) => {
-    const label = bwb === 'BWBR0005290' ? 'Boek 7' : bwb === 'BWBR0002888' ? 'Uhw' : 'Besluit';
+    const label = bwb === 'BWBR0005290' ? 'Boek 7' : 'Uhw';
     return (
       <div key={bwb} className="flex items-center gap-1.5">
         <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: color }} />
@@ -2361,15 +2402,15 @@ Run:
 uv run python -m jurist.ingest.statutes --refresh -v
 ```
 
-Expected: terminal summary like `Ingest complete: 73 articles, 112 edges from 3 sources (...) in 3.4 s`. Exact numbers will vary — the acceptance criterion is **≥50 articles and ≥50 edges**.
+Expected: terminal summary like `Ingest complete: 73 articles, 112 edges from 2 sources (...) in 3.4 s`. Exact numbers will vary — the acceptance criterion is **≥50 articles and ≥50 edges**.
 
 If the summary shows fewer than 50 articles or 50 edges:
 - Verify the BW7 Titel 4 filter is actually including articles. Spot-check: `uv run python -c "import json; d=json.load(open('data/kg/huurrecht.json', encoding='utf-8')); print(len(d['nodes']), len(d['edges']))"`.
 - Inspect the count by BWB: `uv run python -c "import json,collections; d=json.load(open('data/kg/huurrecht.json', encoding='utf-8')); print(collections.Counter(n['bwb_id'] for n in d['nodes']))"`.
 - If BW7 Titel 4 shows fewer than expected (~80 articles), the Titel-filter logic may be excluding too much — inspect `_passes_titel_filter` in parser.py.
 
-If the upstream endpoint returns HTML instead of XML or 404s:
-- Update `BWB_XML_URL_TEMPLATE` in `src/jurist/ingest/fetch.py`. Candidates from spec §5.1: the KOOP FRBR repository URL, or a newer wetten.overheid.nl pattern.
+If the upstream endpoint returns errors (the KOOP manifest URL at `https://repository.officiele-overheidspublicaties.nl/bwb/{bwb_id}/manifest.xml` should work without authentication):
+- Verify `BWB_REPO_BASE` in `src/jurist/ingest/fetch.py` matches the spec §5.1 KOOP URL.
 - As a last resort, manually download each BWB's XML via browser and drop into `data/cache/bwb/{bwb_id}.xml`; then re-run with `--no-fetch`.
 
 - [ ] **Step 2: Start the API and verify the frontend renders the real KG**
