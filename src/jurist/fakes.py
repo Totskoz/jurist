@@ -136,8 +136,9 @@ FAKE_CASES: list[CitedCase] = [
 FAKE_ANSWER: StructuredAnswer = StructuredAnswer(
     korte_conclusie=(
         "Een huurverhoging van 15% is in de meeste gevallen niet toegestaan. "
-        "Bij gereguleerde woonruimte geldt een jaarlijks maximum dat door de minister wordt vastgesteld; "
-        "15% zal dit vrijwel zeker overschrijden. Bij geliberaliseerde woonruimte moet de verhoging redelijk zijn "
+        "Bij gereguleerde woonruimte geldt een jaarlijks maximum dat door de minister wordt "
+        "vastgesteld; 15% zal dit vrijwel zeker overschrijden. Bij geliberaliseerde woonruimte "
+        "moet de verhoging redelijk zijn "
         "en aansluiten bij wat in de huurovereenkomst is afgesproken."
     ),
     relevante_wetsartikelen=[
@@ -146,8 +147,8 @@ FAKE_ANSWER: StructuredAnswer = StructuredAnswer(
             article_label="Boek 7, Artikel 248",
             quote="De verhuurder kan tot aan het tijdstip dat ...",
             explanation=(
-                "Regelt de bevoegdheid van de verhuurder om een jaarlijkse huurverhoging voor te stellen "
-                "binnen de wettelijke kaders."
+                "Regelt de bevoegdheid van de verhuurder om een jaarlijkse huurverhoging "
+                "voor te stellen binnen de wettelijke kaders."
             ),
         ),
         WetArtikelCitation(

@@ -5,7 +5,7 @@ and explicit contradiction detection between statutes and cases.
 """
 from __future__ import annotations
 
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
 from jurist.schemas import TraceEvent, ValidatorIn, ValidatorOut
 

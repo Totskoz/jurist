@@ -31,7 +31,7 @@ def test_fake_visit_path_is_subset_of_kg():
     assert len(FAKE_VISIT_PATH) >= 3
     for aid in FAKE_VISIT_PATH:
         assert aid in ids
-    for a, b in zip(FAKE_VISIT_PATH, FAKE_VISIT_PATH[1:]):
+    for a, b in zip(FAKE_VISIT_PATH, FAKE_VISIT_PATH[1:], strict=False):
         assert (a, b) in edge_set, f"no edge {a} -> {b} in KG"
 
 

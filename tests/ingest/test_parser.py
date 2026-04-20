@@ -17,9 +17,12 @@ def test_parses_art_7_248_from_fixture():
     fixture = Path(__file__).parent / "fixtures" / "BWBR0005290_excerpt.xml"
     nodes, _ = parse_bwb_xml(fixture.read_bytes(), "BWBR0005290", _bw7_entry())
 
+    _ART248_ID = (
+        "BWBR0005290/Boek7/Titeldeel4/Afdeling5"
+        "/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248"
+    )
     a248 = next(
-        (n for n in nodes
-         if n.article_id == "BWBR0005290/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248"),
+        (n for n in nodes if n.article_id == _ART248_ID),
         None,
     )
     assert a248 is not None, "art. 7:248 BW not found"
