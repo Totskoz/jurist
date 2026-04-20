@@ -1,5 +1,5 @@
-from jurist.schemas import ArticleEdge, ArticleNode
 from jurist.ingest.xrefs import extract_regex_edges, merge_edges
+from jurist.schemas import ArticleEdge, ArticleNode
 
 
 def _node(article_id: str, bwb: str, body: str = "") -> ArticleNode:
@@ -64,3 +64,19 @@ def test_merge_keeps_distinct_pairs():
     by_target = {e.to_id: e.kind for e in merged}
     assert by_target[b] == "explicit"
     assert by_target[c] == "regex"
+
+
+def test_regex_ignores_book_article_compound_ref():
+    """Dutch cross-book prose 'artikel 7:248 BW' must not produce edge to Artikel7."""
+    n248 = _node(
+        "BWBR0005290/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248",
+        "BWBR0005290",
+        "Zie artikel 7:248 BW en artikel 6:265 BW.",
+    )
+    n7 = _node(
+        "BWBR0005290/Boek7/Titeldeel1/Afdeling1/Artikel7",
+        "BWBR0005290",
+    )
+    edges = extract_regex_edges([n248, n7])
+    bad = [e for e in edges if e.to_id.endswith("/Artikel7") and e.from_id.endswith("/Artikel248")]
+    assert bad == [], f"spurious Artikel7 edge from '7:248 BW' phrasing: {bad}"

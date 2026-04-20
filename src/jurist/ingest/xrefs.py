@@ -13,7 +13,7 @@ import re
 
 from jurist.schemas import ArticleEdge, ArticleNode
 
-_ARTIKEL_RE = re.compile(r"\bartikel(?:en)?\s+(\d+[a-z]?)", re.IGNORECASE)
+_ARTIKEL_RE = re.compile(r"\bartikel(?:en)?\s+(\d+[a-z]?)(?![\d:])", re.IGNORECASE)
 
 
 def extract_regex_edges(nodes: list[ArticleNode]) -> list[ArticleEdge]:
