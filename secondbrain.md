@@ -104,6 +104,23 @@ The catalog-in-system-prompt approach scales to maybe 10-20K articles before tok
 
 **Why not pure HyDE.** HyDE is a *query-quality* trick, not a *scale* trick. It bridges user-phrasing / statute-phrasing gaps ("huur verhogen" ↔ "huurprijswijziging"); it does not solve "corpus won't fit in context" — vector search itself does. Keep HyDE as an optional rewrite step the retriever can fire when Jaccard/vector look like they missed, not as the retrieval backbone.
 
+**Manual rechtsgebied selection as an escape hatch from the router.**
+
+The router is a convenience, not a commitment. A DAS claims handler or jurist usually *already knows* the domain — they're opening a file where "huurrecht" is printed on the policy. Pay the Haiku call and hope it picks the right classification, or just let the user tick a box? The user-ticks-a-box path is cheaper, more accurate, and matches how the real users already think.
+
+UX sketch:
+
+- Multi-select next to the question field. Default: *Auto* (Haiku router). Power-user option: *Huurrecht*, *Arbeidsrecht*, *Consumentenrecht*, … (multi-select, because real cases can span 2-3 rechtsgebieden).
+- If the user picks explicitly → skip the router, scope the catalog directly.
+- If *Auto* → router runs, and its pick surfaces in the UI ("*Geclassificeerd als: Huurrecht — klopt dit?*") so the user can correct on the next turn.
+- Log disagreements (user-chosen ≠ router top-1) as training / debug signal. Sharper than our fabrication-check and free to collect.
+
+Why this matters beyond "nice to have":
+
+- Router mis-classification is unavoidable; a manual override is the cheapest possible failure handler. No retraining loop, no confidence-threshold tuning.
+- Multi-domain cases (tenancy + consumer protection on a short-let dispute; employment + tax on a severance question) are hard for a classifier to pick cleanly; trivial for a human who has the case file.
+- **Interview framing.** DAS organises its own product taxonomy by rechtsgebied — their users already navigate by domain. Auto-routing is a convenience for laypeople; the production-shaped thing is *give professionals the keys to their own steering*.
+
 **Trigger points — what to build when.**
 
 - **Now / M2:** nothing. 218 articles fits cached.
