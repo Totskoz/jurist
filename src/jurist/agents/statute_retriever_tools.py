@@ -86,7 +86,37 @@ class ToolExecutor:
         raise NotImplementedError
 
     def _list_neighbors(self, args: dict[str, Any]) -> ToolResult:
-        raise NotImplementedError
+        article_id = args.get("article_id")
+        if not article_id:
+            return ToolResult(
+                result_summary="missing required argument: article_id",
+                is_error=True,
+            )
+        node = self._kg.get_node(article_id)
+        if node is None:
+            return ToolResult(
+                result_summary=f"unknown article_id: {article_id}",
+                is_error=True,
+            )
+        neighbors: list[dict[str, str]] = []
+        for nid in node.outgoing_refs:
+            nb = self._kg.get_node(nid)
+            if nb is None:
+                # In-corpus-only invariant: outgoing_refs should be filtered by
+                # ingester; but be defensive.
+                continue
+            neighbors.append({
+                "article_id": nid,
+                "label": nb.label,
+                "title": nb.title,
+            })
+        return ToolResult(
+            result_summary=f"{len(neighbors)} neighbor(s)",
+            extra={
+                "neighbors": neighbors,
+                "neighbor_ids": [n["article_id"] for n in neighbors],
+            },
+        )
 
     def _follow_cross_ref(self, args: dict[str, Any]) -> ToolResult:
         raise NotImplementedError

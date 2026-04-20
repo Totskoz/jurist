@@ -90,3 +90,31 @@ async def test_get_article_missing_arg_errors(fixture_kg):
     r = await exec_.execute("get_article", {})
     assert r.is_error
     assert r.kg_effect is None
+
+
+@pytest.mark.asyncio
+async def test_list_neighbors_returns_labels_and_titles(fixture_kg):
+    exec_ = ToolExecutor(fixture_kg)
+    r = await exec_.execute("list_neighbors", {"article_id": "A"})
+    assert not r.is_error
+    neighbors = r.extra["neighbors"]
+    assert neighbors == [{"article_id": "B", "label": "Art B", "title": "Title B"}]
+    # neighbor_ids also surfaced for frontend chips
+    assert r.extra["neighbor_ids"] == ["B"]
+    assert r.kg_effect is None  # peek, no visit
+
+
+@pytest.mark.asyncio
+async def test_list_neighbors_empty_for_leaf(fixture_kg):
+    exec_ = ToolExecutor(fixture_kg)
+    r = await exec_.execute("list_neighbors", {"article_id": "B"})
+    assert not r.is_error
+    assert r.extra["neighbors"] == []
+    assert r.extra["neighbor_ids"] == []
+
+
+@pytest.mark.asyncio
+async def test_list_neighbors_unknown_id_errors(fixture_kg):
+    exec_ = ToolExecutor(fixture_kg)
+    r = await exec_.execute("list_neighbors", {"article_id": "MISSING"})
+    assert r.is_error
