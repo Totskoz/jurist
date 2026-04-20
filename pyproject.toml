@@ -31,6 +31,9 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/jurist"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"src/jurist/llm/prompts/statute_retriever.system.md" = "jurist/llm/prompts/statute_retriever.system.md"
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 pythonpath = ["src"]
