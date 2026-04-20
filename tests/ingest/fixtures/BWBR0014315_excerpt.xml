@@ -1,0 +1,428 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<toestand xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bwb-ng-vast-deel="http://wetten.overheid.nl/id/BWBR0014315/2026-01-01/0" xsi:noNamespaceSchemaLocation="https://repository.officiele-overheidspublicaties.nl/Schema/BWB-toestand/2016-1/xsd/toestand_2016-1.xsd" bwb-id="BWBR0014315" inwerkingtreding="2026-01-01">
+  <wetgeving dtdversie="2.0" soort="wet" xml:lang="nl" stam-id="3255093" versie-id="30181792" id="C43243721" label-id="3234944" inwerkingtredingsdatum="2024-07-01">
+  <intitule bwb-ng-variabel-deel="/Intitule" stam-id="3255123" versie-id="5007502" id="C6644291" label-id="3234124" inwerking="2003-08-01" bron="Stb.2002-589" effect="nieuwe-regeling" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2003-06-17" status="goed">Wet van 21 november 2002, houdende integratie van de Huurprijzenwet woonruimte en de Wet op de huurcommissies in een uitvoeringswet huurprijzen woonruimte onder gelijktijdige overheveling van een deel van de tekst van de Huurprijzenwet woonruimte naar de nieuwe titel 7.4 van Boek 7 van het Burgerlijk Wetboek (Uitvoeringswet huurprijzen woonruimte)</intitule>
+  <citeertitel bwb-ng-variabel-deel="/Citeertitel" status="officieel" stam-id="3255133" versie-id="5007512" id="C6644301" label-id="3234134" inwerking="2003-08-01" bron="Stb.2002-589" effect="nieuwe-regeling" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2003-06-17">Uitvoeringswet huurprijzen woonruimte</citeertitel>
+  <wet-besluit>
+    <aanhef bwb-ng-variabel-deel="/Aanhef" stam-id="3255143" versie-id="5007522" id="C6644311" label-id="3234144" inwerking="2003-08-01" bron="Stb.2002-589" effect="nieuwe-regeling" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2003-06-17" status="goed">
+  <wij>Wij Beatrix, bij de gratie Gods, Koningin der Nederlanden, Prinses van Oranje-Nassau, enz. enz. enz.</wij>
+  <considerans>
+    <considerans.al>Allen, die deze zullen zien of horen lezen, saluut! doen te weten:</considerans.al>
+    <considerans.al>Alzo Wij in overweging genomen hebben dat het wenselijk is tegelijk met het voorstel van wet tot herziening van <extref verwijzing-id="1616663" doc="jci1.3:c:BWBR0006000" bwb-id="BWBR0006000" label-id="2936724">Boek 7A van het Burgerlijk Wetboek</extref>, waarbij een aantal bepalingen van de <extref verwijzing-id="1616664" doc="jci1.3:c:BWBR0003221" bwb-id="BWBR0003221" label-id="2627774">Huurprijzenwet woonruimte</extref> naar de nieuwe <extref verwijzing-id="1702686" doc="jci1.3:c:BWBR0005290&amp;titeldeel=4" bwb-id="BWBR0005290" label-id="3227104">titel 7.4 van Boek 7 van dat wetboek</extref> wordt overgeheveld, de overige bepalingen van de <extref verwijzing-id="1616666" doc="jci1.3:c:BWBR0003221" bwb-id="BWBR0003221" label-id="2627774">Huurprijzenwet woonruimte</extref> en die van de <extref verwijzing-id="1616667" doc="jci1.3:c:BWBR0003222" bwb-id="BWBR0003222" label-id="1199744">Wet op de huurcommissies</extref> te integreren in een nieuw wetsvoorstel en deze bepalingen waar mogelijk te vereenvoudigen, alsmede op een aantal plaatsen inhoudelijke wijzigingen aan te brengen;</considerans.al>
+  </considerans>
+  <afkondiging>
+    <al>Zo is het, dat Wij, de Raad van State gehoord, en met gemeen overleg der Staten-Generaal, hebben goedgevonden en verstaan, gelijk Wij goedvinden en verstaan bij deze:</al>
+  </afkondiging>
+</aanhef>
+    <wettekst>
+      <hoofdstuk bwb-ng-variabel-deel="/HoofdstukI" stam-id="3255203" versie-id="5007582" id="C6644371" label-id="3234204" inwerking="2003-08-01" label="Hoofdstuk I" bron="Stb.2002-589" effect="nieuwe-regeling" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2003-06-17" status="goed">
+  <kop>
+    <label>Hoofdstuk</label>
+    <nr>I</nr>
+    <titel status="officieel">Algemeen</titel>
+  </kop><paragraaf bwb-ng-variabel-deel="/HoofdstukI/Paragraaf2" stam-id="3255193" versie-id="5007572" id="C6644361" label-id="3234194" inwerking="2003-08-01" label="§ 2" bron="Stb.2002-589" effect="nieuwe-regeling" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2003-06-17" status="goed">
+  <kop>
+    <label>§</label>
+    <nr>2</nr>
+    <titel status="officieel">Reikwijdte</titel>
+  </kop><artikel bwb-ng-variabel-deel="/HoofdstukI/Paragraaf2/Artikel3" stam-id="3255183" versie-id="30181532" id="C43243461" label-id="3234184" inwerking="2024-07-01" label="Artikel 3" bron="Stb.2024-193" effect="wijziging" ondertekening_bron="2024-06-26" publicatie_bron="2024-06-28" publicatie_iwt="2024-06-28" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">3</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/HoofdstukI/Paragraaf2/Artikel3/Lid1" label-id="3234184L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Op huurovereenkomsten waarop ingevolge <extref doc="jci1.3:c:BWBR0005290&amp;artikel=247" label-id="3228574" verwijzing-id="1702769" bwb-id="BWBR0005290">artikel 7:247 van het Burgerlijk Wetboek onderafdeling 2 van afdeling 5 van titel 7.4 van Boek 7 van het Burgerlijk Wetboek</extref> ten dele van toepassing is, is deze wet slechts van toepassing voorzover dat uit die onderafdeling voortvloeit.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukI/Paragraaf2/Artikel3/Lid2" label-id="3234184L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Bij of krachtens algemene maatregel van bestuur wordt het in <extref doc="jci1.3:c:BWBR0005290&amp;artikel=247" label-id="3228574" verwijzing-id="1702770" bwb-id="BWBR0005290">artikel 7:247 van het Burgerlijk Wetboek</extref> bedoelde bedrag van de huurprijs bij aanvang van de bewoning vastgesteld, waarboven ingevolge dat artikel voornoemde onderafdeling ten dele van toepassing is.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukI/Paragraaf2/Artikel3/Lid3" label-id="3234184L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Bij algemene maatregel van bestuur worden, voor de toepassing van de bij of krachtens deze wet gestelde regels, in aanvulling op <extref doc="jci1.3:c:BWBR0005290&amp;artikel=234" label-id="3227394" verwijzing-id="3316425" bwb-id="BWBR0005290">artikel 7:234 van het Burgerlijk Wetboek</extref> nadere regels gesteld over het onderscheid tussen een zelfstandige en onzelfstandige woonruimte.</al>
+  </lid>
+</artikel></paragraaf></hoofdstuk>
+      <hoofdstuk bwb-ng-variabel-deel="/HoofdstukII" stam-id="3255283" versie-id="17121832" id="C23786051" label-id="3234284" inwerking="2010-04-01" label="Hoofdstuk II" bron="Stb.2010-28" effect="wijziging" ondertekening_bron="2009-12-23" publicatie_bron="2010-02-02" publicatie_iwt="2010-03-30" status="goed">
+  <kop>
+    <label>Hoofdstuk</label>
+    <nr status="officieel">II</nr>
+    <titel status="officieel">Instelling, inrichting, samenstelling en taken van de huurcommissie</titel>
+  </kop><paragraaf bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1" stam-id="3255243" versie-id="17121802" id="C23786021" label-id="3234244" inwerking="2010-04-01" label="§ 1" bron="Stb.2010-28" effect="wijziging" ondertekening_bron="2009-12-23" publicatie_bron="2010-02-02" publicatie_iwt="2010-03-30" status="goed">
+  <kop>
+    <label>§</label>
+    <nr status="officieel">1</nr>
+    <titel status="officieel">Instelling, inrichting en samenstelling van de huurcommissie</titel>
+  </kop><artikel bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3a" stam-id="10408183" versie-id="30181542" id="C43243471" label-id="10383484" inwerking="2024-07-01" label="Artikel 3a" bron="Stb.2024-193" effect="wijziging" ondertekening_bron="2024-06-26" publicatie_bron="2024-06-28" publicatie_iwt="2024-06-28" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">3a</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3a/Lid1" label-id="10383484L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Er is een huurcommissie.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3a/Lid2" label-id="10383484L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>De huurcommissie bestaat uit een bestuur en minimaal vier zittingsvoorzitters. Daarnaast bestaat de huurcommissie uit zittingsleden uit de kring van huurders onderscheidenlijk de kring van verhuurders. Voor de behandeling van geschillen als bedoeld in <intref doc="jci1.3:c:BWBR0014315&amp;hoofdstuk=II&amp;paragraaf=2&amp;artikel=4a&amp;z=2026-01-01&amp;g=2026-01-01" label-id="11475204" verwijzing-id="2461456" bwb-id="BWBR0014315" bwb-ng-variabel-deel="/HoofdstukII/Paragraaf2/Artikel4a">artikel 4a</intref> kunnen ook personen van buiten de kring van huurders onderscheidenlijk de kring van verhuurders zittingslid zijn. Het bestuur bestaat uit een voorzitter en een plaatsvervangend voorzitter.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3a/Lid3" label-id="10383484L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Het bestuur en de zittingsvoorzitters hebben tot taak binnen de huurcommissie de eenheid en de kwaliteit van de uitspraken, adviezen en verklaringen te bevorderen. Zij kunnen met het oog hierop regels stellen. Bij de uitvoering van deze taak treden zij niet in de procesrechtelijke behandeling van, de inhoudelijke beoordeling van alsmede de beslissing in een concrete zaak.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3a/Lid4" label-id="10383484L4">
+    <lidnr status="officieel">4</lidnr>
+    <al>Indien ten aanzien van het stellen van de regels, bedoeld in het derde lid, tussen het bestuur enerzijds en de zittingsvoorzitters gezamenlijk anderzijds een verschil van mening bestaat, beslist het bestuur. Indien binnen het bestuur een verschil van mening bestaat, beslist de voorzitter. Indien binnen de kring van zittingsvoorzitters een verschil van mening bestaat, wordt onderling bij meerderheid van stemmen beslist, waarbij bij een staking van de stemmen binnen die kring het bestuur beslist.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3a/Lid5" label-id="10383484L5">
+    <lidnr status="officieel">5</lidnr>
+    <al>In afwijking van <extref doc="jci1.3:c:BWBR0020495&amp;artikel=20" label-id="8725934" verwijzing-id="2330147" bwb-id="BWBR0020495">artikel 20 van de Kaderwet zelfstandige bestuursorganen</extref>, heeft het bestuur, in plaats van het zelfstandig bestuursorgaan, de bevoegdheden en taken die zijn genoemd in dat artikel.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3b" code="n1-3b" stam-id="10408193" versie-id="18923662" id="C26685551" label-id="10383494" inwerking="2012-01-01" label="Artikel 3b" bron="Stb.2011-529" effect="wijziging" ondertekening_bron="2011-10-27" publicatie_bron="2011-11-18" publicatie_iwt="2011-12-29" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">3b</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3b/Lid1" label-id="10383494L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>De voorzitter, de plaatsvervangend voorzitter en de zittingsvoorzitters worden door Onze Minister benoemd, geschorst en ontslagen. De voorzitter en de plaatsvervangend voorzitter worden benoemd voor een tijdvak van zes jaar en kunnen voor maximaal een aansluitend tijdvak van zes jaar als voorzitter onderscheidenlijk plaatsvervangend voorzitter worden herbenoemd. De zittingsvoorzitters worden over de benoeming en herbenoeming van de voorzitter en de plaatsvervangend voorzitter gehoord. De zittingsvoorzitters worden benoemd voor een tijdvak van vier jaar en kunnen voor maximaal twee aansluitende tijdvakken van vier jaar als zittingsvoorzitter worden herbenoemd. Het bestuur wordt over de benoeming en herbenoeming van de zittingsvoorzitters gehoord.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3b/Lid2" label-id="10383494L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Aan de voorzitter en de zittingsvoorzitters moet op grond van het afleggen van een examen van een opleiding in het wetenschappelijk onderwijs door een universiteit dan wel de Open Universiteit waarop de <extref verwijzing-id="2330638" doc="jci1.3:c:BWBR0005682" bwb-id="BWBR0005682" label-id="2885604">Wet op het hoger onderwijs en wetenschappelijk onderzoek</extref> betrekking heeft, de graad Bachelor op het gebied van het recht en tevens de graad Master op het gebied van het recht zijn verleend, dan wel moeten die voorzitter en die zittingsvoorzitters op grond van het afleggen van een examen van een opleiding aan een universiteit dan wel de Open Universiteit waarop de Wet op het hoger onderwijs en wetenschappelijk onderzoek betrekking heeft, het recht om de titel meester te voeren hebben verkregen, of blijk hebben gegeven op andere wijze de voor de functie van voorzitter onderscheidenlijk zittingsvoorzitter benodigde kennis te hebben verworven.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3b/Lid3" label-id="10383494L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Onverminderd <extref verwijzing-id="2330148" doc="jci1.3:c:BWBR0020495&amp;artikel=13" bwb-id="BWBR0020495" label-id="8725854">artikel 13, eerste lid, van de Kaderwet zelfstandige bestuursorganen</extref>, mogen de voorzitter, de plaatsvervangend voorzitter en de zittingsvoorzitters niet metterdaad betrokken zijn bij de uitoefening van een bedrijf dat werkzaam is of mede werkzaam is op het gebied van woonruimte, noch is het hen toegestaan beroepsmatig betrokken te zijn bij het beheer van en de beschikking over woonruimte dan wel deel uit te maken van het bestuur van een vereniging, vennootschap of stichting die daarbij is betrokken, of aangesloten te zijn bij een bewonerscommissie als bedoeld in <extref verwijzing-id="2461446" doc="jci1.3:c:BWBR0009810&amp;artikel=1" bwb-id="BWBR0009810" label-id="890084">artikel 1, eerste lid, onderdeel g, van de Wet op het overleg huurders verhuurder</extref>.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3b/Lid4" label-id="10383494L4">
+    <lidnr status="officieel">4</lidnr>
+    <al>De voorzitter, de plaatsvervangend voorzitter en de zittingsvoorzitters genieten een bezoldiging, een vergoeding voor reis- en verblijfkosten en verdere vergoedingen volgens bij ministeriële regeling te geven regels. Hun rechtspositie wordt nader geregeld bij algemene maatregel van bestuur.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3c" code="n1-3c" stam-id="10408203" versie-id="17121722" id="C23852361" label-id="10383504" inwerking="2010-04-01" label="Artikel 3c" bron="Stb.2010-28" effect="nieuw" ondertekening_bron="2009-12-23" publicatie_bron="2010-02-02" publicatie_iwt="2010-03-30" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">3c</nr>
+  </kop>
+  <al>Het bestuur geeft leiding aan de werkzaamheden van de huurcommissie en de administratieve ondersteuning.</al>
+</artikel><artikel bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3d" stam-id="10408213" versie-id="25074472" id="C35987291" label-id="10383514" inwerking="2019-01-01" label="Artikel 3d" bron="Stb.2018-172" effect="wijziging" ondertekening_bron="2018-06-06" publicatie_bron="2018-06-19" publicatie_iwt="2018-07-31" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">3d</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3d/Lid1" label-id="10383514L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>De zittingsleden worden op voordracht van het bestuur door Onze Minister benoemd, geschorst en ontslagen. De voordracht vindt plaats na overleg tussen het bestuur en de door Onze Minister daartoe aangewezen betrokken organisaties, die geacht kunnen worden de belangen van de huurders, onderscheidenlijk de belangen van de verhuurders te behartigen. De zittingsleden worden benoemd voor een tijdvak van vier jaar en kunnen voor maximaal twee aansluitende tijdvakken van vier jaar als zittingslid worden herbenoemd.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3d/Lid2" label-id="10383514L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Tot zittingslid worden slechts benoemd personen die over voldoende deskundigheid beschikken om bij te dragen aan een behoorlijke uitoefening van de ingevolge de wet aan de huurcommissie opgedragen taken.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3d/Lid3" label-id="10383514L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>De benoeming van de zittingsleden geschiedt zodanig dat de belangen van de huurders, onderscheidenlijk de belangen van de verhuurders gelijkelijk in de huurcommissie zijn vertegenwoordigd.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3d/Lid4" label-id="10383514L4">
+    <lidnr status="officieel">4</lidnr>
+    <al>Onze Minister neemt binnen zes weken nadat de voordracht is gedaan een beslissing over de benoeming.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3d/Lid5" label-id="10383514L5">
+    <lidnr status="officieel">5</lidnr>
+    <al>De zittingsleden genieten een vergoeding voor reis- en verblijfkosten en verdere vergoedingen volgens bij ministeriële regeling te geven regels.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3e" code="n1-3e" stam-id="10408223" versie-id="17121742" id="C23852381" label-id="10383524" inwerking="2010-04-01" label="Artikel 3e" bron="Stb.2010-28" effect="nieuw" ondertekening_bron="2009-12-23" publicatie_bron="2010-02-02" publicatie_iwt="2010-03-30" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">3e</nr>
+  </kop>
+  <al>Onverminderd <extref verwijzing-id="2330149" doc="jci1.3:c:BWBR0020495&amp;artikel=12" bwb-id="BWBR0020495" label-id="8725844">artikel 12, tweede lid, van de Kaderwet zelfstandige bestuursorganen</extref>, worden de voorzitter, de plaatsvervangend voorzitter en de zittingsvoorzitters ook ontslagen indien zij de leeftijd van zeventig jaren hebben bereikt.</al>
+</artikel><artikel bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3f" code="n1-3f" stam-id="10408233" versie-id="17121752" id="C23852391" label-id="10383534" inwerking="2010-04-01" label="Artikel 3f" bron="Stb.2010-28" effect="nieuw" ondertekening_bron="2009-12-23" publicatie_bron="2010-02-02" publicatie_iwt="2010-03-30" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">3f</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3f/Lid1" label-id="10383534L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Het bestuur stelt een bestuursreglement vast, gehoord de zittingsvoorzitters. Het reglement behoeft de goedkeuring van Onze Minister. <extref verwijzing-id="2330150" doc="jci1.3:c:BWBR0020495&amp;artikel=11" bwb-id="BWBR0020495" label-id="8725834">Artikel 11, tweede lid, van de Kaderwet zelfstandige bestuursorganen</extref> is van overeenkomstige toepassing.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3f/Lid2" label-id="10383534L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>In het bestuursreglement worden de hoofdlijnen van de inrichting en de werkwijze van de organisatie van de huurcommissie, alsmede de zittingslocaties vastgesteld.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3g" stam-id="10408243" versie-id="25074482" id="C35987211" label-id="10383544" inwerking="2019-01-01" label="Artikel 3g" bron="Stb.2018-172" effect="wijziging" ondertekening_bron="2018-06-06" publicatie_bron="2018-06-19" publicatie_iwt="2018-07-31" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">3g</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3g/Lid1" label-id="10383544L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Er is een Raad van Advies. De Raad bestaat uit negen leden, die afkomstig zijn uit de door Onze Minister aangewezen organisaties van huurders en verhuurders en onafhankelijke organisaties of personen, waarbij die organisaties van huurders en verhuurders in de Raad gelijkelijk zijn vertegenwoordigd. De leden hebben een deskundigheid die relevant is in het kader van de advisering, bedoeld in het vijfde lid, en mogen niet tegelijkertijd deel uitmaken van de huurcommissie of van een zittingscommissie.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3g/Lid2" label-id="10383544L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>De leden worden door Onze Minister benoemd, geschorst en ontslagen. Zij worden benoemd voor een tijdvak van vier jaar en kunnen voor een aansluitend tijdvak van vier jaar als lid van de Raad worden herbenoemd.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3g/Lid3" label-id="10383544L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Onze Minister stelt met inachtneming van het eerste lid bij iedere benoeming de door hem daartoe aangewezen organisaties, die geacht kunnen worden de belangen van de huurders, onderscheidenlijk de belangen van de verhuurders, te behartigen, gedurende negen weken in de gelegenheid een aanbeveling te doen. Indien binnen een categorie van organisaties, die geacht kunnen worden de belangen van de huurders, onderscheidenlijk de belangen van de verhuurders, te behartigen, meer dan één organisatie is aangewezen om een aanbeveling te doen, stelt Onze Minister de betrokken organisaties slechts in de gelegenheid gezamenlijk een aanbeveling te doen.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3g/Lid4" label-id="10383544L4">
+    <lidnr status="officieel">4</lidnr>
+    <al>De benoeming van de leden die afkomstig zijn uit de door Onze Minister aangewezen onafhankelijke organisaties of personen vindt plaats op voordracht van het bestuur en na overleg tussen het bestuur en die organisaties of personen. Onze Minister neemt binnen zes weken na het doen van de voordracht een beslissing over de benoeming.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3g/Lid5" label-id="10383544L5">
+    <lidnr status="officieel">5</lidnr>
+    <al>De Raad adviseert het bestuur over algemene aspecten van de huurgeschillenbeslechting, bedoeld in <intref doc="jci1.3:c:BWBR0014315&amp;hoofdstuk=II&amp;paragraaf=2&amp;artikel=4&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3234214" verwijzing-id="2883825" bwb-id="BWBR0014315" bwb-ng-variabel-deel="/HoofdstukII/Paragraaf2/Artikel4">artikel 4</intref>, en de beslechting van de geschillen, bedoeld in <intref doc="jci1.3:c:BWBR0014315&amp;hoofdstuk=II&amp;paragraaf=2&amp;artikel=4a&amp;z=2026-01-01&amp;g=2026-01-01" label-id="11475204" verwijzing-id="2461455" bwb-id="BWBR0014315" bwb-ng-variabel-deel="/HoofdstukII/Paragraaf2/Artikel4a">artikel 4a</intref>, alsmede over de meerjarenstrategie, de ontwerpbegroting, het conceptjaarplan, de conceptjaarrekening en het conceptjaarverslag en kan het op verzoek dan wel uit eigen beweging in kennis stellen van de binnen de Raad levende standpunten. De Raad wordt voorts over de benoeming, de herbenoeming en het ontslag, behoudens het ontslag vanwege het bereiken van de voor hen geldende pensioengerechtigde leeftijd, van de voorzitter en de plaatsvervangend voorzitter gehoord. In het bestuursreglement, bedoeld in <intref doc="jci1.3:c:BWBR0014315&amp;hoofdstuk=II&amp;paragraaf=1&amp;artikel=3f&amp;z=2026-01-01&amp;g=2026-01-01" label-id="10383534" verwijzing-id="2330151" bwb-id="BWBR0014315" bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3f">artikel 3f</intref>, worden nadere regels gesteld omtrent de uitoefening van de taken en de bevoegdheden van de Raad en de wijze waarop het bestuur met de Raad overleg voert.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3g/Lid6" label-id="10383544L6">
+    <lidnr status="officieel">6</lidnr>
+    <al>
+      <intref doc="jci1.3:c:BWBR0014315&amp;hoofdstuk=II&amp;paragraaf=1&amp;artikel=3d&amp;z=2026-01-01&amp;g=2026-01-01" label-id="10383514" verwijzing-id="2330152" bwb-id="BWBR0014315" bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3d">Artikel 3d, vijfde lid</intref>, is van overeenkomstige toepassing.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3h" code="n1-3h" stam-id="10408253" versie-id="17121772" id="C23852411" label-id="10383554" inwerking="2010-04-01" label="Artikel 3h" bron="Stb.2010-28" effect="nieuw" ondertekening_bron="2009-12-23" publicatie_bron="2010-02-02" publicatie_iwt="2010-03-30" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">3h</nr>
+  </kop>
+  <al>Onze Minister voorziet in de administratieve ondersteuning van de huurcommissie.</al>
+</artikel><artikel bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3i" stam-id="10408263" versie-id="30181552" id="C43243481" label-id="10383564" inwerking="2024-07-01" label="Artikel 3i" bron="Stb.2024-193" effect="wijziging" ondertekening_bron="2024-06-26" publicatie_bron="2024-06-28" publicatie_iwt="2024-06-28" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">3i</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3i/Lid1" label-id="10383564L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Het bestuur houdt een openbaar register aan, waarin met weglating van de namen van de betrokken huurders, verhuurders, bewonerscommissies als bedoeld in <extref doc="jci1.3:c:BWBR0009810&amp;artikel=1" label-id="890084" verwijzing-id="2461447" bwb-id="BWBR0009810">artikel 1, eerste lid, onderdeel g, van de Wet op het overleg huurders verhuurder</extref> en huurdersorganisaties als bedoeld in artikel 1, eerste lid, onderdeel f, van die wet, onder vermelding van de adressen waarop die uitspraken betrekking hebben, de uitspraken van de huurcommissie zijn opgenomen.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3i/Lid2" label-id="10383564L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Bij ministeriële regeling kunnen regels worden gegeven omtrent de inrichting van het register.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3i/Lid3" label-id="10383564L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>In het openbaar register, bedoeld in het eerste lid, wordt met betrekking tot een verzoekschrift met als grondslag een artikel genoemd in <intref doc="jci1.3:c:BWBR0014315&amp;hoofdstuk=II&amp;paragraaf=2&amp;artikel=4&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3234214" verwijzing-id="3316439" bwb-id="BWBR0014315" bwb-ng-variabel-deel="/HoofdstukII/Paragraaf2/Artikel4">artikel 4, tweede lid</intref>, of met als grondslag artikel 4, vijfde lid, het adres van de woonruimte waarop het verzoek betrekking heeft en de indieningsdatum opgenomen totdat er een uitspraak is gedaan en de slotwoorden van de uitspraak van de huurcommissie zijn opgenomen in het openbaar register, of wanneer het verzoek is ingetrokken.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3j" code="n1-3j" stam-id="10408273" versie-id="17121792" id="C23852431" label-id="10383574" inwerking="2010-04-01" label="Artikel 3j" bron="Stb.2010-28" effect="nieuw" ondertekening_bron="2009-12-23" publicatie_bron="2010-02-02" publicatie_iwt="2010-03-30" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">3j</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3j/Lid1" label-id="10383574L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>In afwijking van <extref verwijzing-id="2330153" doc="jci1.3:c:BWBR0020495&amp;artikel=22" bwb-id="BWBR0020495" label-id="8725954">artikel 22, eerste lid, van de Kaderwet zelfstandige bestuursorganen</extref>, strekt de bevoegdheid van Onze Minister tot het vernietigen van besluiten zich niet uit tot de uitspraken, de adviezen en de verklaringen van de huurcommissie onderscheidenlijk de voorzitter.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukII/Paragraaf1/Artikel3j/Lid2" label-id="10383574L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Onze Minister treedt bij de uitvoering van de bevoegdheden, toegedeeld bij of krachtens de wet en de in het eerste lid genoemde wet niet in de procedurele behandeling van, de inhoudelijke beoordeling van alsmede de beslissing in een concrete zaak of in categorieën van zaken.</al>
+  </lid>
+</artikel></paragraaf></hoofdstuk>
+      <hoofdstuk bwb-ng-variabel-deel="/HoofdstukIII" stam-id="3255493" versie-id="25074732" id="C35855741" label-id="3234494" inwerking="2018-06-06" label="Hoofdstuk III" bron="Stb.2018-172" effect="structuurwijziging" ondertekening_bron="2018-06-06" publicatie_bron="2018-06-19" publicatie_iwt="2018-06-19" status="goed">
+  <kop>
+    <label>Hoofdstuk</label>
+    <nr status="officieel">III</nr>
+    <titel status="officieel">Toetsingscriteria en uitspraken huurcommissie</titel>
+  </kop><paragraaf bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1" stam-id="3255313" versie-id="30181912" id="C43243841" label-id="3234314" inwerking="2024-06-26" label="§ 1" bron="Stb.2024-193" effect="structuurwijziging" ondertekening_bron="2024-06-26" publicatie_bron="2024-06-28" publicatie_iwt="2024-06-28" status="goed">
+  <kop>
+    <label>§</label>
+    <nr status="officieel">1</nr>
+    <titel status="officieel">Algemeen</titel>
+  </kop><artikel bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10" stam-id="3255303" versie-id="31076962" id="C44495191" label-id="3234304" inwerking="2026-01-01" label="Artikel 10" bron="Stcrt.2025-38156" effect="wijziging" ondertekening_bron="2025-11-17" publicatie_bron="2025-11-19" publicatie_iwt="2025-11-19" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">10</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10/Lid1" label-id="3234304L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Bij of krachtens algemene maatregel van bestuur worden regels gegeven voor de waardering van de kwaliteit van een woonruimte, van de redelijkheid van de huurprijs en van wijziging daarvan, waarbij onderscheid kan worden gemaakt tussen woonruimte waarvoor de eigenaar een voor die woonruimte, overeenkomstig de op grond van <extref doc="jci1.3:c:BWBR0037885&amp;artikel=4.3" label-id="13452374" verwijzing-id="3015774" bwb-id="BWBR0037885">artikel 4.3, eerste lid, aanhef en onder a</extref>, in samenhang met <extref doc="jci1.3:c:BWBR0037885&amp;artikel=4.20" label-id="13452604" verwijzing-id="3015775" bwb-id="BWBR0037885">artikel 4.20, aanhef en onder f, van de Omgevingswet</extref> gegeven regels omtrent de energieprestatie van gebouwen, afgegeven energieprestatiecertificaat aan de huurder heeft verstrekt of indien dat niet het geval is daartoe op grond van die regels wel verplicht was, en onderscheid kan worden gemaakt tussen woonruimte waarvoor voor die woonruimte een WOZ-waarde is vastgesteld op grond van <extref doc="jci1.3:c:BWBR0007119&amp;artikel=17" label-id="451834" verwijzing-id="3316455" bwb-id="BWBR0007119">artikel 17 van de Wet waardering onroerende zaken</extref> en woonruimte waarvoor dat niet het geval is, en overige woonruimte.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10/Lid2" label-id="3234304L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Bij ministeriële regeling wordt het percentage dan wel het bedrag van de maximale huurverhoging vastgesteld, mede aan de hand van:</al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10/Lid2/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>het gegeven of het huishoudinkomen over het peiljaar of het inkomenstoetsjaar van de op het tijdstip van de in het voorstel tot verhoging van de huurprijs genoemde ingangsdatum in de woonruimte wonende huurder en overige bewoners:</al>
+        <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+          <li bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10/Lid2/Onderdeela/Onderdeel1">
+            <li.nr>1°.</li.nr>
+            <al>niet hoger is dan € 59.504 indien het huishouden bestaat uit de huurder, dan wel niet hoger is dan € 68.858 indien het huishouden bestaat uit de huurder en een of meer overige bewoners,</al>
+          </li>
+          <li bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10/Lid2/Onderdeela/Onderdeel2">
+            <li.nr>2°.</li.nr>
+            <al>hoger is dan € 59.504 doch niet hoger dan € 70.149 indien het huishouden bestaat uit de huurder, dan wel hoger is dan € 68.858 doch niet hoger dan € 93.531 indien het huishouden bestaat uit de huurder en een of meer overige bewoners,</al>
+          </li>
+          <li bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10/Lid2/Onderdeela/Onderdeel3">
+            <li.nr>3°.</li.nr>
+            <al>hoger is dan € 70.149 indien het huishouden bestaat uit de huurder, dan wel hoger is dan € 93.531 indien het huishouden bestaat uit de huurder en een of meer overige bewoners;</al>
+          </li>
+        </lijst>
+      </li>
+      <li bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10/Lid2/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>de geldende huurprijs, en</al>
+      </li>
+      <li bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10/Lid2/Onderdeelc">
+        <li.nr>c.</li.nr>
+        <al>het gegeven of die woonruimte een zelfstandige woning vormt.</al>
+      </li>
+    </lijst>
+    <al>Bij ministeriële regeling worden de bedragen, genoemd in onderdeel a, met ingang van 1 januari van elk jaar gewijzigd met de procentuele wijziging per 1 januari van het peiljaar van het bedrag, genoemd in <extref doc="jci1.3:c:BWBR0008659&amp;artikel=17" label-id="2160414" verwijzing-id="3350799" bwb-id="BWBR0008659">artikel 17, eerste lid, onderdeel b, van de Wet op de huurtoeslag</extref>.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10/Lid3" label-id="3234304L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Het maximale huurverhogingspercentage voor huurovereenkomsten als bedoeld in de <extref doc="jci1.3:c:BWBR0005290&amp;artikel=247" label-id="3228574" verwijzing-id="3304052" bwb-id="BWBR0005290">artikelen 7:247</extref> en <extref doc="jci1.3:c:BWBR0005290&amp;artikel=247a" label-id="16257104" verwijzing-id="3304053" bwb-id="BWBR0005290">7:247a van het Burgerlijk Wetboek</extref> in enig jaar is gelijk aan:</al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10/Lid3/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>(het gemiddelde van de prijsindexcijfers van de maanden december t-2 tot en met november t-1) / (het gemiddelde van de prijsindexcijfers van de maanden december t-3 tot en met november t-2) vermeerderd met één procentpunt, waarbij de prijsindexcijfers de cijfers uit de «Consumentenprijsindex Alle Huishoudens» van het Centraal Bureau voor de Statistiek zijn en de gemiddelde prijsindexcijfers worden berekend uit de prijsindexcijfers vermeld in het nummer van het Statistisch Bulletin, waarin het indexcijfer van november t-1 respectievelijk november t-2, al dan niet voorlopig, wordt gepubliceerd, dan wel, indien dat leidt tot een lager percentage;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10/Lid3/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>(het gemiddelde van de CAO-loonindexcijfers van de maanden december t-2 tot en met november t-1) / (het gemiddelde van de CAO-loonindexcijfers van de maanden december t-3 tot en met november t-2) waarbij de CAO-loonindexcijfers de cijfers uit de «CAO-loonindex Alle Economische Activiteiten, Cao-lonen per uur inclusief bijzondere beloningen» van het Centraal Bureau voor de Statistiek zijn en de gemiddelde loonindexcijfers worden berekend uit de CAO-loonindexcijfers vermeld in het nummer van het Statistisch Bulletin, waarin het indexcijfer van november t-1 respectievelijk november t-2, al dan niet voorlopig, wordt gepubliceerd, vermeerderd met één procentpunt.</al>
+      </li>
+    </lijst>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10/Lid4" label-id="3234304L4">
+    <lidnr status="officieel">4</lidnr>
+    <al>Het maximale huurverhogingspercentage voor huurovereenkomsten die betrekking hebben op middeldure huurwoonruimte als bedoeld in <extref doc="jci1.3:c:BWBR0035303&amp;artikel=1" label-id="12690334" verwijzing-id="3316456" bwb-id="BWBR0035303">artikel 1 van de Huisvestingswet 2014</extref> in enig jaar is gelijk aan (het gemiddelde van de CAO-loonindexcijfers van de maanden december t-2 tot en met november t-1) / (het gemiddelde van de CAO-loonindexcijfers van de maanden december t-3 tot en met november t-2) waarbij de CAO-loonindexcijfers de cijfers uit de «CAO-loonindex Alle Economische Activiteiten, Cao-lonen per uur inclusief bijzondere beloningen» van het Centraal Bureau voor de Statistiek zijn en de gemiddelde loonindexcijfers worden berekend uit de CAO-loonindexcijfers vermeld in het nummer van het Statistisch Bulletin, waarin het indexcijfer van november t-1 respectievelijk november t-2, al dan niet voorlopig, wordt gepubliceerd, vermeerderd met één procentpunt.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10a" stam-id="15916973" versie-id="30181902" id="C43243831" label-id="15852084" inwerking="2024-07-01" label="Artikel 10a" bron="Stb.2024-193" effect="wijziging" ondertekening_bron="2024-06-26" publicatie_bron="2024-06-28" publicatie_iwt="2024-06-28" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">10a</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10a/Lid1" label-id="15852084L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>In afwijking van <intref doc="jci1.3:c:BWBR0014315&amp;hoofdstuk=III&amp;paragraaf=1&amp;artikel=10&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3234304" verwijzing-id="3069500" bwb-id="BWBR0014315" bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10">artikel 10, tweede lid</intref>, kan de huurprijs worden verhoogd tot ten hoogste:</al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10a/Lid1/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>het bedrag dat voor dat jaar is voorzien in de bij aanvang van de huur overeengekomen stapsgewijze verhoging van de huurprijs, bedoeld in <extref doc="jci1.3:c:BWBR0005290&amp;artikel=252c" label-id="15852074" verwijzing-id="3069501" bwb-id="BWBR0005290">artikel 7:252c onder a BW</extref>;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10a/Lid1/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>het bedrag van de huurprijs direct voorafgaand aan de datum waarop de huurprijs overeenkomstig <extref doc="jci1.3:c:BWBR0005290&amp;artikel=252c" label-id="15852074" verwijzing-id="3069502" bwb-id="BWBR0005290">artikel 7:252c onder b BW</extref> niet is verhoogd respectievelijk is verlaagd, vermeerderd met de som van ten hoogste de krachtens <intref doc="jci1.3:c:BWBR0014315&amp;hoofdstuk=III&amp;paragraaf=1&amp;artikel=10&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3234304" verwijzing-id="3069503" bwb-id="BWBR0014315" bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10">artikel 10, tweede lid</intref>, toegelaten verhogingen over de jaren sinds die datum.</al>
+      </li>
+    </lijst>
+    <al>De onder b bedoelde verhoging leidt niet tot een hogere huurprijs dan het op de ingangsdatum van de voorgestelde huurverhoging in <extref doc="jci1.3:c:BWBR0008659&amp;artikel=13" label-id="2160344" verwijzing-id="3069504" bwb-id="BWBR0008659">artikel 13, eerste lid, onderdeel a, van de Wet op de huurtoeslag</extref> genoemde bedrag, tenzij de huurprijs op de dag voor de datum waarop de huurprijs niet is verhoogd respectievelijk is verlaagd, lager is dan wel op de dag na die datum hoger is dan het op die dag in dat artikel genoemde bedrag.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10a/Lid2" label-id="15852084L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>In afwijking van <intref doc="jci1.3:c:BWBR0014315&amp;hoofdstuk=III&amp;paragraaf=1&amp;artikel=10&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3234304" verwijzing-id="3073134" bwb-id="BWBR0014315" bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10">artikel 10, derde respectievelijk vierde lid</intref>, kan de huurprijs, indien niet eerder dan drie jaar voor de ingangsdatum van de huurverhoging de huurprijs op schriftelijk verzoek van de huurder niet is verhoogd respectievelijk is verlaagd, worden verhoogd tot ten hoogste het bedrag van de huurprijs direct voorafgaand aan de datum waarop de huurprijs niet is verhoogd respectievelijk is verlaagd vermeerderd met de som van ten hoogste de krachtens artikel 10, derde respectievelijk vierde lid, toegelaten verhogingen over de jaren sinds die datum. De in de eerste zin bedoelde verhoging leidt niet tot een hogere huurprijs dan het op de ingangsdatum van de voorgestelde huurverhoging in <extref doc="jci1.3:c:BWBR0008659&amp;artikel=13" label-id="2160344" verwijzing-id="3073135" bwb-id="BWBR0008659">artikel 13, eerste lid, onderdeel a, van de Wet op de huurtoeslag</extref> genoemde bedrag, tenzij de huurprijs op de dag voor de datum waarop de huurprijs niet is verhoogd respectievelijk is verlaagd, lager is dan wel op de dag na die datum hoger is dan het op die dag in dat artikel genoemde bedrag.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10b" stam-id="17148393" versie-id="30181942" id="C43937781" label-id="17056554" inwerking="2024-07-01" label="Artikel 10b" bron="Stb.2024-193" effect="nieuw" ondertekening_bron="2024-06-26" publicatie_bron="2024-06-28" publicatie_iwt="2024-06-28" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">10b</nr>
+  </kop>
+  <al>Indien de waardering van de kwaliteit van een woonruimte en van de redelijkheid van de huurprijs zowel door de huurcommissie dan wel door de rechter als door burgemeester en wethouders van de gemeente waar de woonruimte zich bevindt, is beoordeeld, geldt de waardering van de huurcommissie dan wel van de rechter als de geldende waardering voor die woonruimte.</al>
+</artikel><artikel bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10c" stam-id="17148403" versie-id="30181952" id="C43937801" label-id="17056564" inwerking="2024-07-01" label="Artikel 10c" bron="Stb.2024-193" effect="nieuw" ondertekening_bron="2024-06-26" publicatie_bron="2024-06-28" publicatie_iwt="2024-06-28" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">10c</nr>
+    <titel status="officieel">(prijsopslag)</titel>
+  </kop>
+  <lid bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10c/Lid1" label-id="17056564L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Bij of krachtens de algemene maatregel van bestuur, bedoeld in <intref doc="jci1.3:c:BWBR0014315&amp;hoofdstuk=III&amp;paragraaf=1&amp;artikel=10&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3234304" verwijzing-id="3316388" bwb-id="BWBR0014315" bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10">artikel 10, eerste lid</intref>, wordt ten minste bepaald dat:</al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10c/Lid1/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>voor de bepaling van de maximale huurprijs, behorend bij de kwaliteit van een zelfstandige of onzelfstandige woning de waardering van de kwaliteit met 35 procent wordt vermeerderd indien de woonruimte deel uitmaakt van een monument dat is ingeschreven in het register van de rijksmonumenten, bedoeld in <extref doc="jci1.3:c:BWBR0037521&amp;artikel=1.1" label-id="13356044" verwijzing-id="3316389" bwb-id="BWBR0037521">artikel 1.1 van de Erfgoedwet</extref>;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10c/Lid1/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>de maximale huurprijs, behorend bij de kwaliteit van een middeldure huurwoonruimte als bedoeld in <extref doc="jci1.3:c:BWBR0035303&amp;artikel=1" label-id="12690334" verwijzing-id="3316390" bwb-id="BWBR0035303">artikel 1 van de Huisvestingswet 2014</extref>, met tien procent wordt vermeerderd indien die woonruimte na 1 juli 2024 voor het eerst in gebruik wordt genomen als woonruimte en waarvan de bouw of de verbouw van een ruimte met een andere gebruiksfunctie dan een woonfunctie naar een woonruimte met een woonfunctie voor 1 januari 2028 is gestart, met dien verstande dat deze vermeerdering vanaf het moment van ingebruikname na twintig jaar eindigt.</al>
+      </li>
+    </lijst>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10c/Lid2" label-id="17056564L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Onze Minister zendt voor 1 juli 2027 aan de Staten-Generaal een verslag over de noodzaak van de vermeerdering bedoeld in het eerste lid, onderdeel b, waarbij wordt ingegaan op de eventuele noodzaak voor een voorzetting van deze vermeerdering. Die voortzetting kan bij of krachtens de algemene maatregel van bestuur, bedoeld in <intref doc="jci1.3:c:BWBR0014315&amp;hoofdstuk=III&amp;paragraaf=1&amp;artikel=10&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3234304" verwijzing-id="3316391" bwb-id="BWBR0014315" bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10">artikel 10, eerste lid</intref>, worden bepaald.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10d" stam-id="17148413" versie-id="30181962" id="C43937811" label-id="17056574" inwerking="2024-07-01" label="Artikel 10d" bron="Stb.2024-193" effect="nieuw" ondertekening_bron="2024-06-26" publicatie_bron="2024-06-28" publicatie_iwt="2024-06-28" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">10d</nr>
+    <titel status="officieel">(energieprestatie)</titel>
+  </kop>
+  <al>Bij of krachtens de algemene maatregel van bestuur, bedoeld in <intref doc="jci1.3:c:BWBR0014315&amp;hoofdstuk=III&amp;paragraaf=1&amp;artikel=10&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3234304" verwijzing-id="3316392" bwb-id="BWBR0014315" bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10">artikel 10, eerste lid</intref>, wordt ten minste bepaald dat de puntenwaardering voor een zelfstandige woonruimte, niet zijnde een woonruimte die bestaat uit of deel uitmaakt van een rijksmonument als bedoeld in <extref doc="jci1.3:c:BWBR0037521&amp;artikel=1.1" label-id="13356044" verwijzing-id="3316393" bwb-id="BWBR0037521">artikel 1.1 van de Erfgoedwet</extref>, een provinciaal monument of een gemeentelijke monument, wordt verminderd met het hieronder bij de letter die overeenkomt met de op het energieprestatiecertificaat van die woning vermelde letter vermelde puntenaantal:</al>
+  <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+    <li bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10d/Onderdeel1">
+      <li.nr>1°.</li.nr>
+      <al>E: –4;</al>
+    </li>
+    <li bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10d/Onderdeel2">
+      <li.nr>2°.</li.nr>
+      <al>F: –9;</al>
+    </li>
+    <li bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf1/Artikel10d/Onderdeel3">
+      <li.nr>3°.</li.nr>
+      <al>G: –15.</al>
+    </li>
+  </lijst>
+</artikel></paragraaf><paragraaf bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf6" stam-id="3255423" versie-id="5007802" id="C6643891" label-id="3234424" inwerking="2003-08-01" label="§ 6" bron="Stb.2002-589" effect="nieuwe-regeling" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2003-06-17" status="goed">
+  <kop>
+    <label>§</label>
+    <nr>6</nr>
+    <titel status="officieel">De in rekening te brengen huurprijs bij vermindering van het woongenot als gevolg van een gebrek</titel>
+  </kop><artikel bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf6/Artikel16" stam-id="3255413" versie-id="21452242" id="C39248771" label-id="3234414" inwerking="2014-07-01" label="Artikel 16" bron="Stb.2014-205" effect="wijziging" ondertekening_bron="2014-06-04" publicatie_bron="2014-06-13" publicatie_iwt="2014-06-27" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">16</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf6/Artikel16/Lid1" label-id="3234414L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>In geval van een verzoek als bedoeld in <extref doc="jci1.3:c:BWBR0005290&amp;artikel=257" label-id="3229474" verwijzing-id="1702712" bwb-id="BWBR0005290">artikel 7:257, tweede lid, van het Burgerlijk Wetboek</extref> doet de huurcommissie uitspraak of zij van oordeel is dat de overeengekomen huurprijs, in verband met de gebreken ten aanzien van de woonruimte, in rekening dient te worden gebracht. Indien de commissie van oordeel is dat die huurprijs, in verband met de gebreken, niet in rekening dient te worden gebracht, geeft zij deze gebreken in de uitspraak aan en vermeldt zij een in verhouding tot die gebreken lagere huurprijs als de in rekening te brengen huurprijs.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf6/Artikel16/Lid2" label-id="3234414L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>De huurcommissie neemt bij haar oordeel de krachtens <intref doc="jci1.3:c:BWBR0014315&amp;hoofdstuk=III&amp;paragraaf=2&amp;artikel=12&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3234334" verwijzing-id="1702714" bwb-id="BWBR0014315" bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf2/Artikel12">artikel 12, tweede lid</intref>, vastgestelde regels in acht, met dien verstande dat de huurcommissie zich slechts een eigen oordeel over de gebreken vormt, voorzover deze aan de verhuurder door middel van de in <extref doc="jci1.3:c:BWBR0005290&amp;artikel=207" label-id="3231674" verwijzing-id="1702713" bwb-id="BWBR0005290">artikel 7:207 van het Burgerlijk Wetboek</extref> bedoelde kennisgeving door de huurder zijn gemeld, alsmede over de gebreken die van zodanige aard of samenhang zijn dat ze ook zonder aanzegging aan de verhuurder bekend moesten zijn, zulks naar de toestand op het tijdstip waarop de bedoelde kennisgeving door de huurder is verzonden.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf6/Artikel16/Lid3" label-id="3234414L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>De huurcommissie vermeldt in de uitspraak de datum van ingang van de in rekening te brengen lagere huurprijs, zijnde de eerste dag van de maand, volgend op die waarin de in het tweede lid bedoelde aanzegging door de huurder aan de verhuurder is verzonden.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf6/Artikel16/Lid4" label-id="3234414L4">
+    <lidnr status="officieel">4</lidnr>
+    <al>
+      <intref doc="jci1.3:c:BWBR0014315&amp;hoofdstuk=III&amp;paragraaf=2&amp;artikel=12&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3234334" verwijzing-id="1702715" bwb-id="BWBR0014315" bwb-ng-variabel-deel="/HoofdstukIII/Paragraaf2/Artikel12">Artikel 12, vierde en vijfde lid</intref>, is van overeenkomstige toepassing. </al>
+  </lid>
+</artikel></paragraaf></hoofdstuk>
+      </wettekst>
+    <wetsluiting bwb-ng-variabel-deel="/SlotformulierEnOndertekening" stam-id="3255933" versie-id="5008312" id="C6643831" label-id="3234934" inwerking="2003-08-01" bron="Stb.2002-589" effect="nieuwe-regeling" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2003-06-17" status="goed">
+  <slotformulering>
+    <al>Lasten en bevelen dat deze in het Staatsblad zal worden geplaatst en dat alle ministeries, autoriteiten, colleges en ambtenaren wie zulks aangaat, aan de nauwkeurige uitvoering de hand zullen houden.</al>
+  </slotformulering>
+  <gegeven>
+    <dagtekening>
+      <plaats>Gegeven te 's-Gravenhage</plaats>
+      <datum isodatum="">21 november 2002</datum>
+    </dagtekening>
+    <koning>Beatrix</koning>
+  </gegeven>
+  <ondertekening>
+    <functie>De Minister van Volkshuisvesting, Ruimtelijke Ordening en Milieubeheer,</functie>
+    <naam>
+      <achternaam>H. G. J. Kamp</achternaam>
+    </naam>
+  </ondertekening>
+  <ondertekening>
+    <functie>De Minister van Justitie,</functie>
+    <naam>
+      <achternaam>J. P. H. Donner</achternaam>
+    </naam>
+  </ondertekening>
+  <uitgifte>
+    <datum isodatum="">de negentiende december 2002</datum>
+    <ondertekening>
+      <functie>De Minister van Justitie,</functie>
+      <naam>
+        <achternaam>J. P. H. Donner</achternaam>
+      </naam>
+    </ondertekening>
+  </uitgifte>
+</wetsluiting>
+  </wet-besluit>
+</wetgeving>
+</toestand>

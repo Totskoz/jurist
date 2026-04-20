@@ -1,0 +1,618 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<toestand xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bwb-ng-vast-deel="http://wetten.overheid.nl/id/BWBR0005290/2026-01-01/0" xsi:noNamespaceSchemaLocation="https://repository.officiele-overheidspublicaties.nl/Schema/BWB-toestand/2016-1/xsd/toestand_2016-1.xsd" bwb-id="BWBR0005290" inwerkingtreding="2026-01-01">
+  <wetgeving dtdversie="2.0" soort="wet" xml:lang="nl" stam-id="2962603" versie-id="4579162" id="C33848211" label-id="2913524" inwerkingtredingsdatum="1992-01-01">
+  <intitule bwb-ng-variabel-deel="/Intitule" stam-id="2962623" versie-id="4577122" id="C25771511" label-id="2911554" inwerking="1992-01-01" bron="Stb.1991-600" effect="nieuwe-regeling" ondertekening_bron="1991-11-22" publicatie_bron="1991-12-18" publicatie_iwt="1991-12-18" status="goed">Burgerlijk Wetboek Boek 7, Bijzondere overeenkomsten <meta-data><brondata><oorspronkelijk><publicatie effect="nieuwe-regeling" soort="Stb" urlidentifier=""><publicatiejaar>1991</publicatiejaar><publicatienr>600</publicatienr><uitgiftedatum isodatum="1991-12-18">18-12-1991</uitgiftedatum><ondertekeningsdatum isodatum="1991-11-22">22-11-1991</ondertekeningsdatum></publicatie></oorspronkelijk><inwerkingtreding><publicatie effect="nieuwe-regeling" soort="Stb" urlidentifier=""><publicatiejaar>1991</publicatiejaar><publicatienr>600</publicatienr><uitgiftedatum isodatum="1991-12-18">18-12-1991</uitgiftedatum><ondertekeningsdatum isodatum="1991-11-22">22-11-1991</ondertekeningsdatum></publicatie><inwerkingtreding.datum isodatum="1992-01-01">01-01-1992</inwerkingtreding.datum></inwerkingtreding></brondata></meta-data></intitule>
+  <citeertitel bwb-ng-variabel-deel="/Citeertitel" status="officieel" stam-id="2962633" versie-id="4577132" id="C25772891" label-id="2911564" inwerking="1992-01-01" bron="Stb.1991-600" effect="nieuwe-regeling" ondertekening_bron="1991-11-22" publicatie_bron="1991-12-18" publicatie_iwt="1991-12-18">Burgerlijk Wetboek Boek 7<meta-data><brondata><oorspronkelijk><publicatie effect="nieuwe-regeling" soort="Stb" urlidentifier=""><publicatiejaar>1991</publicatiejaar><publicatienr>600</publicatienr><uitgiftedatum isodatum="1991-12-18">18-12-1991</uitgiftedatum><ondertekeningsdatum isodatum="1991-11-22">22-11-1991</ondertekeningsdatum></publicatie></oorspronkelijk><inwerkingtreding><publicatie effect="nieuwe-regeling" soort="Stb" urlidentifier=""><publicatiejaar>1991</publicatiejaar><publicatienr>600</publicatienr><uitgiftedatum isodatum="1991-12-18">18-12-1991</uitgiftedatum><ondertekeningsdatum isodatum="1991-11-22">22-11-1991</ondertekeningsdatum></publicatie><inwerkingtreding.datum isodatum="1992-01-01">01-01-1992</inwerkingtreding.datum></inwerkingtreding></brondata></meta-data></citeertitel>
+  <wet-besluit>
+    <wettekst>
+      <boek bwb-ng-variabel-deel="/Boek7" stam-id="2964583" versie-id="28576172" id="C40323541" label-id="2913514" inwerking="2022-04-20" label="Boek 7" bron="Stb.2022-164" effect="structuurwijziging" ondertekening_bron="2022-04-20" publicatie_bron="2022-04-26" publicatie_iwt="2022-04-26" status="goed">
+  <kop>
+    <label>Boek</label>
+    <nr status="officieel">7</nr>
+    <titel status="officieel">Bijzondere overeenkomsten </titel>
+  </kop><titeldeel bwb-ng-variabel-deel="/Boek7/Titeldeel4" stam-id="3254353" versie-id="5087222" id="C12197141" label-id="3227104" inwerking="2003-08-01" label="Titel 4" bron="Stb.2002-588" effect="structuurwijziging" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2002-12-19" status="goed">
+  <kop>
+    <label>Titel</label>
+    <nr>4</nr>
+    <titel status="officieel">Huur</titel>
+  </kop><afdeling bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5" stam-id="3254343" versie-id="5004822" id="C6609831" label-id="3227094" inwerking="2003-08-01" label="Afdeling 5" bron="Stb.2002-587" effect="nieuw" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2003-06-17" status="goed">
+  <kop>
+    <label>Afdeling</label>
+    <nr>5</nr>
+    <titel status="officieel">Huur van woonruimte</titel>
+  </kop><paragraaf bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2" stam-id="3254133" versie-id="5004612" id="C6610291" label-id="3230474" inwerking="2003-08-01" label="Onderafdeling 2" bron="Stb.2002-587" effect="nieuw" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2003-06-17" status="goed">
+  <kop>
+    <nr>Onderafdeling 2</nr>
+    <titel status="officieel">Huurprijzen en andere vergoedingen</titel>
+  </kop><sub-paragraaf bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1" stam-id="3254023" versie-id="30180622" id="C43242281" label-id="3229564" inwerking="2024-06-26" label="Paragraaf 1" bron="Stb.2024-193" effect="structuurwijziging" ondertekening_bron="2024-06-26" publicatie_bron="2024-06-28" publicatie_iwt="2024-06-28" status="goed">
+  <kop>
+    <label>Paragraaf</label>
+    <nr status="officieel">1</nr>
+    <titel status="officieel">Huurprijzen</titel>
+  </kop><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel246" stam-id="3253903" versie-id="5004382" id="C41495191" label-id="3228484" inwerking="2003-08-01" label="Artikel 246" bron="Stb.2002-587" effect="nieuw" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2003-06-17" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">246</nr>
+  </kop>
+  <al>Ter zake van huur gelden de huurprijzen die partijen zijn overeengekomen, voorzover uit deze onderafdeling niet anders voortvloeit.</al>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel247" stam-id="3253913" versie-id="30180472" id="C43242031" label-id="3228574" inwerking="2024-07-01" label="Artikel 247" bron="Stb.2024-193" effect="wijziging" ondertekening_bron="2024-06-26" publicatie_bron="2024-06-28" publicatie_iwt="2024-06-28" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">247</nr>
+  </kop>
+  <al>De volgende artikelen van deze onderafdeling zijn, behoudens de <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=248&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3228664" verwijzing-id="3073063" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248">artikelen 248 lid 3 en 4</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=249&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3228754" verwijzing-id="3073064" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel249">249</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=250&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3228844" verwijzing-id="3316276" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel250">250 lid 4</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=251&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3228934" verwijzing-id="3316277" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel251">251</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229024" verwijzing-id="3316278" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252">252</intref> voor zover het een voorstel tot verlaging van de huurprijs betreft, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=254&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229204" verwijzing-id="3316279" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel254">254</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=255a&amp;z=2026-01-01&amp;g=2026-01-01" label-id="15871314" verwijzing-id="3073094" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel255a">255a</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=2&amp;artikel=259&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229744" verwijzing-id="1702597" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel259">259</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=2&amp;artikel=260&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229834" verwijzing-id="3316280" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel260">260</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=2&amp;artikel=261&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229924" verwijzing-id="3316281" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261">261 leden 1 en 3</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=2&amp;artikel=261b&amp;z=2026-01-01&amp;g=2026-01-01" label-id="16633874" verwijzing-id="3228137" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261b">261b</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=3&amp;artikel=262&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3230104,3230194,3230284" verwijzing-id="3316282" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf3/Artikel262">262 tot en met 264</intref>, niet van toepassing op een overeenkomst van huur en verhuur, die betrekking heeft op een zelfstandige woning, ten aanzien waarvan bij de aanvang van de bewoning een huurprijs gold of geldt, die, indien nodig herleid tot een bedrag per jaar, hoger is dan het krachtens <extref doc="jci1.3:c:BWBR0014315&amp;artikel=3" label-id="3234184" verwijzing-id="1702594" bwb-id="BWBR0014315">artikel 3 lid 2 van de Uitvoeringswet huurprijzen woonruimte</extref> vastgesteld bedrag, en de huurprijs niet is verlaagd naar een huurprijs lager dan het krachtens <extref doc="jci1.3:c:BWBR0014315&amp;artikel=3" label-id="3234184" verwijzing-id="3316283" bwb-id="BWBR0014315">artikel 3 lid 2 van de Uitvoeringswet huurprijzen woonruimte</extref> vastgestelde bedrag, indien</al>
+  <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+    <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel247/Onderdeela">
+      <li.nr>a.</li.nr>
+      <al>die overeenkomst op of na 1 juli 1994 is totstandgekomen, dan wel,</al>
+    </li>
+    <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel247/Onderdeelb">
+      <li.nr>b.</li.nr>
+      <al>die overeenkomst betrekking heeft op een woning die is totstandgekomen op of na 1 juli 1989.</al>
+    </li>
+  </lijst>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel247a" stam-id="16332493" versie-id="28566722" id="C40430961" label-id="16257104" inwerking="2022-07-01" label="Artikel 247a" bron="Stb.2022-152" effect="nieuw" ondertekening_bron="2022-03-30" publicatie_bron="2022-04-20" publicatie_iwt="2022-05-27" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">247a</nr>
+  </kop>
+  <al>De volgende artikelen van deze onderafdeling zijn, behoudens de <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=248&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3228664" verwijzing-id="3154930" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248">artikelen 248 leden 3 en 4</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=251&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3228934" verwijzing-id="3154931" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel251">251</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=2&amp;artikel=259&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229744" verwijzing-id="3154932" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel259">259</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=2&amp;artikel=261&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229924" verwijzing-id="3154933" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261">261 lid 1</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=3&amp;artikel=262&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3230104" verwijzing-id="3154934" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf3/Artikel262">262</intref> en <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=3&amp;artikel=264&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3230284" verwijzing-id="3154935" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf3/Artikel264">264</intref>, niet van toepassing op een overeenkomst van huur en verhuur die betrekking heeft op een ligplaats.</al>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel247b" stam-id="17147943" versie-id="30180652" id="C43242311" label-id="17056204" inwerking="2024-07-01" label="Artikel 247b" bron="Stb.2024-193" effect="nieuw" ondertekening_bron="2024-06-26" publicatie_bron="2024-06-28" publicatie_iwt="2024-06-28" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">247b</nr>
+  </kop>
+  <al>De <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=248&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3228664" verwijzing-id="3316285" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248">artikelen 248 leden 1 en 2</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229024" verwijzing-id="3316286" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252">252</intref> voor zover het een voorstel tot verhoging van de huurprijs betreft, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252a&amp;z=2026-01-01&amp;g=2026-01-01" label-id="12108444" verwijzing-id="3316287" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a">252a</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252b&amp;z=2026-01-01&amp;g=2026-01-01" label-id="12110124" verwijzing-id="3316288" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252b">252b</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=253&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229114" verwijzing-id="3316289" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel253">253</intref> en <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=255a&amp;z=2026-01-01&amp;g=2026-01-01" label-id="15871314" verwijzing-id="3316290" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel255a">255a</intref> zijn niet van toepassing op een overeenkomst van huur en verhuur die betrekking heeft op een middeldure huurwoonruimte als bedoeld in <extref doc="jci1.3:c:BWBR0035303&amp;artikel=1" label-id="12690334" verwijzing-id="3316291" bwb-id="BWBR0035303">artikel 1 van de Huisvestingswet 2014</extref>.</al>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248" stam-id="3253923" versie-id="30180662" id="C43242321" label-id="3228664" inwerking="2024-07-01" label="Artikel 248" bron="Stb.2024-193" effect="wijziging" ondertekening_bron="2024-06-26" publicatie_bron="2024-06-28" publicatie_iwt="2024-06-28" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">248</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248/Lid1" label-id="3228664L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>De huurprijs kan worden verhoogd hetzij op grond van een beding in de huurovereenkomst dat in deze wijziging voorziet, hetzij indien een dergelijk beding niet van kracht is, op de wijze als voorgeschreven in de <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229024" verwijzing-id="2555991" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252">artikelen 252</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252a&amp;z=2026-01-01&amp;g=2026-01-01" label-id="12108444" verwijzing-id="2556000" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a">252a</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252c&amp;z=2026-01-01&amp;g=2026-01-01" label-id="15852074" verwijzing-id="3070133" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252c">252c</intref> en <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=253&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229114" verwijzing-id="2555992" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel253">253</intref>. Gedurende het bestaan van een dergelijk beding is toepassing van de artikelen 252, 252a, 252c en 253 uitgesloten. Indien een dergelijk beding niet meer van kracht is, kan vanaf een tijdvak van twaalf maanden na het tijdstip waarop laatstelijk toepassing is gegeven aan het beding, aan de hiervoor genoemde artikelen toepassing worden gegeven.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248/Lid2" label-id="3228664L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Leidt toepassing van een beding als bedoeld in lid 1 tot een verhoging van de huurprijs die hoger is dan toegelaten bij of krachtens <extref doc="jci1.3:c:BWBR0014315&amp;artikel=10" label-id="3234304" verwijzing-id="3069279" bwb-id="BWBR0014315">artikel 10 lid 2</extref> of <extref doc="jci1.3:c:BWBR0014315&amp;artikel=10a" label-id="15852084" verwijzing-id="3070122" bwb-id="BWBR0014315">artikel 10a van de Uitvoeringswet huurprijzen woonruimte</extref>, dan is het beding nietig voor zover dat beding leidt tot een hogere dan toegelaten verhoging en geldt de huurprijs als verhoogd met de toegelaten verhoging.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248/Lid3" label-id="3228664L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Leidt toepassing van een beding in een huurovereenkomst als bedoeld in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=247&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3228574" verwijzing-id="3073066" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel247">artikel 247</intref> of <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=247a&amp;z=2026-01-01&amp;g=2026-01-01" label-id="16257104" verwijzing-id="3304046" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel247a">artikel 247a</intref> tot een verhoging van de huurprijs die hoger is dan toegelaten bij of krachtens <extref doc="jci1.3:c:BWBR0014315&amp;artikel=10" label-id="3234304" verwijzing-id="3073067" bwb-id="BWBR0014315">artikel 10 lid 3</extref> of <extref doc="jci1.3:c:BWBR0014315&amp;artikel=10a" label-id="15852084" verwijzing-id="3073068" bwb-id="BWBR0014315">artikel 10a lid 2 van de Uitvoeringswet huurprijzen woonruimte</extref>, of leidt toepassing van een beding in een huurovereenkomst die betrekking heeft op een middeldure huurwoonruimte als bedoeld in <extref doc="jci1.3:c:BWBR0035303&amp;artikel=1" label-id="12690334" verwijzing-id="3316292" bwb-id="BWBR0035303">artikel 1 van de Huisvestingswet 2014</extref> tot een verhoging van de huurprijs die hoger is dan toegelaten bij of krachtens <extref doc="jci1.3:c:BWBR0014315&amp;artikel=10" label-id="3234304" verwijzing-id="3316293" bwb-id="BWBR0014315">artikel 10 lid 4</extref> of <extref doc="jci1.3:c:BWBR0014315&amp;artikel=10a" label-id="15852084" verwijzing-id="3316294" bwb-id="BWBR0014315">artikel 10a lid 2 van de Uitvoeringswet huurprijzen woonruimte</extref>, dan is het beding nietig voor zover dat beding leidt tot een hogere dan toegelaten verhoging en geldt de huurprijs als verhoogd met de toegelaten verhoging.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248/Lid4" label-id="3228664L4">
+    <lidnr status="officieel">4</lidnr>
+    <al>De huurder kan binnen vier maanden na de ingangsdatum van de verhoging van de huurprijs overeenkomstig een beding als bedoeld in het derde lid, de huurcommissie verzoeken uitspraak te doen over die verhoging. De huurcommissie stelt de verhuurder in kennis van het verzoek van de huurder.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel249" stam-id="3253933" versie-id="29915072" id="C43182701" label-id="3228754" inwerking="2024-07-01" label="Artikel 249" bron="Stb.2023-480" effect="wijziging" ondertekening_bron="2023-12-11" publicatie_bron="2023-12-20" publicatie_iwt="2024-06-11" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">249</nr>
+  </kop>
+  <al>De huurder kan tot uiterlijk zes maanden na het tijdstip waarop een door hem met betrekking tot die woonruimte voor de eerste maal aangegane huurovereenkomst is ingegaan, de huurcommissie verzoeken uitspraak te doen over de redelijkheid van de overeengekomen huurprijs.</al>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel250" stam-id="3253943" versie-id="27663642" id="C39027741" label-id="3228844" inwerking="2021-04-01" label="Artikel 250" bron="Stb.2021-162" effect="wijziging" ondertekening_bron="2021-03-24" publicatie_bron="2021-03-31" publicatie_iwt="2021-03-31" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">250</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel250/Lid1" label-id="3228844L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>De huurprijs kan op verzoek van de verhuurder worden verhoogd op de wijze voorgeschreven in de <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229024" verwijzing-id="2556001" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252">artikelen 252</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252a&amp;z=2026-01-01&amp;g=2026-01-01" label-id="12108444" verwijzing-id="2556002" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a">252a</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252c&amp;z=2026-01-01&amp;g=2026-01-01" label-id="15852074" verwijzing-id="3070123" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252c">252c</intref> en <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=253&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229114" verwijzing-id="2556003" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel253">253</intref>:</al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel250/Lid1/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>gedurende het eerste tijdvak van twaalf maanden na de dag van ingang van de huur ten hoogste eenmaal, en</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel250/Lid1/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>telkens tegen het einde van elkaar opvolgende tijdvakken van twaalf maanden na hetzij het ingaan van de onder a bedoelde verhoging, hetzij bij gebreke van zodanige verhoging de dag van ingang van de huur. </al>
+      </li>
+    </lijst>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel250/Lid2" label-id="3228844L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Een verhoging van de huurprijs krachtens lid 1 is niet mogelijk, zolang er tussen huurder en verhuurder geen overeenstemming is dat de, bij toepassing van de <extref doc="jci1.3:c:BWBR0014315&amp;artikel=12" label-id="3234334" verwijzing-id="1702605" bwb-id="BWBR0014315">artikelen 12</extref> en <extref doc="jci1.3:c:BWBR0014315&amp;artikel=16" label-id="3234414" verwijzing-id="1702606" bwb-id="BWBR0014315">16 van de Uitvoeringswet huurprijzen woonruimte</extref>, geconstateerde gebreken ten aanzien van de woonruimte zijn opgeheven.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel250/Lid3" label-id="3228844L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>In afwijking van lid 1 kan de huurprijs worden verhoogd tegen het einde van een tijdvak dat even zoveel korter dan twaalf maanden is als het daaraan voorafgaande tijdvak langer dan twaalf maanden is geweest. Het eerste lid onder a en b is voorts niet van toepassing in het geval van <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252c&amp;z=2026-01-01&amp;g=2026-01-01" label-id="15852074" verwijzing-id="3070124" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252c">artikel 252c onder b</intref>.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel250/Lid4" label-id="3228844L4">
+    <lidnr status="officieel">4</lidnr>
+    <al>De huurprijs kan op verzoek van de huurder worden verlaagd op de wijze voorgeschreven in de <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229024" verwijzing-id="1702609" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252">artikelen 252</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252b&amp;z=2026-01-01&amp;g=2026-01-01" label-id="12110124" verwijzing-id="2556218" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252b">252b</intref> en <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=254&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229204" verwijzing-id="1702610" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel254">254</intref>.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel251" stam-id="3253953" versie-id="30072862" id="C43266571" label-id="3228934" inwerking="2024-07-01" label="Artikel 251" bron="Stb.2024-108" effect="wijziging" ondertekening_bron="2024-04-24" publicatie_bron="2024-04-26" publicatie_iwt="2024-04-26" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">251</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel251/Lid1" label-id="3228934L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Bepalingen in huurovereenkomsten die tot gevolg hebben dat de huurprijs in enig tijdvak van twaalf maanden meer dan eenmaal wordt verhoogd, zijn nietig, tenzij het gaat om het geval van <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=255&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229294" verwijzing-id="1702611" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel255">artikel 255</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=255a&amp;z=2026-01-01&amp;g=2026-01-01" label-id="15871314" verwijzing-id="3304047" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel255a">artikel 255a</intref> of van <extref doc="jci1.3:c:BWBR0014315&amp;artikel=10a" label-id="15852084" verwijzing-id="3070126" bwb-id="BWBR0014315">artikel 10a van de Uitvoeringswet huurprijzen woonruimte</extref>.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel251/Lid2" label-id="3228934L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>In afwijking van <extref doc="jci1.3:c:BWBR0005291&amp;artikel=308" label-id="2901494" verwijzing-id="3304048" bwb-id="BWBR0005291">artikel 308 van Boek 3</extref> verjaart de rechtsvordering tot betaling van een huurprijsverhoging door verloop van twee jaren na de aanvang van de dag, volgende op die waarop de vordering opeisbaar is geworden, tenzij de verhuurder de huurder in enig jaar niet schriftelijk informeert over het in dat jaar opeisbaar worden van een vordering tot betaling van een huurprijsverhoging, in welk geval die vordering verjaart door verloop van één jaar na de aanvang van de dag, volgende op die waarop de vordering opeisbaar is geworden.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252" stam-id="3253963" versie-id="17123932" id="C32072131" label-id="3229024" inwerking="2010-04-01" label="Artikel 252" bron="Stb.2010-28" effect="wijziging" ondertekening_bron="2009-12-23" publicatie_bron="2010-02-02" publicatie_iwt="2010-03-30" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">252</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252/Lid1" label-id="3229024L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Een voorstel tot wijziging van de huurprijs moet tenminste twee maanden voor de voorgestelde dag van ingang van de wijziging schriftelijk worden gedaan.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252/Lid2" label-id="3229024L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Het in lid 1 bedoelde voorstel dient te vermelden:</al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252/Lid2/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>de geldende huurprijs;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252/Lid2/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>het percentage of het bedrag van de wijziging van de huurprijs;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252/Lid2/Onderdeelc">
+        <li.nr>c.</li.nr>
+        <al>de voorgestelde huurprijs;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252/Lid2/Onderdeeld">
+        <li.nr>d.</li.nr>
+        <al>de voorgestelde dag van ingang van de voorgestelde huurprijs;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252/Lid2/Onderdeele">
+        <li.nr>e.</li.nr>
+        <al>de wijze waarop en het tijdvak waarbinnen de huurder, wanneer hij bezwaren heeft tegen het voorstel, daarvan kan doen blijken, en de gevolgen die deze onderafdeling verbindt aan het niet doen blijken van bezwaren.</al>
+      </li>
+    </lijst>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252/Lid3" label-id="3229024L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Voor het doen van een voorstel tot verlaging van de huurprijs dient een waardering van de kwaliteit van de woonruimte als bedoeld in <extref doc="jci1.3:c:BWBR0014315&amp;artikel=10" label-id="3234304" verwijzing-id="2330551" bwb-id="BWBR0014315">artikel 10 lid 1 van de Uitvoeringswet huurprijzen woonruimte</extref> te worden verstrekt.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252/Lid4" label-id="3229024L4">
+    <lidnr status="officieel">4</lidnr>
+    <al>Indien een overeenkomst tot wijziging van de huurprijs tot stand komt naar aanleiding van een voorstel daartoe, dat niet voldoet aan lid 1 en lid 2 aanhef en onder b, d of e dan wel aan het in lid 3 bepaalde, blijft de voordien geldende huurprijs verschuldigd, tenzij blijkt dat degene tot wie het voorstel was gericht niet door het verzuim is benadeeld.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a" stam-id="12137003" versie-id="29415242" id="C42270331" label-id="12108444" inwerking="2024-01-01" label="Artikel 252a" bron="Stb.2023-168" effect="wijziging" ondertekening_bron="2023-05-12" publicatie_bron="2023-05-23" publicatie_iwt="2023-07-07" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">252a</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid1" label-id="12108444L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Een verhuurder kan ten aanzien van woonruimte die een zelfstandige woning vormt een voorstel als bedoeld in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229024" verwijzing-id="3070202" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252">artikel 252</intref> doen, strekkend tot verhoging van de huurprijs op de grond dat het huishoudinkomen over het inkomenstoetsjaar:</al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid1/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>hoger is dan het op grond van <extref doc="jci1.3:c:BWBR0014315&amp;artikel=10" label-id="3234304" verwijzing-id="3070203" bwb-id="BWBR0014315">artikel 10 lid 2 onder a onder 1 van de Uitvoeringswet huurprijzen woonruimte</extref> voor het huishouden van de huurder toepasselijke bedrag doch niet hoger is dan het op grond van dat lid onder a onder 3 voor het huishouden van de huurder toepasselijke bedrag, of</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid1/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>hoger is dan het op grond van <extref doc="jci1.3:c:BWBR0014315&amp;artikel=10" label-id="3234304" verwijzing-id="3070204" bwb-id="BWBR0014315">artikel 10 lid 2 onder a onder 3 van de Uitvoeringswet huurprijzen woonruimte</extref> voor het huishouden van de huurder toepasselijke bedrag.</al>
+      </li>
+    </lijst>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid2" label-id="12108444L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>In dit artikel wordt verstaan onder:</al>
+    <lijst level="single" nr-sluiting="." start="1" type="ongemarkeerd">
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid2/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>
+          <nadruk type="cur">basisregistratie inkomen:</nadruk> basisregistratie inkomen als bedoeld in <extref doc="jci1.3:c:BWBR0002320&amp;hoofdstuk=IVA" label-id="2875174" verwijzing-id="2555995" bwb-id="BWBR0002320">hoofdstuk IVA van de Algemene wet inzake rijksbelastingen</extref>;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid2/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>
+          <nadruk type="cur">huishoudinkomen:</nadruk> het gezamenlijke bedrag van de inkomensgegevens, bedoeld in <extref doc="jci1.3:c:BWBR0002320&amp;artikel=21" label-id="2873994" verwijzing-id="2555996" bwb-id="BWBR0002320">artikel 21 onderdeel e van de Algemene wet inzake rijksbelastingen</extref>, van de huurder en de overige bewoners van een woonruimte in het inkomenstoetsjaar, met dien verstande dat van een overige bewoner die op 1 januari van het jaar waarin de voorgestelde dag van ingang van de voorgestelde huurprijs is gelegen de leeftijd van 23 jaar nog niet heeft bereikt het bedrag van het inkomensgegeven slechts in aanmerking wordt genomen voor zover dat meer bedraagt dan de uitkomst van 108% van het twaalfvoud van het bedrag per maand, bedoeld in <extref doc="jci1.3:c:BWBR0002638&amp;artikel=8" label-id="866514" verwijzing-id="2556184" bwb-id="BWBR0002638">artikel 8 lid 1 onderdeel b van de Wet minimumloon en minimumvakantiebijslag</extref>, als geldend op 1 januari van het inkomenstoetsjaar;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid2/Onderdeelc">
+        <li.nr>c.</li.nr>
+        <al>
+          <nadruk type="cur">huishoudverklaring:</nadruk> een door de inspecteur op verzoek van de verhuurder aan deze afgegeven verklaring;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid2/Onderdeeld">
+        <li.nr>d.</li.nr>
+        <al>
+          <nadruk type="cur">inkomenstoetsjaar:</nadruk> tweede kalenderjaar dat voorafgaat aan het kalenderjaar waarin ten aanzien van een huurovereenkomst een huishoudverklaring is verstrekt;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid2/Onderdeele">
+        <li.nr>e.</li.nr>
+        <al>
+          <nadruk type="cur">inspecteur:</nadruk> functionaris van de rijksbelastingdienst die als zodanig bij regeling van Onze Minister van Financiën is aangewezen;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid2/Onderdeelf">
+        <li.nr>f.</li.nr>
+        <al>
+          <nadruk type="cur">peiljaar:</nadruk> het kalenderjaar dat voorafgaat aan het kalenderjaar waarin de voorgestelde dag van ingang van de voorgestelde huurprijs is gelegen.</al>
+      </li>
+    </lijst>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid3" label-id="12108444L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Indien een voorstel als bedoeld in lid 1 wordt gedaan, wordt bij het voorstel een huishoudverklaring gevoegd.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid4" label-id="12108444L4">
+    <lidnr status="officieel">4</lidnr>
+    <al>De inspecteur verstrekt desgevraagd aan de verhuurder een huishoudverklaring. De verklaring vermeldt of op basis van gegevens uit de basisregistratie inkomen op het moment van behandeling van het verzoek van de verhuurder aan de inspecteur te verwachten is dat het huishoudinkomen niet hoger is dan het op grond van <extref doc="jci1.3:c:BWBR0014315&amp;artikel=10" label-id="3234304" verwijzing-id="3070759" bwb-id="BWBR0014315">artikel 10 lid 2 onder a onder 1 van de Uitvoeringswet huurprijzen woonruimte</extref> voor het huishouden van de huurder toepasselijke bedrag, dan wel hoger is dan dat bedrag doch niet hoger dan het op grond van dat lid onder a onder 3 voor het huishouden van de huurder toepasselijke bedrag, dan wel hoger is dan het laatstbedoelde bedrag. Indien geen inkomensgegeven in de basisregistratie inkomen beschikbaar is, vermeldt de verklaring dat dat het geval is. </al>
+    <al>Bij regeling van Onze Minister van Financiën worden nadere regels gesteld ter uitvoering van dit lid. Daarbij worden in ieder geval regels gesteld omtrent het kunnen doen van een verzoek tot het verstrekken van een huishoudverklaring, het verzoek zelf, de verstrekking van de huishoudverklaring, alsmede ten aanzien van de verhuurder.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid5" label-id="12108444L5">
+    <lidnr status="officieel">5</lidnr>
+    <al>Indien een huurovereenkomst tot wijziging van de huurprijs tot stand komt naar aanleiding van een voorstel daartoe, dat niet voldoet aan lid 3 is de verhoging van de huurprijs op basis van een voorstel als bedoeld in lid 1 niet mogelijk, tenzij blijkt dat de huurder niet door het verzuim is benadeeld.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid6" label-id="12108444L6">
+    <lidnr status="officieel">6</lidnr>
+    <al>Een overeenkomst tot wijziging van de huurprijs als gevolg van een voorstel als bedoeld in lid 1:</al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid6/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>onder a of b komt niet tot stand indien de huurder kan aantonen dat hij of een ander lid van zijn huishouden deel uitmaakt van een bij regeling van Onze Minister te bepalen groep;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid6/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>onder a komt niet tot stand indien de huurder kan aantonen dat het huishoudinkomen in het peiljaar gelijk is aan of lager is dan het op grond van <extref doc="jci1.3:c:BWBR0014315&amp;artikel=10" label-id="3234304" verwijzing-id="3070205" bwb-id="BWBR0014315">artikel 10 lid 2 onder a onder 1 van de Uitvoeringswet huurprijzen woonruimte</extref> voor zijn huishouden toepasselijke bedrag;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a/Lid6/Onderdeelc">
+        <li.nr>c.</li.nr>
+        <al>onder b komt niet tot stand indien de huurder kan aantonen dat het huishoudinkomen in het peiljaar gelijk is aan of lager is dan het op grond van <extref doc="jci1.3:c:BWBR0014315&amp;artikel=10" label-id="3234304" verwijzing-id="3070206" bwb-id="BWBR0014315">artikel 10 lid 2 onder a onder 3 van de Uitvoeringswet huurprijzen woonruimte</extref> voor zijn huishouden toepasselijke bedrag, in welk geval dat voorstel wordt aangemerkt als een voorstel als bedoeld in lid 1 onder a.</al>
+      </li>
+    </lijst>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252b" stam-id="12138683" versie-id="27668072" id="C39114061" label-id="12110124" inwerking="2022-01-01" label="Artikel 252b" bron="Stb.2021-167" effect="wijziging" ondertekening_bron="2021-03-24" publicatie_bron="2021-04-02" publicatie_iwt="2021-04-22" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">252b</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252b/Lid1" label-id="12110124L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Onverminderd het bepaalde in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252a&amp;z=2026-01-01&amp;g=2026-01-01" label-id="12108444" verwijzing-id="2760929" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a">artikel 252a lid 6</intref> kan een huurder ten aanzien van woonruimte die een zelfstandige woning vormt en ten aanzien waarvan een verhoging van de huurprijs op basis van artikel 252a lid 1 heeft plaatsgevonden, een voorstel als bedoeld in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229024" verwijzing-id="2760930" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252">artikel 252</intref> doen, strekkend tot verlaging van de huurprijs op de grond dat het huishoudinkomen, bedoeld in artikel 252a lid 2 onderdeel b, waarop een zodanige verhoging is gebaseerd, in het peiljaar is gedaald en daarmee:</al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252b/Lid1/Onderdeel1">
+        <li.nr>1°.</li.nr>
+        <al>gelijk is aan of lager is dan het in <extref doc="jci1.3:c:BWBR0008659&amp;artikel=14" label-id="2160364" verwijzing-id="2760924" bwb-id="BWBR0008659">artikel 14 lid 1 van de Wet op de huurtoeslag</extref> betrokken genoemde bedrag, of</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252b/Lid1/Onderdeel2">
+        <li.nr>2°.</li.nr>
+        <al>gelijk is aan of lager is dan het op grond van <extref doc="jci1.3:c:BWBR0014315&amp;artikel=10" label-id="3234304" verwijzing-id="3070207" bwb-id="BWBR0014315">artikel 10 lid 2 onder a onder 1 dan wel onder 3 van de Uitvoeringswet huurprijzen woonruimte</extref> voor zijn huishouden toepasselijke bedrag.</al>
+      </li>
+    </lijst>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252b/Lid2" label-id="12110124L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Indien een voorstel als bedoeld in lid 1 wordt gedaan, verstrekt de huurder gegevens met betrekking tot de betrokken huishoudinkomens. Bij regeling van Onze Minister wordt bepaald welke gegevens de huurder verstrekt.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252b/Lid3" label-id="12110124L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Indien een overeenkomst tot wijziging van de huurprijs tot stand komt naar aanleiding van een voorstel daartoe, dat niet voldoet aan lid 2, is de verlaging van de huurprijs op basis van een voorstel als bedoeld in lid 1 niet mogelijk, tenzij blijkt dat de verhuurder niet door het verzuim is benadeeld.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252c" stam-id="15916963" versie-id="27664332" id="C39099881" label-id="15852074" inwerking="2021-04-01" label="Artikel 252c" bron="Stb.2021-162" effect="nieuw" ondertekening_bron="2021-03-24" publicatie_bron="2021-03-31" publicatie_iwt="2021-03-31" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">252c</nr>
+  </kop>
+  <al>Een verhuurder kan ten aanzien van woonruimte die een zelfstandige woning vormt een voorstel als bedoeld in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229024" verwijzing-id="3069491" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252">artikel 252</intref> doen, strekkend tot verhoging van de huurprijs op de grond dat:</al>
+  <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+    <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252c/Onderdeela">
+      <li.nr>a.</li.nr>
+      <al>bij de aanvang van de bewoning is overeengekomen om gedurende ten hoogste drie jaar na die aanvang de verschuldigde huurprijs stapsgewijs naar de bij die aanvang overeengekomen huurprijs te brengen, die niet hoger is dan het ten tijde van die aanvang krachtens <extref doc="jci1.3:c:BWBR0014315&amp;artikel=3" label-id="3234184" verwijzing-id="3069492" bwb-id="BWBR0014315">artikel 3 lid 2 van de Uitvoeringswet huurprijzen woonruimte</extref> vastgestelde bedrag;</al>
+    </li>
+    <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252c/Onderdeelb">
+      <li.nr>b.</li.nr>
+      <al>niet eerder dan drie jaar voor de voorgestelde huurverhogingsdatum de huurprijs op schriftelijk verzoek van de huurder niet is verhoogd respectievelijk is verlaagd anders dan overeenkomstig <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229024" verwijzing-id="3069493" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252">artikel 252</intref>, <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252b&amp;z=2026-01-01&amp;g=2026-01-01" label-id="12110124" verwijzing-id="3069494" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252b">252b</intref> of <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=257&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229474" verwijzing-id="3069495" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel257">257</intref>.</al>
+    </li>
+  </lijst>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel253" stam-id="3253973" versie-id="30557512" id="C43876141" label-id="3229114" inwerking="2025-02-12" label="Artikel 253" bron="Stb.2024-391" effect="wijziging" ondertekening_bron="2024-10-23" publicatie_bron="2024-12-10" publicatie_iwt="2025-02-11" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">253</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel253/Lid1" label-id="3229114L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Indien de huurder voor het tijdstip waarop de verhoging van de huurprijs blijkens het voorstel had moeten ingaan, schriftelijk verklaart met het voorstel van de verhuurder niet in te stemmen, kan de verhuurder tot zes weken na dat tijdstip onder overlegging van een afschrift van dat voorstel en van voornoemde verklaring van de huurder de huurcommissie verzoeken uitspraak te doen over de redelijkheid van het voorstel. Indien de verhuurder een voorstel als bedoeld in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252a&amp;z=2026-01-01&amp;g=2026-01-01" label-id="12108444" verwijzing-id="2760931" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a">artikel 252a lid 1</intref> heeft gedaan, en de verklaring, bedoeld in de eerste volzin, betrekking heeft op het huishoudinkomen over het inkomenstoetsjaar, verzoekt de verhuurder aan de inspecteur om een vervolgverklaring. Artikel 252a lid 4 is op de vervolgverklaring van overeenkomstige toepassing. De vervolgverklaring wordt door de verhuurder bij een verzoek als bedoeld in de eerste volzin overgelegd. Indien de verhuurder een voorstel als bedoeld in artikel 252a lid 1 heeft gedaan en de huurder zich beroept op een van de gevallen, genoemd in artikel 252a lid 6, verstrekt de huurder, indien dat deel uitmaken van een groep, bedoeld in onderdeel a van laatstgenoemd artikellid, de omvang van het huishouden of het huishoudinkomen voorwerp van geschil is, bij de verklaring, bedoeld in de eerste volzin, gegevens met betrekking tot dat deel uitmaken, die omvang of dat huishoudinkomen. Bij regeling van Onze Minister wordt bepaald welke gegevens de huurder verstrekt.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel253/Lid2" label-id="3229114L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>De huurder kan de huurcommissie binnen vier maanden na het in lid 1 eerste volzin bedoelde tijdstip verzoeken uitspraak te doen over de redelijkheid van het voorstel, indien:</al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel253/Lid2/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>hij noch vóór het in lid 1 eerste volzin bedoelde tijdstip de daar bedoelde schriftelijke verklaring doet, noch door het betalen van de voorgestelde huurverhoging doet blijken met die verhoging in te stemmen, en</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel253/Lid2/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>de verhuurder hem binnen drie maanden na het in lid 1 eerste volzin bedoelde tijdstip bij aangetekend schrijven nogmaals van het voorstel in kennis heeft gesteld, waarbij een afschrift van het voorstel is gevoegd, en hij met het voorstel tot huurverhoging niet instemt.</al>
+      </li>
+    </lijst>
+    <al>De huurder legt bij dit verzoek een afschrift van het voorstel en van dat schrijven en, indien de verhuurder een voorstel als bedoeld in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252a&amp;z=2026-01-01&amp;g=2026-01-01" label-id="12108444" verwijzing-id="3351216" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a">artikel 252a lid 1</intref> heeft gedaan en het deel uitmaken van een groep, bedoeld in artikel 252a lid 6 onder a, de omvang van het huishouden of het huishoudinkomen voorwerp van geschil is, gegevens met betrekking tot dat deel uitmaken, die omvang of dat huishoudinkomen over. Lid 1 zesde volzin is van overeenkomstige toepassing.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel253/Lid3" label-id="3229114L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>De huurder wordt geacht de voorgestelde verhoging van de huurprijs met ingang van de in het voorstel genoemde datum van ingang met de verhuurder te zijn overeengekomen indien hij, na ontvangst van het in het tweede lid bedoelde schrijven, niet binnen vier maanden na die datum van ingang een verzoek tot de huurcommissie heeft gericht.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel253/Lid4" label-id="3229114L4">
+    <lidnr status="officieel">4</lidnr>
+    <al>Indien de huurder het in het tweede lid bedoelde verzoek doet, stelt de huurcommissie de verhuurder daarvan onverwijld in kennis.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel253/Lid5" label-id="3229114L5">
+    <lidnr status="officieel">5</lidnr>
+    <al>Indien de verhuurder een voorstel als bedoeld in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229024" verwijzing-id="1683602" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252">artikel 252 lid 1 aanhef</intref> of <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=252a&amp;z=2026-01-01&amp;g=2026-01-01" label-id="12108444" verwijzing-id="2556058" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel252a">artikel 252a lid 1</intref> bij aangetekend schrijven heeft gedaan, kan hij, indien voldaan is aan lid 2 onder a, binnen zes weken na het in lid 1 eerste volzin bedoelde tijdstip de huurcommissie verzoeken uitspraak te doen over de redelijkheid van het voorstel. De verhuurder legt bij dit verzoek een afschrift over van het voorstel en een bewijs van aangetekende verzending.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel254" stam-id="3253983" versie-id="30180772" id="C43242441" label-id="3229204" inwerking="2024-07-01" label="Artikel 254" bron="Stb.2024-193" effect="wijziging" ondertekening_bron="2024-06-26" publicatie_bron="2024-06-28" publicatie_iwt="2024-06-28" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">254</nr>
+  </kop>
+  <al>Indien de verhuurder met een voorstel van de huurder tot verlaging van de huurprijs niet instemt, kan de huurder tot uiterlijk zes weken na het tijdstip waarop de verlaging blijkens het voorstel had moeten ingaan, de huurcommissie verzoeken uitspraak te doen over de redelijkheid van de huurprijs.</al>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel255" stam-id="3253993" versie-id="13462632" id="C37938961" label-id="3229294" inwerking="2007-01-01" label="Artikel 255" bron="Stb.2006-351" effect="wijziging" ondertekening_bron="2006-06-29" publicatie_bron="2006-08-01" publicatie_iwt="2006-08-01" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">255</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel255/Lid1" label-id="3229294L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>De huurprijs van woonruimte waarin of waaraan gedurende de huurtijd door of vanwege de verhuurder:</al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel255/Lid1/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>voorzieningen zijn aangebracht die verband houden met een maatregel die gericht is op het opheffen of verminderen van beperkingen die een gehandicapte, bij het normale gebruik van zijn woonruimte ondervindt, in de kosten waarvan ingevolge enige wettelijke regeling een financiële tegemoetkoming is verleend, of</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel255/Lid1/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>veranderingen of toevoegingen, waaronder niet wordt verstaan het verhelpen van gebreken als bedoeld in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=2&amp;artikel=204&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3231404" verwijzing-id="1683604" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling2/Artikel204">artikel 204</intref>, zijn aangebracht, waardoor het woongerief geacht kan worden te zijn gestegen en die niet ingrepen zijn als bedoeld onder a, </al>
+      </li>
+    </lijst>
+    <al>is de huurprijs, vermeerderd met een bedrag dat in redelijke verhouding staat tot de door de verhuurder gemaakte kosten van deze ingrepen, veranderingen of toevoegingen met dien verstande dat de nieuwe huurprijs niet hoger mag zijn dan die welke bij toepassing van de regels bedoeld in <extref doc="jci1.3:c:BWBR0014315&amp;artikel=10" label-id="3234304" verwijzing-id="1683605" bwb-id="BWBR0014315">artikel 10 lid 1 van de Uitvoeringswet huurprijzen woonruimte</extref> als redelijk is aan te merken.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel255/Lid2" label-id="3229294L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Indien partijen geen overeenstemming hebben kunnen bereiken over het bedrag van de verhoging, kan ieder van hen binnen drie maanden na de totstandkoming van de ingrepen, veranderingen of toevoegingen de huurcommissie verzoeken daarover een uitspraak te doen. </al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel255/Lid3" label-id="3229294L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Onder gehandicapte in het eerste lid wordt verstaan een persoon die ten gevolge van ziekte of gebrek aantoonbare beperkingen ondervindt.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel255a" stam-id="15936783" versie-id="27725012" id="C39156941" label-id="15871314" inwerking="2021-05-01" label="Artikel 255a" bron="Stb.2021-194" effect="nieuw" ondertekening_bron="2021-04-09" publicatie_bron="2021-04-22" publicatie_iwt="2021-04-29" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">255a</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel255a/Lid1" label-id="15871314L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Dit artikel is uitsluitend van toepassing op huurovereenkomsten als bedoeld in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=247&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3228574" verwijzing-id="3073073" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel247">artikel 247</intref>.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel255a/Lid2" label-id="15871314L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>De huurprijs van woonruimte waarin of waaraan gedurende de huurtijd door of vanwege de verhuurder voorzieningen als bedoeld in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=1&amp;artikel=255&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229294" verwijzing-id="3073074" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel255">artikel 255 lid 1 onder a</intref> of veranderingen of toevoegingen als bedoeld in artikel 255 lid 1 onder b zijn aangebracht, is de huurprijs, vermeerderd met een bedrag dat in redelijke verhouding staat tot de door de verhuurder gemaakte kosten van deze ingrepen, veranderingen of toevoegingen. Artikel 255 lid 3 is van overeenkomstige toepassing.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel255a/Lid3" label-id="15871314L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Indien partijen geen overeenstemming hebben kunnen bereiken over het bedrag van de verhoging, kan ieder van hen binnen drie maanden na de totstandkoming van de ingrepen, veranderingen of toevoegingen de huurcommissie verzoeken daarover een uitspraak te doen.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel256" code="mm1-256" stam-id="3254003" versie-id="14099832" id="C19516021" label-id="3229384" inwerking="2007-04-01" label="Artikel 256" bron="Stb.2007-27" effect="vervallen" ondertekening_bron="2006-12-21" publicatie_bron="2007-01-23" publicatie_iwt="2007-03-27" status="vervallen">
+  <kop>
+    <label>Artikel</label>
+    <nr>256</nr>
+  </kop>
+<al><redactie type="vervanging">Vervallen</redactie></al></artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel257" stam-id="3254013" versie-id="5004492" id="C32072371" label-id="3229474" inwerking="2003-08-01" label="Artikel 257" bron="Stb.2002-587" effect="nieuw" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2003-06-17" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">257</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel257/Lid1" label-id="3229474L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Voor de vordering van de huurder tot vermindering van de huurprijs op grond van <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=2&amp;artikel=207&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3231674" verwijzing-id="1702619" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling2/Artikel207">artikel 207 lid 1</intref> in verbinding met <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_1&amp;artikel=242&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3228114" verwijzing-id="1702620" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling1/Artikel242">artikel 242</intref> geldt een met inachtneming van de volgende leden toe te passen vervaltermijn van zes maanden na de aanvang van de dag volgend op die waarop de huurder van het gebrek kennis heeft gegeven aan de verhuurder.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel257/Lid2" label-id="3229474L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Is de vordering van de huurder gegrond op een tekortkoming die krachtens <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_1&amp;artikel=241&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3228024" verwijzing-id="1702621" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling1/Artikel241">artikel 241</intref> als een gebrek heeft te gelden, dan kan de huurder, in plaats van zijn vordering binnen de in lid 1 bedoelde termijn bij de rechter in te stellen, binnen zes maanden na de aanvang van de dag volgend op die waarop de huurder van het gebrek heeft kennis gegeven aan de verhuurder, de huurcommissie verzoeken over de vermindering uitspraak te doen overeenkomstig de in <extref doc="jci1.3:c:BWBR0014315&amp;artikel=16" label-id="3234414" verwijzing-id="1702618" bwb-id="BWBR0014315">artikel 16 lid 2 van de Uitvoeringswet huurprijzen woonruimte</extref> bedoelde algemene maatregel van bestuur. De huurder kan eerst een verzoek tot de huurcommissie richten, indien de verhuurder niet binnen zes weken na de aanvang van de dag volgend op die waarop de huurder van het gebrek kennis heeft gegeven aan de verhuurder, het gebrek heeft verholpen.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel257/Lid3" label-id="3229474L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Na het verstrijken van de in de voorgaande leden bedoelde termijn van zes maanden kan, voor wat het verleden betreft, geen huurvermindering worden verlangd over een langere periode dan zes maanden, voorafgaande aan het instellen van de vordering of het indienen van het verzoek.</al>
+  </lid>
+</artikel></sub-paragraaf><sub-paragraaf bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2" stam-id="3254073" versie-id="29324302" id="C41767471" label-id="3230014" inwerking="2023-03-24" label="Paragraaf 2" bron="Stb.2023-103" effect="structuurwijziging" ondertekening_bron="2023-03-24" publicatie_bron="2023-04-03" publicatie_iwt="2023-04-03" status="goed">
+  <kop>
+    <label>Paragraaf</label>
+    <nr status="officieel">2</nr>
+    <titel status="officieel">Andere vergoedingen</titel>
+  </kop><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel258" stam-id="3254033" versie-id="21451912" id="C32072401" label-id="3229654" inwerking="2014-07-01" label="Artikel 258" bron="Stb.2014-205" effect="wijziging" ondertekening_bron="2014-06-04" publicatie_bron="2014-06-13" publicatie_iwt="2014-06-27" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">258</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel258/Lid1" label-id="3229654L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Indien de huurovereenkomst meer omvat dan het enkele gebruik van de woonruimte en bij die overeenkomst slechts de hoogte van de prijs en niet die van de huurprijs is vastgesteld, kan de huurder aan de verhuurder een voorstel doen tot vaststelling van de huurprijs en het voorschot van de kosten voor nutsvoorzieningen met een individuele meter en de servicekosten.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel258/Lid2" label-id="3229654L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Een voorstel als bedoeld in lid 1 moet ten minste twee maanden voor de voorgestelde dag van ingang van de huurprijs en het voorschot van de kosten voor nutsvoorzieningen met een individuele meter en de servicekosten schriftelijk worden gedaan en dient te vermelden:</al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel258/Lid2/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>de geldende prijs;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel258/Lid2/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>de voorgestelde huurprijs;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel258/Lid2/Onderdeelc">
+        <li.nr>c.</li.nr>
+        <al>het voorgestelde voorschot van kosten voor de nutsvoorzieningen met een individuele meter en de servicekosten, en</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel258/Lid2/Onderdeeld">
+        <li.nr>d.</li.nr>
+        <al>de voorgestelde dag van ingang van de huurprijs en het voorschot van de kosten voor nutsvoorzieningen met een individuele meter en de servicekosten.</al>
+      </li>
+    </lijst>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel258/Lid3" label-id="3229654L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Indien de verhuurder niet instemt met een voorstel als bedoeld in lid 1, kan de huurder tot uiterlijk zes weken na het tijdstip waarop dit voorstel had moeten ingaan, de huurcommissie verzoeken uitspraak te doen over de redelijkheid van het voorstel. De huurcommissie stelt de huurprijs vast en, voor zover nodig, het voorschot van de kosten voor nutsvoorzieningen met een individuele meter en de servicekosten.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel258/Lid4" label-id="3229654L4">
+    <lidnr status="officieel">4</lidnr>
+    <al>Indien een overeenkomst tot vaststelling van de huurprijs tot stand komt naar aanleiding van een voorstel daartoe, dat niet voldoet aan lid 1 en lid 2, aanhef en onder b, c of d, blijft de voordien geldende prijs verschuldigd, tenzij blijkt dat de verhuurder niet door het verzuim is benadeeld.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel259" stam-id="3254043" versie-id="21451922" id="C34561891" label-id="3229744" inwerking="2014-07-01" label="Artikel 259" bron="Stb.2014-205" effect="wijziging" ondertekening_bron="2014-06-04" publicatie_bron="2014-06-13" publicatie_iwt="2014-06-27" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">259</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel259/Lid1" label-id="3229744L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>De betalingsverplichting van de huurder met betrekking tot kosten voor de nutsvoorzieningen met een individuele meter en de servicekosten beloopt het bedrag dat door de huurder en verhuurder is overeengekomen. Bij gebreke van overeenstemming beloopt de betalingsverplichting met betrekking tot kosten voor de nutsvoorzieningen met een individuele meter het bedrag dat in overeenstemming is met de voor de berekening daarvan geldende wettelijke voorschriften of met hetgeen als een redelijke vergoeding voor de geleverde zaken en diensten kan worden beschouwd, en met betrekking tot servicekosten het bedrag dat bij ministeriële regeling is vastgesteld.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel259/Lid2" label-id="3229744L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>De verhuurder verstrekt de huurder elk jaar, uiterlijk zes maanden na het verstrijken van een kalenderjaar, een naar de soort uitgesplitstoverzicht van de in dat kalenderjaar in rekening gebrachte kosten voor nutsvoorzieningen met een individuele meter en servicekosten, met vermelding van de wijze van berekening daarvan. Indien aan de verhuurder kosten in rekening worden gebracht die niet een kalenderjaar betreffen, maar een andere periode van twaalf maanden, die een boekjaar vormt en in het verstreken kalenderjaar eindigt, neemt de verhuurder de kosten over die andere periode in het overzicht van dat verstreken kalenderjaar op.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel259/Lid3" label-id="3229744L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Bij beëindiging van de huurovereenkomst heeft het overzicht als in lid 2 bedoeld betrekking op het tijdvak van het kalenderjaar dat op het tijdstip van de beëindiging reeds is verstreken.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel259/Lid4" label-id="3229744L4">
+    <lidnr status="officieel">4</lidnr>
+    <al>De verhuurder biedt de huurder desverzocht de gelegenheid, na verstrekking van het overzicht bedoeld in lid 2, tot inzage van de aan het overzicht ten grondslag liggende boeken en andere bescheiden of van afschriften daarvan.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel260" stam-id="3254053" versie-id="21451932" id="C32072461" label-id="3229834" inwerking="2014-07-01" label="Artikel 260" bron="Stb.2014-205" effect="wijziging" ondertekening_bron="2014-06-04" publicatie_bron="2014-06-13" publicatie_iwt="2014-06-27" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">260</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel260/Lid1" label-id="3229834L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Indien de huurder en verhuurder geen overeenstemming hebben kunnen bereiken over een betalingsverplichting van de huurder met betrekking tot kosten voor nutsvoorzieningen met een individuele meter en servicekosten, kan de huurder of verhuurder de huurcommissie verzoeken uitspraak daarover te doen.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel260/Lid2" label-id="3229834L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Het verzoek heeft betrekking op niet meer dan één tijdvak van ten hoogste twaalf maanden voor elke kostensoort waarop het verzoek betrekking heeft. Het verzoek kan worden gedaan tot uiterlijk vierentwintig maanden nadat de in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=2&amp;artikel=259&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229744" verwijzing-id="1702623" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel259">artikel 259 lid 2</intref> genoemde termijn voor het verstrekken van het overzicht door de verhuurder is verstreken.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel260/Lid3" label-id="3229834L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Bij het verzoek neemt de verhuurder de betalingsverplichting van de huurder met betrekking tot de servicekosten op in een bij ministeriële regeling vastgesteld formulier.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261" stam-id="3254063" versie-id="21451952" id="C32072491" label-id="3229924" inwerking="2014-07-01" label="Artikel 261" bron="Stb.2014-205" effect="wijziging" ondertekening_bron="2014-06-04" publicatie_bron="2014-06-13" publicatie_iwt="2014-06-27" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">261</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261/Lid1" label-id="3229924L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Het voorschotbedrag dat de huurder krachtens overeenkomst of rechterlijke uitspraak ter zake van de kosten voor nutsvoorzieningen met een individuele meter verschuldigd is, mag, tenzij na het ingaan van de huur anders is overeengekomen, slechts worden verhoogd:</al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261/Lid1/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>met ingang van de dag, volgend op het einde van de betalings-termijn waarin de overeengekomen uitbreiding van de levering van zaken of diensten heeft plaatsgevonden dan wel met ingang van de betalingstermijn met ingang waarvan die uitbreiding heeft plaats gevonden;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261/Lid1/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>met ingang van de dag, volgende op de betalingstermijn, waarin het laatste overzicht, bedoeld in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=2&amp;artikel=259&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229744" verwijzing-id="1702627" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel259">artikel 259</intref>, aan de huurder is verstrekt met dien verstande dat elk overzicht slechts eenmaal tot een verhoging mag leiden.</al>
+      </li>
+    </lijst>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261/Lid2" label-id="3229924L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>De huurder is gebonden aan een wijziging van de levering van zaken of diensten en het daarbij behorende gewijzigde voorschotbedrag, indien die wijziging betrekking heeft op zaken of diensten die slechts aan een aantal huurders gezamenlijk geleverd kunnen worden, en tenminste 70% van die huurders daarmee heeft ingestemd. Een huurder die niet met de wijziging heeft ingestemd, kan binnen acht weken na de schriftelijke kennisgeving van de verhuurder dat overeenstemming is bereikt met tenminste 70% van de huurders, een beslissing van de rechter vorderen omtrent de redelijkheid van het voorstel.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261/Lid3" label-id="3229924L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Indien het door de huurder verschuldigde voorschotbedrag aanzienlijk hoger is dan de te verwachten kosten voor nutsvoorzieningen met een individuele meter, kan de huurcommissie op verzoek van de huurder het voorschotbedrag verlagen tot een bedrag dat in redelijke verhouding staat tot die kosten. </al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261a" stam-id="13600573" versie-id="23274332" id="C34561901" label-id="13567264" inwerking="2016-09-01" label="Artikel 261a" bron="Stb.2016-199" effect="nieuw" ondertekening_bron="2016-05-18" publicatie_bron="2016-05-31" publicatie_iwt="2016-08-31" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">261a</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261a/Lid1" label-id="13567264L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Indien een energieprestatievergoeding is overeengekomen, kan de huurder de huurcommissie verzoeken deze te toetsen aan de krachtens <extref doc="jci1.3:c:BWBR0014315&amp;artikel=19bis" label-id="13567274" verwijzing-id="2766677" bwb-id="BWBR0014315">artikel 19bis van de Uitvoeringswet huurprijzen woonruimte</extref> gegeven regels.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261a/Lid2" label-id="13567264L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>De <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=2&amp;artikel=259&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229744" verwijzing-id="2766659" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel259">artikelen 259, tweede lid</intref>, en <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;sub-paragraaf=2&amp;artikel=260&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3229834" verwijzing-id="2766660" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel260">260, tweede lid</intref>, zijn van overeenkomstige toepassing.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261b" stam-id="16717373" versie-id="29324312" id="C42154811" label-id="16633874" inwerking="2023-07-01" label="Artikel 261b" bron="Stb.2023-103" effect="nieuw" ondertekening_bron="2023-03-24" publicatie_bron="2023-04-03" publicatie_iwt="2023-06-27" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">261b</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261b/Lid1" label-id="16633874L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>In de huurovereenkomst kan worden bepaald dat de huurder een waarborgsom is verschuldigd strekkende tot zekerheid van hetgeen in de huurovereenkomst is overeengekomen.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261b/Lid2" label-id="16633874L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>De waarborgsom bedraagt ten hoogste tweemaal de huurprijs, bedoeld in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_1&amp;artikel=237&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3227664" verwijzing-id="3228128" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling1/Artikel237">artikel 237 lid 2</intref>.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261b/Lid3" label-id="16633874L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>De verhuurder restitueert de waarborgsom binnen veertien dagen na beëindiging van de huurovereenkomst, tenzij:</al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261b/Lid3/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>sprake is van schade als bedoeld in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=3&amp;artikel=218&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3232684" verwijzing-id="3228129" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling3/Artikel218">artikel 218</intref>, in welk geval de verhuurder binnen dertig dagen na beëindiging van de huurovereenkomst het restant van de waarborgsom, na verrekening van aantoonbaar gemaakte kosten strekkende tot het herstel van de schade, restitueert;</al>
+      </li>
+      <li bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261b/Lid3/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>de huurder de verschuldigde huurprijs, bedoeld in <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_1&amp;artikel=237&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3227664" verwijzing-id="3228130" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling1/Artikel237">artikel 237 lid 2</intref>, servicekosten, bedoeld in artikel 237 lid 3 of energieprestatievergoeding, bedoeld in artikel 237 lid 4 nog niet heeft voldaan, in welk geval de verhuurder binnen dertig dagen na beëindiging van de huurovereenkomst het restant van de waarborgsom, na verrekening met deze nog door de huurder verschuldigde kosten, restitueert.</al>
+      </li>
+    </lijst>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf2/Artikel261b/Lid4" label-id="16633874L4">
+    <lidnr status="officieel">4</lidnr>
+    <al>De verhuurder stelt de huurder schriftelijk in kennis van een verrekening als bedoeld in het derde lid, waarbij een volledige kostenspecificatie aan huurder wordt verstrekt.</al>
+  </lid>
+</artikel></sub-paragraaf><sub-paragraaf bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf3" stam-id="3254123" versie-id="5004602" id="C6610281" label-id="3230464" inwerking="2003-08-01" label="Paragraaf 3" bron="Stb.2002-587" effect="nieuw" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2003-06-17" status="goed">
+  <kop>
+    <label>Paragraaf</label>
+    <nr>3</nr>
+    <titel status="officieel">Slotbepalingen</titel>
+  </kop><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf3/Artikel262" stam-id="3254083" versie-id="6032352" id="C32072541" label-id="3230104" inwerking="2003-08-01" label="Artikel 262" bron="Stb.2003-218" effect="wijziging" ondertekening_bron="2003-05-22" publicatie_bron="2003-06-03" publicatie_iwt="2003-06-17" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">262</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf3/Artikel262/Lid1" label-id="3230104L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Wanneer de huurcommissie op een verzoek van de huurder of verhuurder als bedoeld in de <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_1&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3228394" verwijzing-id="1683606" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling1">paragrafen 1</intref> en <intref doc="jci1.3:c:BWBR0005290&amp;boek=7&amp;titeldeel=4&amp;afdeling=5&amp;paragraaf=Onderafdeling_2&amp;z=2026-01-01&amp;g=2026-01-01" label-id="3230474" verwijzing-id="1683607" bwb-id="BWBR0005290" bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2">2</intref> uitspraak heeft gedaan, worden zij geacht te zijn overeengekomen wat in die uitspraak is vastgesteld, tenzij een van hen binnen acht weken nadat aan hen afschrift van die uitspraak is verzonden, een beslissing van de rechter heeft gevorderd over het punt waarover de huurcommissie om een uitspraak was verzocht.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf3/Artikel262/Lid2" label-id="3230104L2">
+    <lidnr status="officieel">2</lidnr>
+    <al>Tegen een beslissing krachtens dit artikel is geen hogere voorziening toegelaten.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf3/Artikel263" stam-id="3254093" versie-id="5004572" id="C32072681" label-id="3230194" inwerking="2003-08-01" label="Artikel 263" bron="Stb.2002-587" effect="nieuw" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2003-06-17" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">263</nr>
+  </kop>
+  <al>Een wijziging van de huurprijs, vastgesteld in een uitspraak van de huurcommissie of van de rechter, mag in rekening worden gebracht met ingang van de in het voorstel tot wijziging voorgestelde dag dan wel indien de huurprijs is vastgesteld zonder dat daartoe een voorstel is gedaan, de dag waarop vaststelling is verzocht aan de huurcommissie of vaststelling is gevorderd bij de rechter. Zo in de uitspraak een latere dag van ingang wordt vastgesteld, geldt die wijziging met ingang van die latere dag.</al>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf3/Artikel264" code="mm1-264" stam-id="3254103" versie-id="5004582" id="C17556051" label-id="3230284" inwerking="2003-08-01" label="Artikel 264" bron="Stb.2002-587" effect="nieuw" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2003-06-17" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr>264</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf3/Artikel264/Lid1" label-id="3230284L1">
+    <lidnr>1</lidnr>
+    <al>Elk in verband met de totstandkoming van een huurovereenkomst betreffende woonruimte gemaakt beding, niet de huurprijs betreffende, voorzover daarbij ten behoeve van een der partijen een niet redelijk voordeel wordt overeengekomen, is nietig.</al>
+  </lid>
+  <lid bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf3/Artikel264/Lid2" label-id="3230284L2">
+    <lidnr>2</lidnr>
+    <al>Elk in verband met de totstandkoming van een zodanige huurovereenkomst gemaakt beding, voorzover daarbij door of tegenover een derde enig niet redelijk voordeel wordt overeengekomen, is nietig.</al>
+  </lid>
+</artikel><artikel bwb-ng-variabel-deel="/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf3/Artikel265" stam-id="3254113" versie-id="5004592" id="C34562101" label-id="3230374" inwerking="2003-08-01" label="Artikel 265" bron="Stb.2002-587" effect="nieuw" ondertekening_bron="2002-11-21" publicatie_bron="2002-12-19" publicatie_iwt="2003-06-17" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">265</nr>
+  </kop>
+  <al>Van de bepalingen van deze onderafdeling kan niet worden afgeweken, tenzij uit die bepalingen anders voortvloeit.</al>
+</artikel></sub-paragraaf></paragraaf></afdeling></titeldeel><meta-data><brondata><oorspronkelijk><publicatie effect="structuurwijziging" soort="Stb" urlidentifier="stb-2022-164"><publicatiejaar>2022</publicatiejaar><publicatienr>164</publicatienr><uitgiftedatum isodatum="2022-04-26">26-04-2022</uitgiftedatum><ondertekeningsdatum isodatum="2022-04-20">20-04-2022</ondertekeningsdatum><dossierref dossier="35734">35734</dossierref></publicatie></oorspronkelijk><inwerkingtreding><publicatie effect="structuurwijziging" soort="Stb" urlidentifier="stb-2022-164"><publicatiejaar>2022</publicatiejaar><publicatienr>164</publicatienr><uitgiftedatum isodatum="2022-04-26">26-04-2022</uitgiftedatum><ondertekeningsdatum isodatum="2022-04-20">20-04-2022</ondertekeningsdatum><dossierref dossier="35734">35734</dossierref></publicatie><inwerkingtreding.datum isodatum="2022-04-20">20-04-2022</inwerkingtreding.datum></inwerkingtreding></brondata><jcis><jci versie="1.0" verwijzing="1.0:c:BWBR0005290&amp;boek=7&amp;g=2026-01-01" onderdeel="boek=7" korte-verwijzing="1.0:c:BWBR0005290&amp;boek=7"/><jci versie="1.3" verwijzing="jci1.3:c:BWBR0005290&amp;boek=7&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="boek=7" korte-verwijzing="jci1.3:c:BWBR0005290&amp;boek=7"/></jcis></meta-data></boek>
+    </wettekst>
+  </wet-besluit>
+</wetgeving>
+</toestand>
