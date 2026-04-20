@@ -122,7 +122,7 @@ async def run_tool_loop(
                 ],
             },
         })
-        for tu in turn.tool_uses:
+        for tu_idx, tu in enumerate(turn.tool_uses):
             _args_key = sorted(tu.args.items()) if isinstance(tu.args, dict) else tu.args
             call_sig = (tu.name, repr(_args_key))
             if last_call == call_sig:
@@ -144,11 +144,12 @@ async def run_tool_loop(
                     ),
                     is_error=True,
                 )
+                yield ToolUseStart(name=tu.name, args=tu.args)
                 yield ToolResultEvent(name=tu.name, args=tu.args, result=advisory)
                 history.append({
                     "role": "user",
                     "content": {"tool_result": {"advice": advisory.result_summary},
-                                "is_error": True},
+                                "is_error": True, "_tu_idx": tu_idx},
                 })
                 continue
 
@@ -174,7 +175,7 @@ async def run_tool_loop(
                 history.append({
                     "role": "user",
                     "content": {"tool_result": result.extra or {"error": result.result_summary},
-                                "is_error": True},
+                                "is_error": True, "_tu_idx": tu_idx},
                 })
                 continue
             try:
@@ -192,6 +193,7 @@ async def run_tool_loop(
                 "content": {
                     "tool_result": result.extra or {"error": result.result_summary},
                     "is_error": result.is_error,
+                    "_tu_idx": tu_idx,
                 },
             })
     # Loop exhausted without done.
@@ -229,15 +231,17 @@ def _history_to_anthropic_messages(
             continue
         if role == "user" and "tool_result" in content:
             # Attach tool_result block referencing the preceding tool_use id.
+            tu_idx = content.get("_tu_idx", 0)
             last_assistant = next(
                 (m for m in reversed(out) if m["role"] == "assistant"), None
             )
             if last_assistant is None:
                 continue
-            tu_block = next(
-                (b for b in last_assistant["content"] if b.get("type") == "tool_use"),
-                None,
-            )
+            tu_blocks = [
+                b for b in last_assistant["content"]
+                if b.get("type") == "tool_use"
+            ]
+            tu_block = tu_blocks[tu_idx] if 0 <= tu_idx < len(tu_blocks) else None
             out.append({
                 "role": "user",
                 "content": [{

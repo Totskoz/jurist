@@ -7,6 +7,7 @@ from jurist.llm.client import (
     Done,
     LoopEvent,
     ToolResultEvent,
+    ToolUseStart,
     _history_to_anthropic_messages,
     run_tool_loop,
 )
@@ -97,6 +98,40 @@ def test_history_translator_renders_tool_use_and_result():
     tr = out[2]
     assert tr["role"] == "user"
     assert tr["content"][0]["type"] == "tool_result"
+
+
+def test_history_translator_binds_parallel_tool_results_to_distinct_ids():
+    hist = [
+        {"role": "user", "content": "q"},
+        {"role": "assistant", "content": {
+            "text": "",
+            "tool_uses": [
+                {"name": "get_article", "args": {"article_id": "A"}},
+                {"name": "get_article", "args": {"article_id": "B"}},
+            ],
+        }},
+        {"role": "user", "content": {
+            "tool_result": {"body_text": "A body"},
+            "is_error": False,
+            "_tu_idx": 0,
+        }},
+        {"role": "user", "content": {
+            "tool_result": {"body_text": "B body"},
+            "is_error": False,
+            "_tu_idx": 1,
+        }},
+    ]
+    out = _history_to_anthropic_messages(hist)
+    # Find the assistant's tool_use ids
+    asst_blocks = out[1]["content"]
+    tu_ids = [b["id"] for b in asst_blocks if b.get("type") == "tool_use"]
+    assert len(tu_ids) == 2
+    assert tu_ids[0] != tu_ids[1]
+    # Tool results 0 and 1 should reference different ids
+    tr0 = out[2]["content"][0]
+    tr1 = out[3]["content"][0]
+    assert tr0["tool_use_id"] == tu_ids[0]
+    assert tr1["tool_use_id"] == tu_ids[1]
 
 
 @pytest.mark.asyncio
@@ -258,6 +293,19 @@ async def test_dup_two_consecutive_triggers_advisory():
     assert tool_results[1].result.is_error is True
     assert "already" in tool_results[1].result.result_summary.lower()
     assert isinstance(events[-1], Done)
+    # Every ToolResultEvent must have a preceding ToolUseStart with matching (name, args).
+    ttypes = [type(e).__name__ for e in events]
+    for i, t in enumerate(ttypes):
+        if t == "ToolResultEvent":
+            prior_tus = [j for j, tt in enumerate(ttypes[:i]) if tt == "ToolUseStart"]
+            assert prior_tus, f"ToolResultEvent at index {i} has no preceding ToolUseStart"
+            # The immediately preceding ToolUseStart must match name and args.
+            tu_ev = events[prior_tus[-1]]
+            tr_ev = events[i]
+            assert isinstance(tu_ev, ToolUseStart)
+            assert isinstance(tr_ev, ToolResultEvent)
+            assert tu_ev.name == tr_ev.name
+            assert tu_ev.args == tr_ev.args
 
 
 @pytest.mark.asyncio
