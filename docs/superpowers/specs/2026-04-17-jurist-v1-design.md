@@ -25,7 +25,7 @@ Latency is not a hard cap. Target: under ~60 s end-to-end. Hard limit: whatever 
 
 ## 2. Scope
 
-**In.** Huurrecht only (Boek 7 Titel 4 BW + Uitvoeringswet huurprijzen woonruimte + Besluit huurprijzen woonruimte). Four live agents (decomposer, statute retriever, case retriever, synthesizer) plus a stubbed validator with realistic interface shape. Real KG from BWB XML. Real vector store of ~300 huurrecht uitspraken. Two-panel streaming frontend. Local development only.
+**In.** Huurrecht broadly. The allowlist (`src/jurist/ingest/allowlist.py`) targets ~8 BWBs: BW Boek 7 Titel 4 (Huur), Uitvoeringswet huurprijzen woonruimte, Besluit huurprijzen woonruimte, BW Boek 6 (general contract law touched by huurrecht), Wet doorstroming huurmarkt 2015, Wet goed verhuurderschap, Wet op het overleg huurders verhuurder (Overlegwet), Huisvestingswet 2014. **M1 ships the first three ("core"); M1.5 widens to the full list** (see §11). Four live agents (decomposer, statute retriever, case retriever, synthesizer) plus a stubbed validator with realistic interface shape. Real KG from BWB XML. Real vector store of ~300 huurrecht uitspraken. Two-panel streaming frontend. Local development only.
 
 **Out.** Other rechtsgebieden. Real validator. Live KG maintenance (the KG is generated offline; no "KG maintainer" agent exists or is implied). User accounts, persistence, query history. Evaluation harness. Deployment. Multi-question UX.
 
@@ -530,6 +530,14 @@ Done when:
 - KG JSON contains ≥50 article nodes and ≥50 cross-reference edges.
 - `python -m jurist.api` loads the KG at startup; KGPanel renders real nodes and real edges with `dagre` layout, readable on a laptop screen.
 - Unit test: parser extracts `art. 7:248 BW` correctly, including its outgoing refs.
+
+### M1.5 — Full-corpus widen
+
+Done when:
+- `src/jurist/ingest/allowlist.py` widens to the full huurrecht corpus (8 BWBs): the three M1 cores plus BW Boek 6, Wet doorstroming huurmarkt 2015, Wet goed verhuurderschap, Overlegwet, Huisvestingswet 2014.
+- `uv run python -m jurist.ingest.statutes --refresh` runs without parser code changes (schema-conformance check).
+- Output KG contains ≥400 article nodes with cross-references across BWBs.
+- KG panel still loads without crash; dense-layout readability is a separate concern (post-M1.5 polish if needed).
 
 ### M2 — Real statute retriever
 
