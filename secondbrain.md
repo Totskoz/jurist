@@ -87,6 +87,32 @@ Consequences:
 
 Related: `secondbrain.md#M2 fallback ladder` already covers the retrieval-quality upgrade path (HyDE-lite → vector tool → real HyDE). This observation is orthogonal: it's about whether the *existing* non-Jaccard tools are being exercised, not about whether we need more tools.
 
+## Statute retrieval at full-corpus scale (beyond M1.5)
+
+The catalog-in-system-prompt approach scales to maybe 10-20K articles before tokens get silly. Full Dutch statutory corpus is 1-2 orders of magnitude larger (BWB ≈ 40-60K regelingen, millions of articles). Sketching the architecture we'd pivot to when we outgrow the cached preamble — not building it now, but locking in the direction so we don't redo the thinking when M1.5+ work starts.
+
+**Core insight.** Legal questions have strong domain locality: a rent dispute never needs to see tax law or criminal procedure. Don't make retrieval smart over "all Dutch law" — classify into a rechtsgebied first, then retrieve within it. Mirrors how human lawyers actually work ("dit is huurrecht → Boek 7 BW, navigeer daar").
+
+**Layered architecture, cheapest lever first.**
+
+1. **Rechtsgebied router (Haiku).** Classify the question into 1-3 of ~50 fixed rechtsgebieden (huurrecht, arbeidsrecht, consumentenrecht, …). Tiny prompt, near-free, ~1s. Fails soft: if uncertain, return top-3 and let downstream retrievers dedupe.
+2. **Scoped catalog in system prompt** — current M2 pattern, narrowed to the router-selected rechtsgebied(en). One rechtsgebied is a few thousand articles max; stays cached.
+3. **Vector search fallback** (bge-m3 + optional HyDE query expansion) when the question straddles areas, when router confidence is low, or when the right article isn't surfacing in the scoped catalog. Already item 2 in `§M2 fallback ladder`.
+4. **Graph traversal** (M2's existing `get_article` / `follow_cross_ref`) works unchanged once seeded.
+
+**Why not GraphRAG.** Community detection + per-community LLM summaries solve *"what's in this corpus?"* thematic questions, not *"find this exact article"* grounding. Legal answers cite article numbers; an indirection layer of summaries adds no signal and is expensive to build (thousands of communities to LLM-summarize). Already parked as "Skip" in `§M2 fallback ladder`; noting it again here because the full-corpus scaling conversation is where it keeps getting re-proposed.
+
+**Why not pure HyDE.** HyDE is a *query-quality* trick, not a *scale* trick. It bridges user-phrasing / statute-phrasing gaps ("huur verhogen" ↔ "huurprijswijziging"); it does not solve "corpus won't fit in context" — vector search itself does. Keep HyDE as an optional rewrite step the retriever can fire when Jaccard/vector look like they missed, not as the retrieval backbone.
+
+**Trigger points — what to build when.**
+
+- **Now / M2:** nothing. 218 articles fits cached.
+- **M1.5 (low thousands, still one rechtsgebied):** still fits. Watch catalog token budget; may trim `JURIST_STATUTE_CATALOG_SNIPPET_CHARS` (see `§M2 cost + behaviour observations`).
+- **Multi-rechtsgebied:** build the router + scoped catalog (steps 1-2). This is the real architectural shift.
+- **Full corpus:** add vector fallback (step 3). Also the point where the UI probably needs to surface *"this is huurrecht"* explicitly, because "did the router pick the right rechtsgebied?" becomes a user-visible failure mode.
+
+**Open question.** Router taxonomy source — BWB's own classification, a textbook tableau, or DAS's internal rechtsgebied taxonomy? Lean: DAS's, since they already have one for their insurance products and the whole demo is pointed at DAS. Also avoids bikeshedding.
+
 ## Environment quirks worth capturing (not yet in CLAUDE.md)
 
 - **Zombie python3.11 processes on port 8766.** Observed 5 stale processes from prior sessions holding the port and serving the old `FAKE_KG`, which made the frontend show 9 nodes after M1 shipped. `tasklist | grep python` + `taskkill /F /PID <pid>` to clean up. Consider adding to CLAUDE.md "Environment quirks" or moving the API to a fresh port.
