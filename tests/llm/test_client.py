@@ -3,6 +3,7 @@ import pytest
 from jurist.agents.statute_retriever_tools import ToolExecutor
 from jurist.kg.networkx_kg import NetworkXKG
 from jurist.llm.client import (
+    Coerced,
     Done,
     LoopEvent,
     _history_to_anthropic_messages,
@@ -95,3 +96,88 @@ def test_history_translator_renders_tool_use_and_result():
     tr = out[2]
     assert tr["role"] == "user"
     assert tr["content"][0]["type"] == "tool_result"
+
+
+@pytest.mark.asyncio
+async def test_done_one_retry_then_accept():
+    kg = _kg()
+    script = [
+        ScriptedTurn(tool_uses=[ScriptedToolUse(
+            name="done",
+            args={"selected": [{"article_id": "NOPE", "reason": "x"}]},
+        )]),
+        ScriptedTurn(tool_uses=[ScriptedToolUse(
+            name="done",
+            args={"selected": [{"article_id": "A", "reason": "ok"}]},
+        )]),
+    ]
+    mock = MockAnthropicClient(script)
+    executor = ToolExecutor(kg)
+
+    final = None
+    async for ev in run_tool_loop(
+        mock=mock, executor=executor, system="<sys>", tools=[],
+        user_message="q", max_iters=15, wall_clock_cap_s=90,
+    ):
+        final = ev
+    assert isinstance(final, Done)
+    assert final.selected == [{"article_id": "A", "reason": "ok"}]
+
+
+@pytest.mark.asyncio
+async def test_done_two_errors_coerces():
+    kg = _kg()
+    bad = {"selected": [{"article_id": "NOPE", "reason": "x"}]}
+    script = [
+        ScriptedTurn(tool_uses=[ScriptedToolUse(name="done", args=bad)]),
+        ScriptedTurn(tool_uses=[ScriptedToolUse(name="done", args=bad)]),
+    ]
+    mock = MockAnthropicClient(script)
+    executor = ToolExecutor(kg)
+
+    final = None
+    async for ev in run_tool_loop(
+        mock=mock, executor=executor, system="<sys>", tools=[],
+        user_message="q", max_iters=15, wall_clock_cap_s=90,
+    ):
+        final = ev
+    assert isinstance(final, Coerced)
+    assert final.reason == "done_error"
+
+
+@pytest.mark.asyncio
+async def test_max_iter_coerces_with_visited_recency_capped():
+    # Build a KG with >8 nodes and a script that visits them all via
+    # get_article, then never calls done.
+    nodes = [
+        ArticleNode(
+            article_id=f"N{i}", bwb_id="BWBX", label=f"N{i}",
+            title="t", body_text="b", outgoing_refs=[],
+        )
+        for i in range(10)
+    ]
+    snap = KGSnapshot(generated_at="t", source_versions={}, nodes=nodes, edges=[])
+    big_kg = NetworkXKG.from_snapshot(snap)
+    script = [
+        ScriptedTurn(tool_uses=[ScriptedToolUse(
+            name="get_article", args={"article_id": f"N{i}"}
+        )])
+        for i in range(10)
+    ]
+    mock = MockAnthropicClient(script)
+    executor = ToolExecutor(big_kg)
+
+    final = None
+    async for ev in run_tool_loop(
+        mock=mock, executor=executor, system="<sys>", tools=[],
+        user_message="q", max_iters=10, wall_clock_cap_s=90,
+    ):
+        final = ev
+    assert isinstance(final, Coerced)
+    assert final.reason == "max_iter"
+    # Most recent 8 visits, in recency order: N9, N8, ..., N2
+    assert len(final.selected) == 8
+    assert final.selected[0]["article_id"] == "N9"
+    assert final.selected[-1]["article_id"] == "N2"
+    for entry in final.selected:
+        assert "coerced: max_iter" in entry["reason"]

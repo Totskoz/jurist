@@ -71,44 +71,46 @@ async def run_tool_loop(
     """Drive a tool-use loop. `mock` is used when supplied; otherwise the real
     Anthropic streaming path is invoked via `client`."""
     started = time.monotonic()
-    history: list[dict[str, Any]] = [
-        {"role": "user", "content": user_message},
-    ]
+    history: list[dict[str, Any]] = [{"role": "user", "content": user_message}]
+    # Visit-recency log of article_ids touched by get_article / follow_cross_ref.
+    visited: list[str] = []
+    done_errors = 0  # counts consecutive done failures
 
-    async def _next_turn(history: list[dict[str, Any]]) -> ModelTurn:
+    async def _next_turn(hist: list[dict[str, Any]]) -> ModelTurn:
         if mock is not None:
-            return mock.next_turn(history)  # ScriptedTurn is a ModelTurn alias
-        # Real Anthropic path: stream a single message, assemble into a ModelTurn.
+            return mock.next_turn(hist)
         return await _anthropic_next_turn(
-            client=client,
-            model=model,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            system=system,
-            tools=tools,
-            messages=_history_to_anthropic_messages(history),
+            client=client, model=model, temperature=temperature,
+            max_tokens=max_tokens, system=system, tools=tools,
+            messages=_history_to_anthropic_messages(hist),
         )
+
+    def _coerce_selection(reason: str) -> list[dict[str, Any]]:
+        # Deduplicate preserving last-occurrence (recency-ordered).
+        seen: set[str] = set()
+        recency: list[str] = []
+        for aid in reversed(visited):
+            if aid in seen:
+                continue
+            seen.add(aid)
+            recency.append(aid)
+        recency = recency[:8]
+        return [{"article_id": aid, "reason": f"auto-selected (coerced: {reason})"}
+                for aid in recency]
 
     for _ in range(max_iters):
         if (time.monotonic() - started) > wall_clock_cap_s:
-            yield Coerced(reason="wall_clock", selected=[])
+            yield Coerced(reason="wall_clock", selected=_coerce_selection("wall_clock"))
             return
         turn = await _next_turn(history)
         for delta in turn.text_deltas:
             yield TextDelta(text=delta)
         if not turn.tool_uses:
-            # No tool calls, no text — model stalled. Coerce.
             if not turn.text_deltas:
-                yield Coerced(reason="stall", selected=[])
+                yield Coerced(reason="stall", selected=_coerce_selection("stall"))
                 return
-            # Text without tools and no done: keep looping; the model might
-            # reply again next turn. Append an assistant-text record.
-            history.append({
-                "role": "assistant",
-                "content": "".join(turn.text_deltas),
-            })
+            history.append({"role": "assistant", "content": "".join(turn.text_deltas)})
             continue
-        # Record the assistant turn (text + tool_uses) in history.
         history.append({
             "role": "assistant",
             "content": {
@@ -126,19 +128,31 @@ async def run_tool_loop(
                 if not result.is_error:
                     yield Done(selected=list(tu.args.get("selected", [])))
                     return
-                # Error on done — caller (Task 14) will implement the
-                # one-retry-then-coerce policy; for now, coerce immediately
-                # with empty selection so the happy-path test stays simple.
-                yield Coerced(reason="done_error", selected=[])
-                return
+                done_errors += 1
+                if done_errors >= 2:
+                    yield Coerced(reason="done_error",
+                                  selected=_coerce_selection("done_error"))
+                    return
+                # Inject the error tool_result for the model to correct next turn.
+                history.append({
+                    "role": "user",
+                    "content": {"tool_result": result.extra or {"error": result.result_summary},
+                                "is_error": True},
+                })
+                continue
             result = await executor.execute(tu.name, tu.args)
             yield ToolResultEvent(name=tu.name, args=tu.args, result=result)
+            if result.kg_effect and "node_visited" in result.kg_effect:
+                visited.append(result.kg_effect["node_visited"])
             history.append({
                 "role": "user",
-                "content": {"tool_result": result.extra, "is_error": result.is_error},
+                "content": {
+                    "tool_result": result.extra or {"error": result.result_summary},
+                    "is_error": result.is_error,
+                },
             })
     # Loop exhausted without done.
-    yield Coerced(reason="max_iter", selected=[])
+    yield Coerced(reason="max_iter", selected=_coerce_selection("max_iter"))
 
 
 # ---------------- Anthropic message translators ----------------
