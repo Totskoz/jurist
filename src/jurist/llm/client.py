@@ -154,7 +154,13 @@ async def run_tool_loop(
 
             yield ToolUseStart(name=tu.name, args=tu.args)
             if tu.name == "done":
-                result = await executor.execute("done", tu.args)
+                try:
+                    result = await executor.execute("done", tu.args)
+                except Exception as exc:  # noqa: BLE001 — wrap all
+                    result = ToolResult(
+                        result_summary=f"internal error: {type(exc).__name__}: {exc}",
+                        is_error=True,
+                    )
                 yield ToolResultEvent(name="done", args=tu.args, result=result)
                 if not result.is_error:
                     yield Done(selected=list(tu.args.get("selected", [])))
@@ -171,7 +177,13 @@ async def run_tool_loop(
                                 "is_error": True},
                 })
                 continue
-            result = await executor.execute(tu.name, tu.args)
+            try:
+                result = await executor.execute(tu.name, tu.args)
+            except Exception as exc:  # noqa: BLE001 — wrap all
+                result = ToolResult(
+                    result_summary=f"internal error: {type(exc).__name__}: {exc}",
+                    is_error=True,
+                )
             yield ToolResultEvent(name=tu.name, args=tu.args, result=result)
             if result.kg_effect and "node_visited" in result.kg_effect:
                 visited.append(result.kg_effect["node_visited"])

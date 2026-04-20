@@ -280,3 +280,39 @@ async def test_dup_three_consecutive_coerces():
         final = ev
     assert isinstance(final, Coerced)
     assert final.reason == "dup_loop"
+
+
+class _BoomExecutor(ToolExecutor):
+    async def execute(self, name, args):
+        if name == "get_article":
+            raise RuntimeError("boom")
+        return await super().execute(name, args)
+
+
+@pytest.mark.asyncio
+async def test_executor_exception_becomes_is_error():
+    kg = _kg()
+    script = [
+        ScriptedTurn(tool_uses=[ScriptedToolUse(
+            name="get_article", args={"article_id": "A"}
+        )]),
+        ScriptedTurn(tool_uses=[ScriptedToolUse(
+            name="done",
+            args={"selected": [{"article_id": "A", "reason": "ok"}]},
+        )]),
+    ]
+    mock = MockAnthropicClient(script)
+    executor = _BoomExecutor(kg)
+
+    events: list[LoopEvent] = []
+    async for ev in run_tool_loop(
+        mock=mock, executor=executor, system="<sys>", tools=[],
+        user_message="q", max_iters=15, wall_clock_cap_s=90,
+    ):
+        events.append(ev)
+    tool_results = [e for e in events if isinstance(e, ToolResultEvent)]
+    # get_article raised → is_error
+    assert tool_results[0].result.is_error is True
+    assert "boom" in tool_results[0].result.result_summary.lower()
+    # Loop continued to done
+    assert isinstance(events[-1], Done)
