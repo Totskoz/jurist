@@ -17,10 +17,12 @@ def fetch_bwb_xml(bwb_id: str, *, refresh: bool = False, no_fetch: bool = False)
     Order of operations:
       1. If cache hit and not ``refresh``, return cached bytes.
       2. If ``no_fetch``, raise FileNotFoundError on cache miss.
-      3. Otherwise GET from the upstream endpoint, write to cache, return bytes.
+      3. Otherwise GET from the upstream endpoint, write to cache atomically, return bytes.
     """
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    cache_path = CACHE_DIR / f"{bwb_id}.xml"
+    # Defense-in-depth: strip any directory components that could escape CACHE_DIR.
+    safe_id = Path(bwb_id).name
+    cache_path = CACHE_DIR / f"{safe_id}.xml"
 
     if cache_path.exists() and not refresh:
         return cache_path.read_bytes()
@@ -34,5 +36,12 @@ def fetch_bwb_xml(bwb_id: str, *, refresh: bool = False, no_fetch: bool = False)
         resp.raise_for_status()
         data = resp.content
 
-    cache_path.write_bytes(data)
+    # Atomic write: write to a .tmp sibling, then rename. Prevents torn reads on crash.
+    tmp_path = cache_path.with_suffix(".tmp")
+    try:
+        tmp_path.write_bytes(data)
+        tmp_path.replace(cache_path)
+    finally:
+        # If replace succeeded, tmp_path no longer exists; missing_ok covers that.
+        tmp_path.unlink(missing_ok=True)
     return data
