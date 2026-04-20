@@ -159,3 +159,33 @@ async def test_follow_cross_ref_unknown_to_errors(fixture_kg):
         "follow_cross_ref", {"from_id": "A", "to_id": "MISSING"}
     )
     assert r.is_error
+
+
+@pytest.mark.asyncio
+async def test_search_articles_ranks_rent_over_unrelated(fixture_kg):
+    exec_ = ToolExecutor(fixture_kg)
+    # "rent" appears twice in C ("rent and rent again"), zero times in A/B.
+    r = await exec_.execute("search_articles", {"query": "rent", "top_k": 3})
+    assert not r.is_error
+    ids = [h["article_id"] for h in r.extra["hits"]]
+    assert ids[0] == "C"
+    # hit_ids surfaced for frontend chips
+    assert r.extra["hit_ids"] == ids
+
+
+@pytest.mark.asyncio
+async def test_search_articles_respects_top_k(fixture_kg):
+    exec_ = ToolExecutor(fixture_kg)
+    r = await exec_.execute(
+        "search_articles", {"query": "body", "top_k": 1}
+    )
+    assert len(r.extra["hits"]) == 1
+
+
+@pytest.mark.asyncio
+async def test_search_articles_empty_query_returns_empty(fixture_kg):
+    exec_ = ToolExecutor(fixture_kg)
+    r = await exec_.execute("search_articles", {"query": "", "top_k": 5})
+    assert not r.is_error
+    assert r.extra["hits"] == []
+    assert r.extra["hit_ids"] == []

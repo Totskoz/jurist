@@ -15,6 +15,28 @@ def make_snippet(body: str, max_chars: int = 200) -> str:
     return compact[:max_chars].rsplit(" ", 1)[0] + "…"
 
 
+# Minimal Dutch + English stop-words; low-cost coarse filter.
+_STOP_WORDS = frozenset({
+    "de", "het", "een", "en", "of", "in", "van", "op", "met", "bij",
+    "te", "ten", "tot", "dat", "die", "dit", "deze", "is", "zijn",
+    "wordt", "worden", "niet", "geen", "als", "ook", "maar", "nog",
+    "the", "and", "or", "to", "a", "an", "are",
+})
+
+
+def _tokenize(text: str) -> set[str]:
+    return {
+        t for t in "".join(c.lower() if c.isalnum() else " " for c in text).split()
+        if t and t not in _STOP_WORDS and len(t) > 1
+    }
+
+
+def _jaccard(a: set[str], b: set[str]) -> float:
+    if not a or not b:
+        return 0.0
+    return len(a & b) / len(a | b)
+
+
 @dataclass
 class ToolResult:
     """Normalized tool execution result.
@@ -81,9 +103,37 @@ class ToolExecutor:
             kg_effect={"node_visited": article_id},
         )
 
-    # Subsequent tasks fill in.
     def _search_articles(self, args: dict[str, Any]) -> ToolResult:
-        raise NotImplementedError
+        query = (args.get("query") or "").strip()
+        top_k = int(args.get("top_k") or 5)
+        top_k = max(1, min(top_k, 10))
+        if not query:
+            return ToolResult(
+                result_summary="0 hits (empty query)",
+                extra={"hits": [], "hit_ids": []},
+            )
+        q_tokens = _tokenize(query)
+        scored: list[tuple[float, Any]] = []
+        for node in self._kg.all_nodes():
+            snippet = make_snippet(node.body_text, self._snippet_chars)
+            field_tokens = _tokenize(f"{node.title} {snippet}")
+            score = _jaccard(q_tokens, field_tokens)
+            if score > 0:
+                scored.append((score, node))
+        scored.sort(key=lambda x: x[0], reverse=True)
+        hits = []
+        for score, node in scored[:top_k]:
+            hits.append({
+                "article_id": node.article_id,
+                "label": node.label,
+                "title": node.title,
+                "snippet": make_snippet(node.body_text, self._snippet_chars),
+                "score": round(score, 4),
+            })
+        return ToolResult(
+            result_summary=f"{len(hits)} hit(s)",
+            extra={"hits": hits, "hit_ids": [h["article_id"] for h in hits]},
+        )
 
     def _list_neighbors(self, args: dict[str, Any]) -> ToolResult:
         article_id = args.get("article_id")
