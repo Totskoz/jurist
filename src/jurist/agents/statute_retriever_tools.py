@@ -119,7 +119,44 @@ class ToolExecutor:
         )
 
     def _follow_cross_ref(self, args: dict[str, Any]) -> ToolResult:
-        raise NotImplementedError
+        from_id = args.get("from_id")
+        to_id = args.get("to_id")
+        if not from_id or not to_id:
+            return ToolResult(
+                result_summary="missing required arguments: from_id, to_id",
+                is_error=True,
+            )
+        from_node = self._kg.get_node(from_id)
+        if from_node is None:
+            return ToolResult(
+                result_summary=f"unknown from_id: {from_id}",
+                is_error=True,
+            )
+        to_node = self._kg.get_node(to_id)
+        if to_node is None:
+            return ToolResult(
+                result_summary=f"unknown to_id: {to_id}",
+                is_error=True,
+            )
+        if not self._kg.has_edge(from_id, to_id):
+            return ToolResult(
+                result_summary=(
+                    f"no edge from {from_id} to {to_id} in the corpus — "
+                    f"use get_article({to_id}) if you only need the content."
+                ),
+                is_error=True,
+            )
+        return ToolResult(
+            result_summary=f"{to_node.label} — {to_node.title}",
+            extra={
+                "article_id": to_id,
+                "label": to_node.label,
+                "title": to_node.title,
+                "body_text": to_node.body_text,
+                "outgoing_refs": list(to_node.outgoing_refs),
+            },
+            kg_effect={"edge_traversed": (from_id, to_id), "node_visited": to_id},
+        )
 
     def _validate_done(self, args: dict[str, Any]) -> ToolResult:
         raise NotImplementedError

@@ -118,3 +118,44 @@ async def test_list_neighbors_unknown_id_errors(fixture_kg):
     exec_ = ToolExecutor(fixture_kg)
     r = await exec_.execute("list_neighbors", {"article_id": "MISSING"})
     assert r.is_error
+
+
+@pytest.mark.asyncio
+async def test_follow_cross_ref_returns_body_and_edge_effect(fixture_kg):
+    exec_ = ToolExecutor(fixture_kg)
+    r = await exec_.execute(
+        "follow_cross_ref", {"from_id": "A", "to_id": "B"}
+    )
+    assert not r.is_error
+    assert r.extra["body_text"] == "Body of B, short."
+    assert r.kg_effect == {"edge_traversed": ("A", "B"), "node_visited": "B"}
+
+
+@pytest.mark.asyncio
+async def test_follow_cross_ref_missing_edge_errors_with_hint(fixture_kg):
+    # Both nodes exist but no edge A→C in the fixture.
+    exec_ = ToolExecutor(fixture_kg)
+    r = await exec_.execute(
+        "follow_cross_ref", {"from_id": "A", "to_id": "C"}
+    )
+    assert r.is_error
+    assert "get_article" in r.result_summary
+    assert r.kg_effect is None
+
+
+@pytest.mark.asyncio
+async def test_follow_cross_ref_unknown_from_errors(fixture_kg):
+    exec_ = ToolExecutor(fixture_kg)
+    r = await exec_.execute(
+        "follow_cross_ref", {"from_id": "MISSING", "to_id": "B"}
+    )
+    assert r.is_error
+
+
+@pytest.mark.asyncio
+async def test_follow_cross_ref_unknown_to_errors(fixture_kg):
+    exec_ = ToolExecutor(fixture_kg)
+    r = await exec_.execute(
+        "follow_cross_ref", {"from_id": "A", "to_id": "MISSING"}
+    )
+    assert r.is_error

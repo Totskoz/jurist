@@ -57,3 +57,6 @@ class NetworkXKG:
             return None
         attrs = dict(self._graph.nodes[article_id])
         return ArticleNode(article_id=article_id, **attrs)
+
+    def has_edge(self, from_id: str, to_id: str) -> bool:
+        return self._graph.has_edge(from_id, to_id)
