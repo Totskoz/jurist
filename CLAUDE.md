@@ -8,17 +8,18 @@ Jurist is a portfolio multi-agent demo answering Dutch **huurrecht** (tenancy la
 
 **Authoritative design:** `docs/superpowers/specs/2026-04-17-jurist-v1-design.md`. Read this before making substantive design decisions. Milestone plans live in `docs/superpowers/plans/YYYY-MM-DD-*.md`.
 
-Current state: **M0 complete** (tag `m0-skeleton`) — end-to-end plumbing driven by fake agents that emit hardcoded events. M1–M5 each replace one fake with real code (see the spec's milestones section).
+Current state: **M1 complete** (tag `m1-statute-ingestion`) — real huurrecht KG (218 articles, 283 edges from BW7 Titel 4 + Uhw) loaded at FastAPI startup. M0 fake agents still drive the run — `/api/ask` returns the locked hardcoded answer. M2–M5 each replace a remaining fake with real code (see the spec's milestones section).
 
 ## Commands
 
 ### Backend (Python 3.11, `uv`)
 
 - Install deps: `uv sync --extra dev`
+- Build KG (prerequisite for API start): `uv run python -m jurist.ingest.statutes --refresh -v`
 - Run full test suite: `uv run pytest -v` (~75s due to `asyncio.sleep` in fake agents)
 - Run a single test: `uv run pytest tests/api/test_orchestrator.py::test_orchestrator_runs_agents_in_expected_order -v`
 - Lint: `uv run ruff check .`
-- Start API server: `uv run python -m jurist.api` — listens on `http://127.0.0.1:8766` with hot-reload
+- Start API server: `uv run python -m jurist.api` — listens on `http://127.0.0.1:8766` with hot-reload. API hard-fails at startup if `data/kg/huurrecht.json` is missing — run the KG build step first on a fresh clone.
 
 ### Frontend (Node 20+, from `web/`)
 
@@ -94,7 +95,7 @@ The synthesizer will use **per-request `Literal[...]` enums** over retrieved IDs
 | `case_retriever` | Emits `FAKE_CASES` one by one | M3 (bge-m3 + LanceDB + Haiku rerank) |
 | `synthesizer` | Streams `FAKE_ANSWER` token-by-token | M4 (Sonnet + closed-set grounding) |
 | `validator_stub` | Always returns `valid=True` | Intentionally stubbed — real validator is v2 scope |
-| `/api/kg` | Serves `FAKE_KG` from memory | M1 (loads `data/kg/huurrecht.json` from BWB XML ingestion) |
+| `/api/kg` | Real — loads `data/kg/huurrecht.json` at startup (built by `jurist.ingest.statutes`) | — |
 
 The validator is the **only** intentional stub. Everything else is a fake that emits realistic event streams so the frontend animation and SSE plumbing can be exercised end-to-end without LLMs or data sources.
 
