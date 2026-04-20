@@ -1,8 +1,8 @@
 """Chains the four fake agents + validator stub; stamps events; emits to a buffer."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
+from datetime import UTC, datetime
 
 from jurist.agents import (
     case_retriever,
@@ -12,6 +12,7 @@ from jurist.agents import (
     validator_stub,
 )
 from jurist.api.sse import EventBuffer
+from jurist.config import RunContext
 from jurist.schemas import (
     CaseRetrieverIn,
     CaseRetrieverOut,
@@ -28,7 +29,7 @@ from jurist.schemas import (
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    return datetime.now(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 async def _pump(
@@ -51,8 +52,13 @@ async def _pump(
     return final
 
 
-async def run_question(question: str, run_id: str, buffer: EventBuffer) -> None:
-    """End-to-end M0 run driven by fake agents. Writes all events to `buffer`."""
+async def run_question(
+    question: str,
+    run_id: str,
+    buffer: EventBuffer,
+    ctx: RunContext | None = None,
+) -> None:
+    """End-to-end run. In M2+ requires a RunContext for the statute retriever."""
     await buffer.put(
         TraceEvent(
             type="run_started",
@@ -62,7 +68,7 @@ async def run_question(question: str, run_id: str, buffer: EventBuffer) -> None:
         )
     )
 
-    # 1. Decomposer
+    # 1. Decomposer — fake
     dec_final = await _pump(
         "decomposer",
         decomposer.run(DecomposerIn(question=question)),
@@ -71,18 +77,34 @@ async def run_question(question: str, run_id: str, buffer: EventBuffer) -> None:
     )
     decomposer_out = DecomposerOut.model_validate(dec_final.data)
 
-    # 2. Statute retriever
+    # 2. Statute retriever — real in M2
+    if ctx is None:
+        raise RuntimeError(
+            "run_question requires a RunContext in M2+. "
+            "The API lifespan must provide one."
+        )
     stat_in = StatuteRetrieverIn(
         sub_questions=decomposer_out.sub_questions,
         concepts=decomposer_out.concepts,
         intent=decomposer_out.intent,
     )
-    stat_final = await _pump(
-        "statute_retriever",
-        statute_retriever.run(stat_in),
-        run_id,
-        buffer,
-    )
+    try:
+        stat_final = await _pump(
+            "statute_retriever",
+            statute_retriever.run(stat_in, ctx=ctx),
+            run_id,
+            buffer,
+        )
+    except Exception as exc:  # noqa: BLE001 — surface all LLM/network errors
+        await buffer.put(
+            TraceEvent(
+                type="run_failed",
+                run_id=run_id,
+                ts=_now_iso(),
+                data={"reason": "llm_error", "detail": f"{type(exc).__name__}: {exc}"},
+            )
+        )
+        return
     stat_out = StatuteRetrieverOut.model_validate(stat_final.data)
 
     # 3. Case retriever

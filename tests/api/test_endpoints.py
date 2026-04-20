@@ -1,10 +1,45 @@
-import asyncio
 import json
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
 from jurist.api.app import app
+from jurist.kg.networkx_kg import NetworkXKG
+from jurist.schemas import ArticleNode, KGSnapshot
+from tests.fixtures.mock_llm import MockAnthropicClient, ScriptedToolUse, ScriptedTurn
+
+
+def _minimal_kg():
+    nodes = [
+        ArticleNode(
+            article_id="A", bwb_id="BWBX", label="Art A", title="T",
+            body_text="body", outgoing_refs=[],
+        ),
+    ]
+    snap = KGSnapshot(generated_at="t", source_versions={}, nodes=nodes, edges=[])
+    return NetworkXKG.from_snapshot(snap)
+
+
+def _mock_llm():
+    script = [
+        ScriptedTurn(tool_uses=[ScriptedToolUse(
+            name="done",
+            args={"selected": [{"article_id": "A", "reason": "ok"}]},
+        )]),
+    ]
+    return MockAnthropicClient(script)
+
+
+@pytest.fixture(autouse=True)
+def _patch_app_state():
+    """Populate app.state so the /api/ask endpoint can build a RunContext
+    without the lifespan running."""
+    app.state.kg = _minimal_kg()
+    app.state.anthropic = _mock_llm()
+    yield
+    # Cleanup after each test to avoid cross-test contamination.
+    del app.state.kg
+    del app.state.anthropic
 
 
 @pytest.mark.asyncio

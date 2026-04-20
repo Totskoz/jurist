@@ -8,6 +8,7 @@ import uuid
 from contextlib import asynccontextmanager
 from typing import Any
 
+from anthropic import AsyncAnthropic
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ValidationError
@@ -15,7 +16,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from jurist.api.orchestrator import run_question
 from jurist.api.sse import EventBuffer
-from jurist.config import settings
+from jurist.config import RunContext, settings
 from jurist.kg.interface import KnowledgeGraph
 from jurist.kg.networkx_kg import NetworkXKG
 
@@ -42,6 +43,8 @@ async def lifespan(app: FastAPI):
         len(app.state.kg.all_edges()),
         settings.kg_path,
     )
+    app.state.anthropic = AsyncAnthropic(api_key=settings.anthropic_api_key)
+    logger.info("Anthropic client ready (model: %s)", settings.model_retriever)
     yield
 
 
@@ -72,7 +75,8 @@ async def ask(req: AskRequest) -> AskResponse:
     question_id = f"run_{uuid.uuid4().hex[:10]}"
     buf = EventBuffer(max_history=settings.max_history_per_run)
     _runs[question_id] = buf
-    task = asyncio.create_task(run_question(req.question, question_id, buf))
+    ctx = RunContext(kg=app.state.kg, llm=app.state.anthropic)
+    task = asyncio.create_task(run_question(req.question, question_id, buf, ctx))
     _tasks[question_id] = task
     return AskResponse(question_id=question_id)
 
