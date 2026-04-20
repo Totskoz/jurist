@@ -1,11 +1,13 @@
-"""FastAPI app: POST /api/ask + GET /api/stream (SSE)."""
+"""FastAPI app: POST /api/ask + GET /api/stream (SSE) + GET /api/kg."""
 from __future__ import annotations
 
 import asyncio
+import logging
 import uuid
+from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
@@ -13,9 +15,31 @@ from sse_starlette.sse import EventSourceResponse
 from jurist.api.orchestrator import run_question
 from jurist.api.sse import EventBuffer
 from jurist.config import settings
-from jurist.fakes import FAKE_KG
+from jurist.kg.interface import KnowledgeGraph
+from jurist.kg.networkx_kg import NetworkXKG
 
-app = FastAPI(title="Jurist", version="0.1.0")
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        app.state.kg = NetworkXKG.load_from_json(settings.kg_path)
+    except FileNotFoundError as e:
+        raise RuntimeError(
+            f"KG not found at {settings.kg_path}. "
+            f"Run: uv run python -m jurist.ingest.statutes"
+        ) from e
+    logger.info(
+        "Loaded KG: %d nodes, %d edges from %s",
+        len(app.state.kg.all_nodes()),
+        len(app.state.kg.all_edges()),
+        settings.kg_path,
+    )
+    yield
+
+
+app = FastAPI(title="Jurist", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,7 +57,6 @@ class AskResponse(BaseModel):
     question_id: str
 
 
-# In-memory registry of active runs. One buffer per question_id.
 _runs: dict[str, EventBuffer] = {}
 _tasks: dict[str, asyncio.Task[Any]] = {}
 
@@ -67,9 +90,9 @@ async def health() -> dict[str, str]:
 
 
 @app.get("/api/kg")
-async def kg() -> dict:
-    nodes, edges = FAKE_KG
+async def kg(request: Request) -> dict:
+    g: KnowledgeGraph = request.app.state.kg
     return {
-        "nodes": [n.model_dump() for n in nodes],
-        "edges": [e.model_dump() for e in edges],
+        "nodes": [n.model_dump() for n in g.all_nodes()],
+        "edges": [e.model_dump() for e in g.all_edges()],
     }
