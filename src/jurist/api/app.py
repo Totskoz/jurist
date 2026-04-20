@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import uuid
 from contextlib import asynccontextmanager
@@ -9,7 +10,7 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from sse_starlette.sse import EventSourceResponse
 
 from jurist.api.orchestrator import run_question
@@ -29,6 +30,11 @@ async def lifespan(app: FastAPI):
         raise RuntimeError(
             f"KG not found at {settings.kg_path}. "
             f"Run: uv run python -m jurist.ingest.statutes"
+        ) from e
+    except (ValidationError, json.JSONDecodeError, ValueError) as e:
+        raise RuntimeError(
+            f"KG at {settings.kg_path} failed to load: {e}. "
+            f"Re-run: uv run python -m jurist.ingest.statutes --refresh"
         ) from e
     logger.info(
         "Loaded KG: %d nodes, %d edges from %s",

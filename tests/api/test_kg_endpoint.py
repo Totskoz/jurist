@@ -78,3 +78,32 @@ def test_api_startup_hard_fails_on_missing_kg(tmp_path: Path, monkeypatch):
     with pytest.raises(RuntimeError, match="KG not found"):
         with TestClient(app):
             pass
+
+
+def test_api_startup_hard_fails_on_corrupt_kg(tmp_path: Path, monkeypatch):
+    """Malformed JSON at kg_path → RuntimeError with re-run hint."""
+    _isolate_kg(tmp_path, monkeypatch)
+    kg_path = tmp_path / "kg" / "huurrecht.json"
+    kg_path.parent.mkdir(parents=True, exist_ok=True)
+    kg_path.write_text("{ not valid json at all", encoding="utf-8")
+
+    from jurist.api.app import app
+
+    with pytest.raises(RuntimeError, match="failed to load"):
+        with TestClient(app):
+            pass
+
+
+def test_api_startup_hard_fails_on_schema_invalid_kg(tmp_path: Path, monkeypatch):
+    """JSON that parses but fails KGSnapshot validation → RuntimeError with re-run hint."""
+    _isolate_kg(tmp_path, monkeypatch)
+    kg_path = tmp_path / "kg" / "huurrecht.json"
+    kg_path.parent.mkdir(parents=True, exist_ok=True)
+    # Missing required fields (generated_at, source_versions)
+    kg_path.write_text('{"nodes": [], "edges": []}', encoding="utf-8")
+
+    from jurist.api.app import app
+
+    with pytest.raises(RuntimeError, match="failed to load"):
+        with TestClient(app):
+            pass
