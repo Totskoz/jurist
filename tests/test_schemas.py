@@ -1,3 +1,6 @@
+import pytest
+from pydantic import ValidationError
+
 from jurist.schemas import (
     ArticleEdge,
     ArticleNode,
@@ -7,6 +10,7 @@ from jurist.schemas import (
     CitedCase,
     DecomposerIn,
     DecomposerOut,
+    KGSnapshot,
     StatuteRetrieverIn,
     StatuteRetrieverOut,
     StructuredAnswer,
@@ -108,9 +112,6 @@ _ = (
 )
 
 
-import json
-from jurist.schemas import KGSnapshot, ArticleNode, ArticleEdge
-
 def test_kg_snapshot_roundtrip():
     snap = KGSnapshot(
         generated_at="2026-04-20T10:00:00Z",
@@ -138,8 +139,7 @@ def test_kg_snapshot_roundtrip():
     restored = KGSnapshot.model_validate_json(payload)
     assert restored == snap
 
+
 def test_kg_snapshot_rejects_missing_fields():
-    import pytest
-    from pydantic import ValidationError
     with pytest.raises(ValidationError):
         KGSnapshot.model_validate({"nodes": [], "edges": []})  # missing required fields
