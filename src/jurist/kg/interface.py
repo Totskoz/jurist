@@ -1,0 +1,12 @@
+"""Minimal KnowledgeGraph Protocol — widened in M2 as tool impls need it."""
+from __future__ import annotations
+
+from typing import Protocol
+
+from jurist.schemas import ArticleEdge, ArticleNode
+
+
+class KnowledgeGraph(Protocol):
+    def all_nodes(self) -> list[ArticleNode]: ...
+    def all_edges(self) -> list[ArticleEdge]: ...
+    def get_node(self, article_id: str) -> ArticleNode | None: ...
