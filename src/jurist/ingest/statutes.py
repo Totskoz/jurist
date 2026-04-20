@@ -58,7 +58,7 @@ def run_ingest(
         and all(
             existing.source_versions.get(bwb) == ver for bwb, (_, ver) in fetched.items()
         )
-        and set(existing.source_versions.keys()) >= set(fetched.keys())
+        and set(existing.source_versions.keys()) == set(fetched.keys())
     ):
         if verbose:
             print("Ingest: no changes; skipping parse.")
@@ -82,6 +82,15 @@ def run_ingest(
     # Pass 3: edges
     regex_edges = extract_regex_edges(all_nodes)
     merged = merge_edges(all_explicit, regex_edges)
+
+    # Guard: drop edges that reference unknown nodes (e.g., short-form extrefs
+    # whose target is in the KG but under a different article_id path, or
+    # cross-BWB refs to un-ingested BWBs).
+    known_ids = {n.article_id for n in all_nodes}
+    dangling = [e for e in merged if e.to_id not in known_ids]
+    if dangling and verbose:
+        print(f"Ingest: dropping {len(dangling)} edges to unknown nodes.")
+    merged = [e for e in merged if e.to_id in known_ids]
 
     # Repopulate ArticleNode.outgoing_refs from the merged edge list
     refs_by_source: dict[str, list[str]] = {}
