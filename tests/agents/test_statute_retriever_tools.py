@@ -189,3 +189,49 @@ async def test_search_articles_empty_query_returns_empty(fixture_kg):
     assert not r.is_error
     assert r.extra["hits"] == []
     assert r.extra["hit_ids"] == []
+
+
+@pytest.mark.asyncio
+async def test_done_validates_known_ids(fixture_kg):
+    exec_ = ToolExecutor(fixture_kg)
+    r = await exec_.execute(
+        "done",
+        {"selected": [
+            {"article_id": "A", "reason": "core rule"},
+            {"article_id": "B", "reason": "procedure"},
+        ]},
+    )
+    assert not r.is_error
+    assert r.extra["selected_count"] == 2
+
+
+@pytest.mark.asyncio
+async def test_done_rejects_unknown_id(fixture_kg):
+    exec_ = ToolExecutor(fixture_kg)
+    r = await exec_.execute(
+        "done",
+        {"selected": [
+            {"article_id": "A", "reason": "ok"},
+            {"article_id": "NOPE", "reason": "bad"},
+        ]},
+    )
+    assert r.is_error
+    assert "NOPE" in r.result_summary
+
+
+@pytest.mark.asyncio
+async def test_done_empty_selected_is_allowed(fixture_kg):
+    exec_ = ToolExecutor(fixture_kg)
+    r = await exec_.execute("done", {"selected": []})
+    assert not r.is_error
+    assert r.extra["selected_count"] == 0
+
+
+@pytest.mark.asyncio
+async def test_done_rejects_missing_reason(fixture_kg):
+    exec_ = ToolExecutor(fixture_kg)
+    r = await exec_.execute(
+        "done",
+        {"selected": [{"article_id": "A"}]},  # no reason
+    )
+    assert r.is_error

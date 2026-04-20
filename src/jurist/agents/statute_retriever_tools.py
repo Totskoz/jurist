@@ -209,4 +209,46 @@ class ToolExecutor:
         )
 
     def _validate_done(self, args: dict[str, Any]) -> ToolResult:
-        raise NotImplementedError
+        selected = args.get("selected")
+        if selected is None or not isinstance(selected, list):
+            return ToolResult(
+                result_summary="`selected` must be a list of {article_id, reason}",
+                is_error=True,
+            )
+        unknown: list[str] = []
+        missing_reason: list[str] = []
+        for entry in selected:
+            if not isinstance(entry, dict):
+                return ToolResult(
+                    result_summary="each entry must be {article_id, reason}",
+                    is_error=True,
+                )
+            aid = entry.get("article_id")
+            reason = entry.get("reason")
+            if not aid:
+                return ToolResult(
+                    result_summary="entry missing article_id",
+                    is_error=True,
+                )
+            if not reason:
+                missing_reason.append(aid)
+                continue
+            if self._kg.get_node(aid) is None:
+                unknown.append(aid)
+        if unknown:
+            return ToolResult(
+                result_summary=(
+                    f"unknown article_id(s) in selected: {unknown}. "
+                    f"Pick from the catalog you were given."
+                ),
+                is_error=True,
+            )
+        if missing_reason:
+            return ToolResult(
+                result_summary=f"missing reason for: {missing_reason}",
+                is_error=True,
+            )
+        return ToolResult(
+            result_summary=f"{len(selected)} selected",
+            extra={"selected_count": len(selected), "selected": selected},
+        )
