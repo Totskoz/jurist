@@ -106,3 +106,40 @@ _ = (
     ValidatorIn,
     WetArtikelCitation,
 )
+
+
+import json
+from jurist.schemas import KGSnapshot, ArticleNode, ArticleEdge
+
+def test_kg_snapshot_roundtrip():
+    snap = KGSnapshot(
+        generated_at="2026-04-20T10:00:00Z",
+        source_versions={"BWBR0005290": "2024-01-01"},
+        nodes=[
+            ArticleNode(
+                article_id="BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248",
+                bwb_id="BWBR0005290",
+                label="Boek 7, Artikel 248",
+                title="Huurverhoging",
+                body_text="De verhuurder kan ...",
+                outgoing_refs=["BWBR0005290/Boek7/Titel4/Afdeling5/Artikel249"],
+            )
+        ],
+        edges=[
+            ArticleEdge(
+                from_id="BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248",
+                to_id="BWBR0005290/Boek7/Titel4/Afdeling5/Artikel249",
+                kind="explicit",
+                context=None,
+            )
+        ],
+    )
+    payload = snap.model_dump_json()
+    restored = KGSnapshot.model_validate_json(payload)
+    assert restored == snap
+
+def test_kg_snapshot_rejects_missing_fields():
+    import pytest
+    from pydantic import ValidationError
+    with pytest.raises(ValidationError):
+        KGSnapshot.model_validate({"nodes": [], "edges": []})  # missing required fields

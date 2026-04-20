@@ -131,3 +131,12 @@ class ValidatorIn(BaseModel):
 class ValidatorOut(BaseModel):
     valid: bool
     issues: list[str] = Field(default_factory=list)
+
+
+# ---------------- KG snapshot (M1) ----------------
+
+class KGSnapshot(BaseModel):
+    generated_at: str
+    source_versions: dict[str, str]
+    nodes: list[ArticleNode]
+    edges: list[ArticleEdge]
