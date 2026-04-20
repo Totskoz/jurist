@@ -1,6 +1,11 @@
 """Statute retriever tool implementations + helpers."""
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+from typing import Any
+
+from jurist.kg.interface import KnowledgeGraph
+
 
 def make_snippet(body: str, max_chars: int = 200) -> str:
     """Collapse whitespace and truncate to a word boundary with an ellipsis."""
@@ -8,3 +13,83 @@ def make_snippet(body: str, max_chars: int = 200) -> str:
     if len(compact) <= max_chars:
         return compact
     return compact[:max_chars].rsplit(" ", 1)[0] + "…"
+
+
+@dataclass
+class ToolResult:
+    """Normalized tool execution result.
+
+    - result_summary: human-readable one-liner for TracePanel.
+    - extra: structured fields surfaced in TraceEvent.data (hit_ids,
+      neighbor_ids, body_text, outgoing_refs, etc.) AND serialized into
+      the Anthropic tool_result content.
+    - is_error: follows Anthropic tool_result semantics.
+    - kg_effect: signals to the caller (the retriever agent) which KG-state
+      event to emit next: {"node_visited": id} or
+      {"edge_traversed": (from, to)}.
+    """
+
+    result_summary: str
+    extra: dict[str, Any] = field(default_factory=dict)
+    is_error: bool = False
+    kg_effect: dict[str, Any] | None = None
+
+
+class ToolExecutor:
+    def __init__(self, kg: KnowledgeGraph, snippet_chars: int = 200) -> None:
+        self._kg = kg
+        self._snippet_chars = snippet_chars
+
+    async def execute(self, name: str, args: dict[str, Any]) -> ToolResult:
+        handlers = {
+            "search_articles": self._search_articles,
+            "list_neighbors": self._list_neighbors,
+            "get_article": self._get_article,
+            "follow_cross_ref": self._follow_cross_ref,
+            "done": self._validate_done,
+        }
+        handler = handlers.get(name)
+        if handler is None:
+            return ToolResult(
+                result_summary=f"unknown tool: {name}",
+                is_error=True,
+            )
+        return handler(args)
+
+    def _get_article(self, args: dict[str, Any]) -> ToolResult:
+        article_id = args.get("article_id")
+        if not article_id:
+            return ToolResult(
+                result_summary="missing required argument: article_id",
+                is_error=True,
+            )
+        node = self._kg.get_node(article_id)
+        if node is None:
+            return ToolResult(
+                result_summary=f"unknown article_id: {article_id}",
+                is_error=True,
+            )
+        return ToolResult(
+            result_summary=f"{node.label} — {node.title}",
+            extra={
+                "article_id": article_id,
+                "label": node.label,
+                "title": node.title,
+                "body_text": node.body_text,
+                "outgoing_refs": list(node.outgoing_refs),
+            },
+            kg_effect={"node_visited": article_id},
+        )
+
+    # Subsequent tasks fill in.
+    def _search_articles(self, args: dict[str, Any]) -> ToolResult:
+        raise NotImplementedError
+
+    def _list_neighbors(self, args: dict[str, Any]) -> ToolResult:
+        raise NotImplementedError
+
+    def _follow_cross_ref(self, args: dict[str, Any]) -> ToolResult:
+        raise NotImplementedError
+
+    def _validate_done(self, args: dict[str, Any]) -> ToolResult:
+        raise NotImplementedError
