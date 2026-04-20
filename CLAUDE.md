@@ -8,7 +8,7 @@ Jurist is a portfolio multi-agent demo answering Dutch **huurrecht** (tenancy la
 
 **Authoritative design:** `docs/superpowers/specs/2026-04-17-jurist-v1-design.md`. Read this before making substantive design decisions. Milestone plans live in `docs/superpowers/plans/YYYY-MM-DD-*.md`.
 
-Current state: **M1 complete** (tag `m1-statute-ingestion`) — real huurrecht KG (218 articles, 283 edges from BW7 Titel 4 + Uhw) loaded at FastAPI startup. M0 fake agents still drive the run — `/api/ask` returns the locked hardcoded answer. M2–M5 each replace a remaining fake with real code (see the spec's milestones section).
+Current state: **M2 landed** (branch `m2-statute-retriever`; tag pending UI smoke) — real Claude Sonnet tool-use loop over the 218-node huurrecht KG replaces the statute retriever fake. Decomposer, case retriever, and synthesizer remain M0 fakes; validator is a permanent stub. `/api/ask` now requires `ANTHROPIC_API_KEY` to exercise the statute retriever; the other stages still drive the rest of the canned answer. M3–M5 replace the remaining fakes (see spec §11).
 
 ## Commands
 
@@ -19,7 +19,7 @@ Current state: **M1 complete** (tag `m1-statute-ingestion`) — real huurrecht K
 - Run full test suite: `uv run pytest -v` (~75s due to `asyncio.sleep` in fake agents)
 - Run a single test: `uv run pytest tests/api/test_orchestrator.py::test_orchestrator_runs_agents_in_expected_order -v`
 - Lint: `uv run ruff check .`
-- Start API server: `uv run python -m jurist.api` — listens on `http://127.0.0.1:8766` with hot-reload. API hard-fails at startup if `data/kg/huurrecht.json` is missing — run the KG build step first on a fresh clone.
+- Start API server: `uv run python -m jurist.api` — listens on `http://127.0.0.1:8766` with hot-reload. API hard-fails at startup if `data/kg/huurrecht.json` is missing — run the KG build step first on a fresh clone. `ANTHROPIC_API_KEY` is not required at startup (the SDK defers the auth check), but the statute retriever will 401 on first tool call without it; see `.env.example`.
 
 ### Frontend (Node 20+, from `web/`)
 
@@ -33,7 +33,8 @@ Current state: **M1 complete** (tag `m1-statute-ingestion`) — real huurrecht K
 - `uv` lives at `C:\Users\totti\.local\bin` and isn't always on `PATH`. Prepend it in bash with `export PATH="/c/Users/totti/.local/bin:$PATH"` if `uv` is not found.
 - Git's LF→CRLF warnings on Windows commits are benign; don't try to suppress them.
 - API port is **8766**, not 8000 (Django project on this host) and not 8765 (previous zombie-socket incident). If you change the backend port, also change the Vite proxy target in `web/vite.config.ts`.
-- Full M0 run emits ~184 events (mostly `answer_delta` tokens from the synthesizer's word-level streaming). `EventBuffer.max_history` defaults to 500 to hold a full run's history; `settings.max_history_per_run` matches. If you shrink these, verify the `test_orchestrator_emits_run_started_and_run_finished` test still passes.
+- Full run emits ~200+ events post-M2 (most are `answer_delta` tokens from the synthesizer's word-level streaming; M2 adds a variable count of `tool_call_started` / `tool_call_completed` / `node_visited` / `edge_traversed` / `agent_thinking` events depending on how many tools the retriever calls). `EventBuffer.max_history` defaults to 500; `settings.max_history_per_run` matches. If you shrink these, verify the orchestrator tests still pass.
+- Env vars: copy `.env.example` → `.env` and set `ANTHROPIC_API_KEY`. All other settings have sensible defaults. `python-dotenv` loads `.env` at `jurist.config` import time.
 
 ## Architecture
 
@@ -48,7 +49,7 @@ async def run(input: AgentIn) -> AsyncIterator[TraceEvent]:
     yield TraceEvent(type="agent_finished", data=out.model_dump())
 ```
 
-The **final** yielded event is always `agent_finished` with the typed Pydantic output serialized into `.data`. Orchestrator downstream re-validates via `AgentOut.model_validate(final.data)`. Agents yield events **unstamped** — `agent`, `run_id`, and `ts` fields are filled in by `_pump` in the orchestrator, not by the agent.
+The **final** yielded event is always `agent_finished` with the typed Pydantic output serialized into `.data`. Orchestrator downstream re-validates via `AgentOut.model_validate(final.data)`. Agents yield events **unstamped** — `agent`, `run_id`, and `ts` fields are filled in by `_pump` in the orchestrator, not by the agent. Real agents that need external resources add a keyword-only `ctx: RunContext` parameter (see `statute_retriever.run(input, *, ctx)`); fakes keep the single-input signature.
 
 ### Pipeline
 
@@ -64,7 +65,7 @@ run_started
 run_finished (carries final_answer)
 ```
 
-All 5 run on one asyncio task. Parallelization is explicitly out of scope for v1 (spec §15 decision log).
+All 5 run on one asyncio task. Parallelization is explicitly out of scope for v1 (spec §15 decision log). The orchestrator wraps **only** the `statute_retriever` pump in try/except so Anthropic errors surface as `run_failed{reason: "llm_error", detail}` instead of crashing the task; fakes are assumed not to fail (spec §5).
 
 ### SSE transport
 
@@ -82,22 +83,29 @@ All 5 run on one asyncio task. Parallelization is explicitly out of scope for v1
 - **Thinking:** `thinkingByAgent[agent]` accumulates `agent_thinking` deltas per-agent (not globally), so TracePanel can show each agent's stream in its own section.
 - **Answer:** `answerText` is the concatenation of `answer_delta` tokens (shown while streaming); `finalAnswer` is the validated `StructuredAnswer` set on `run_finished` (switches AnswerPanel to the structured view).
 
+### Statute retriever (M2)
+
+- **Loop driver:** `src/jurist/llm/client.py::run_tool_loop` — async generator yielding a `LoopEvent` ADT (`TextDelta` / `ToolUseStart` / `ToolResultEvent` / `Done` / `Coerced`). Supports a scripted `MockAnthropicClient` for tests and real `AsyncAnthropic.messages.stream()` for prod, picked via duck-typing. Five coercion paths: `max_iter` (15), `wall_clock` (90s), `dup_loop` (3 consecutive identical calls), `done_error` (done with unknown ids twice), `stall` (empty turn). Coerced selections are visit-recency-ordered and capped at 8.
+- **Tool surface:** `src/jurist/agents/statute_retriever_tools.py::ToolExecutor` implements 5 tools (`search_articles`, `list_neighbors`, `get_article`, `follow_cross_ref`, `done`). `tool_definitions()` exposes the Anthropic JSON-schema array; `build_catalog(kg)` renders the full corpus as the system-prompt preamble (~63KB, cached at one `ephemeral` breakpoint).
+- **Agent translation:** `src/jurist/agents/statute_retriever.py::run` maps each `LoopEvent` to `TraceEvent`s; on coercion it also emits synthetic `tool_call_started`/`tool_call_completed` for "done" so the UI sees a consistent terminator. `_is_mock(ctx.llm)` (checks `next_turn` without `messages`) routes test vs prod.
+- **Tests:** 113 unit tests use `MockAnthropicClient` — no network. 1 RUN_E2E-gated integration test (`tests/integration/test_m2_statute_retriever_e2e.py`) asserts art. 7:248 BW is cited on the locked question; run with `RUN_E2E=1 uv run pytest tests/integration/...`.
+
 ### Closed-set citation grounding (deferred to M4)
 
 The synthesizer will use **per-request `Literal[...]` enums** over retrieved IDs to force Claude to cite only from the candidate set (schema-time constraint), followed by **post-hoc resolution** that confirms every ID + quote survives in the knowledge base, with **regenerate-once-then-hard-fail** on mismatch. Three-layer defense; no silent fallback. Detailed in spec §15.
 
-### What's fake vs. real in M0
+### What's fake vs. real after M2
 
-| Component | M0 | Becomes real in |
+| Component | State | Becomes real in |
 |---|---|---|
-| `decomposer` | Yields canned thinking + fixed DecomposerOut | M4 (Haiku) |
-| `statute_retriever` | Walks hardcoded `FAKE_VISIT_PATH` through `FAKE_KG` | M2 (Sonnet tool-use loop) |
-| `case_retriever` | Emits `FAKE_CASES` one by one | M3 (bge-m3 + LanceDB + Haiku rerank) |
-| `synthesizer` | Streams `FAKE_ANSWER` token-by-token | M4 (Sonnet + closed-set grounding) |
-| `validator_stub` | Always returns `valid=True` | Intentionally stubbed — real validator is v2 scope |
+| `decomposer` | M0 fake — yields canned thinking + fixed DecomposerOut | M4 (Haiku) |
+| `statute_retriever` | **Real** — Claude Sonnet tool-use loop over the 218-node KG (5 tools) | — |
+| `case_retriever` | M0 fake — emits `FAKE_CASES` one by one | M3 (bge-m3 + LanceDB + Haiku rerank) |
+| `synthesizer` | M0 fake — streams `FAKE_ANSWER` token-by-token | M4 (Sonnet + closed-set grounding) |
+| `validator_stub` | Permanent stub — always returns `valid=True` | — (real validator is v2 scope) |
 | `/api/kg` | Real — loads `data/kg/huurrecht.json` at startup (built by `jurist.ingest.statutes`) | — |
 
-The validator is the **only** intentional stub. Everything else is a fake that emits realistic event streams so the frontend animation and SSE plumbing can be exercised end-to-end without LLMs or data sources.
+The validator is the only intentional stub; the three remaining fakes still emit realistic event streams so the frontend can be exercised end-to-end without the live LLM/vector-store dependencies they'll gain in M3–M4.
 
 ## Conventions worth knowing
 
