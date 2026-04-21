@@ -9,7 +9,6 @@ from pathlib import Path
 
 import pytest
 
-
 SAMPLE_CONTENT = b"<open-rechtspraak><x>body</x></open-rechtspraak>"
 
 
