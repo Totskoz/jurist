@@ -16,7 +16,7 @@ import re
 # Dutch legal abbreviations that end with a period but are NOT sentence
 # terminators. Case-sensitive — "Art." at start of sentence is intentional.
 _ABBREVIATIONS = {
-    "art.", "artt.", "lid", "jo.", "Hof", "Mr.", "Dr.", "mr.", "dr.",
+    "art.", "artt.", "lid.", "jo.", "Hof.", "Mr.", "Dr.", "mr.", "dr.",
     "nr.", "blz.", "o.a.", "i.c.", "m.b.t.", "vs.", "ibid.", "ca.",
 }
 
@@ -24,7 +24,11 @@ _SENTENCE_END = re.compile(r"(?<=[.?!])\s+")
 
 
 def split(body: str, *, target_words: int, overlap_words: int) -> list[str]:
-    """Chunk `body` into ≤`target_words`-word slices with overlap.
+    """Chunk `body` into ≤`target_words`-word slices (before overlap is applied).
+
+    Each chunk after the first is prepended with the last `overlap_words`
+    words of the previous chunk, so actual word count may reach
+    `target_words + overlap_words`.
 
     Returns [] for empty input.
     """

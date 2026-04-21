@@ -55,16 +55,20 @@ def test_long_single_paragraph_sentence_split() -> None:
 
 def test_dutch_abbreviations_not_split_as_sentences() -> None:
     from jurist.ingest.splitter import split
-    # "art." and "jo." should not terminate sentences.
-    body = (
-        "De rechtbank overweegt dat art. 7:248 BW jo. art. 7:246 BW "
-        "van toepassing is. Dit geldt ook voor Hof Den Haag 2023. "
-        "Daarom volgt het oordeel."
-    )
-    chunks = split(body, target_words=500, overlap_words=50)
-    # Short body, should stay one chunk; key test is that when larger bodies
-    # split, abbrevs don't create broken chunks. Inline trivial check here:
-    assert len(chunks) == 1
+    # 600-word paragraph forces sentence-split path. The "art. X jo. art. Y"
+    # segment must not be treated as sentence boundaries; only the real "."
+    # after "BW van toepassing is" should terminate.
+    art_ref = "art. 7:248 BW jo. art. 7:246 BW van toepassing is."
+    filler = " ".join(["woord"] * 100) + "."  # 100-word sentence
+    # 5 fillers + 1 art_ref = single paragraph ~520 words with no blank line
+    body = " ".join([art_ref] + [filler] * 5)
+    chunks = split(body, target_words=500, overlap_words=0)
+    # If "art." were treated as sentence terminator, we'd get tiny broken
+    # chunks starting with "7:248 BW" etc. Confirm no chunk starts with that.
+    for chunk in chunks:
+        assert not chunk.strip().startswith("7:"), (
+            f"Abbreviation wrongly split: {chunk[:60]!r}"
+        )
 
 
 def test_pathological_single_sentence_char_split() -> None:
