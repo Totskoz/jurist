@@ -25,7 +25,7 @@ Latency is not a hard cap. Target: under ~60 s end-to-end. Hard limit: whatever 
 
 ## 2. Scope
 
-**In.** Huurrecht broadly. The allowlist (`src/jurist/ingest/allowlist.py`) targets ~8 BWBs: BW Boek 7 Titel 4 (Huur), Uitvoeringswet huurprijzen woonruimte, Besluit huurprijzen woonruimte, BW Boek 6 (general contract law touched by huurrecht), Wet doorstroming huurmarkt 2015, Wet goed verhuurderschap, Wet op het overleg huurders verhuurder (Overlegwet), Huisvestingswet 2014. **M1 ships the first three ("core"); M1.5 widens to the full list** (see §11). Four live agents (decomposer, statute retriever, case retriever, synthesizer) plus a stubbed validator with realistic interface shape. Real KG from BWB XML. Real vector store of ~300 huurrecht uitspraken. Two-panel streaming frontend. Local development only.
+**In.** Huurrecht broadly. The allowlist (`src/jurist/ingest/allowlist.py`) targets ~8 BWBs: BW Boek 7 Titel 4 (Huur), Uitvoeringswet huurprijzen woonruimte, Besluit huurprijzen woonruimte, BW Boek 6 (general contract law touched by huurrecht), Wet doorstroming huurmarkt 2015, Wet goed verhuurderschap, Wet op het overleg huurders verhuurder (Overlegwet), Huisvestingswet 2014. **M1 ships the first three ("core"); M1.5 widens to the full list** (see §11). Four live agents (decomposer, statute retriever, case retriever, synthesizer) plus a stubbed validator with realistic interface shape. Real KG from BWB XML. Real vector store of a filtered subset of huurrecht uitspraken. Two-panel streaming frontend. Local development only.
 
 **Out.** Other rechtsgebieden. Real validator. Live KG maintenance (the KG is generated offline; no "KG maintainer" agent exists or is implied). User accounts, persistence, query history. Evaluation harness. Deployment. Multi-question UX.
 
@@ -453,7 +453,7 @@ jurist/
 ├── data/                                   # generated; gitignored
 │   ├── kg/huurrecht.json
 │   ├── articles/*.md
-│   ├── cases/*.md
+│   ├── cases/*.xml
 │   └── lancedb/
 ├── src/jurist/
 │   ├── __init__.py
@@ -612,7 +612,7 @@ Environment variables (`.env`):
 - `JURIST_MODEL_RERANK` — default `claude-haiku-4-5-20251001`.
 - `JURIST_MODEL_SYNTH` — default `claude-sonnet-4-6`.
 - `JURIST_MAX_RETRIEVER_ITERS` — default `15`.
-- `JURIST_CASELAW_LIMIT` — default `300`.
+- `JURIST_CASELAW_LIMIT` — default `0` (no cap). Dev-only safety bound on number of ECLIs fetched per run.
 
 `.env.example` is committed. No secrets are committed.
 
