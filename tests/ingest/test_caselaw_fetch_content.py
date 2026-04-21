@@ -94,11 +94,14 @@ def test_fetch_content_retries_once_on_5xx(tmp_path: Path, monkeypatch) -> None:
     assert path.read_bytes() == SAMPLE_CONTENT
 
 
-def test_fetch_content_raises_after_two_failures(tmp_path: Path, monkeypatch) -> None:
+def test_fetch_content_raises_after_all_attempts_fail(
+    tmp_path: Path, monkeypatch
+) -> None:
     from jurist.ingest import caselaw_fetch
 
     ecli = "ECLI:NL:RBAMS:2025:3"
-    with _fake_content_server({ecli: [503, 503]}, {}) as base_url:
+    # _fake_content_server repeats the last status, so [503] covers all attempts.
+    with _fake_content_server({ecli: [503]}, {}) as base_url:
         monkeypatch.setattr(caselaw_fetch, "CONTENT_URL", f"{base_url}/content")
         monkeypatch.setattr(caselaw_fetch, "RETRY_BACKOFF_S", 0.01)
         with pytest.raises(caselaw_fetch.FetchError):

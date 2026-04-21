@@ -27,7 +27,8 @@ USER_AGENT = "jurist-demo/0.1 (portfolio project)"
 
 ATOM_NS = "{http://www.w3.org/2005/Atom}"
 
-RETRY_BACKOFF_S = 2.0
+MAX_ATTEMPTS = 5
+RETRY_BACKOFF_S = 2.0  # base; doubles per attempt → 2s, 4s, 8s, 16s (30s max total)
 
 
 class FetchError(RuntimeError):
@@ -91,8 +92,9 @@ def list_eclis(
 def fetch_content(ecli: str, *, cache_dir: Path) -> Path:
     """Fetch the full XML for `ecli`. Cache-first. Returns the cached file path.
 
-    On HTTP non-200: sleeps RETRY_BACKOFF_S, retries once. If retry also fails,
-    raises FetchError.
+    On transient network error: exponential backoff between attempts
+    (RETRY_BACKOFF_S * 2**(attempt-1) → 2s, 4s, 8s, 16s) up to MAX_ATTEMPTS.
+    Final failure raises FetchError.
     """
     cache_dir.mkdir(parents=True, exist_ok=True)
     target = _cache_path_for(ecli, cache_dir)
@@ -105,7 +107,7 @@ def fetch_content(ecli: str, *, cache_dir: Path) -> Path:
     data: bytes = b""
     last_exc: Exception | None = None
 
-    for attempt in (1, 2):
+    for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310
                 data = resp.read()
@@ -114,11 +116,16 @@ def fetch_content(ecli: str, *, cache_dir: Path) -> Path:
             # OSError covers URLError, ConnectionError, TimeoutError.
             # HTTPException covers RemoteDisconnected (mid-response TCP drop).
             last_exc = exc
-            log.warning("fetch_content %s error: %s (attempt %d)", ecli, exc, attempt)
-        if attempt == 1:
-            time.sleep(RETRY_BACKOFF_S)
+            log.warning(
+                "fetch_content %s error: %s (attempt %d/%d)",
+                ecli, exc, attempt, MAX_ATTEMPTS,
+            )
+        if attempt < MAX_ATTEMPTS:
+            time.sleep(RETRY_BACKOFF_S * (2 ** (attempt - 1)))
     else:
-        raise FetchError(f"fetch_content failed after retry for {ecli}") from last_exc
+        raise FetchError(
+            f"fetch_content failed after {MAX_ATTEMPTS} attempts for {ecli}"
+        ) from last_exc
 
     tmp = target.with_suffix(".xml.tmp")
     tmp.write_bytes(data)
