@@ -10,10 +10,13 @@ via ThreadPoolExecutor (Task 9).
 from __future__ import annotations
 
 import logging
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from collections.abc import Iterator
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 
@@ -22,6 +25,18 @@ CONTENT_URL = "https://data.rechtspraak.nl/uitspraken/content"
 USER_AGENT = "jurist-demo/0.1 (portfolio project)"
 
 ATOM_NS = "{http://www.w3.org/2005/Atom}"
+
+RETRY_BACKOFF_S = 2.0
+
+
+class FetchError(RuntimeError):
+    """Raised when fetch_content fails after one retry."""
+
+
+def _cache_path_for(ecli: str, cache_dir: Path) -> Path:
+    # ECLI has colons; Windows paths can't contain ':'. Replace with '_'.
+    safe = ecli.replace(":", "_")
+    return cache_dir / f"{safe}.xml"
 
 
 def list_eclis(
@@ -72,6 +87,38 @@ def list_eclis(
         offset += page_size
 
 
-def fetch_content(ecli: str) -> bytes:  # pragma: no cover - placeholder for Task 9
-    """Filled in Task 9."""
-    raise NotImplementedError
+def fetch_content(ecli: str, *, cache_dir: Path) -> Path:
+    """Fetch the full XML for `ecli`. Cache-first. Returns the cached file path.
+
+    On HTTP non-200: sleeps RETRY_BACKOFF_S, retries once. If retry also fails,
+    raises FetchError.
+    """
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    target = _cache_path_for(ecli, cache_dir)
+    if target.exists():
+        return target
+
+    url = f"{CONTENT_URL}?id={urllib.parse.quote(ecli, safe=':')}"
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+
+    data: bytes | None = None
+    for attempt in (1, 2):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310
+                if resp.status == 200:
+                    data = resp.read()
+                    break
+                log.warning(
+                    "fetch_content %s HTTP %d (attempt %d)", ecli, resp.status, attempt
+                )
+        except (urllib.error.URLError, urllib.error.HTTPError) as exc:
+            log.warning("fetch_content %s error: %s (attempt %d)", ecli, exc, attempt)
+        if attempt == 1:
+            time.sleep(RETRY_BACKOFF_S)
+    else:
+        raise FetchError(f"fetch_content failed after retry for {ecli}")
+
+    tmp = target.with_suffix(".xml.tmp")
+    tmp.write_bytes(data)  # type: ignore[arg-type]
+    tmp.replace(target)
+    return target
