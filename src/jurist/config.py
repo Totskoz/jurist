@@ -36,7 +36,9 @@ class Settings:
     caselaw_subject_uri: str | None = os.getenv("JURIST_CASELAW_SUBJECT_URI")
     caselaw_since: str = os.getenv("JURIST_CASELAW_SINCE", "2024-01-01")
     caselaw_max_list: int | None = (
-        int(os.getenv("JURIST_CASELAW_MAX_LIST", "0")) or None
+        int(v) or None
+        if (v := os.getenv("JURIST_CASELAW_MAX_LIST", "").strip())
+        else None
     )
     caselaw_fetch_workers: int = int(os.getenv("JURIST_CASELAW_FETCH_WORKERS", "5"))
     caselaw_chunk_words: int = int(os.getenv("JURIST_CASELAW_CHUNK_WORDS", "500"))

@@ -53,3 +53,28 @@ def test_m3a_settings_env_overrides(monkeypatch) -> None:
     assert reloaded.embed_batch == 16
     # Reset for other tests
     importlib.reload(jurist.config)
+
+
+def test_caselaw_max_list_env_variants(monkeypatch) -> None:
+    import importlib
+
+    import jurist.config
+
+    # empty string (from `.env` with bare assignment) -> None
+    monkeypatch.setenv("JURIST_CASELAW_MAX_LIST", "")
+    importlib.reload(jurist.config)
+    assert jurist.config.settings.caselaw_max_list is None
+
+    # "0" -> None (explicit "no cap" override)
+    monkeypatch.setenv("JURIST_CASELAW_MAX_LIST", "0")
+    importlib.reload(jurist.config)
+    assert jurist.config.settings.caselaw_max_list is None
+
+    # positive int -> that int
+    monkeypatch.setenv("JURIST_CASELAW_MAX_LIST", "100")
+    importlib.reload(jurist.config)
+    assert jurist.config.settings.caselaw_max_list == 100
+
+    # Reset for later tests
+    monkeypatch.delenv("JURIST_CASELAW_MAX_LIST", raising=False)
+    importlib.reload(jurist.config)
