@@ -177,6 +177,7 @@ The traversal path is reconstructable from the event log (`node_visited` / `edge
 **Input.**
 ```python
 class CaseRetrieverIn(BaseModel):
+    question: str                      # M3b: user's original wording, threaded by orchestrator
     sub_questions: list[str]
     statute_context: list[CitedArticle]
 ```
@@ -198,9 +199,9 @@ class CaseRetrieverOut(BaseModel):
 
 **Implementation.**
 1. Embed the concatenated `sub_questions` with bge-m3; normalize to unit length.
-2. LanceDB cosine top-20 (no subject_uri filter — the keyword fence at ingest time ensures all rows are huurrecht-relevant).
-3. Deduplicate to one chunk per ECLI (keep the highest-similarity chunk).
-4. Haiku rerank: prompt includes the statute context (titles + one-line explanations) and the 20 candidate snippets; returns top-3 as `[{ecli, reason}]` via a forced tool schema.
+2. LanceDB cosine top-K chunks (K = `caselaw_candidate_chunks`, default 150; no subject_uri filter — the keyword fence at ingest time ensures all rows are huurrecht-relevant).
+3. Group-by-ECLI keeping the best chunk per ECLI; cap at N unique ECLIs (N = `caselaw_candidate_eclis`, default 20). The 150→20 ratio is sized against M3a's observed ~7.8 chunks/case; at the parent spec's original top-20 chunks, post-dedupe collapsed to ~2–3 unique ECLIs, starving the rerank.
+4. Haiku rerank: prompt includes the statute context (article labels and retriever-reason strings) and the N candidate snippets (N = `caselaw_candidate_eclis`); returns top-3 as `[{ecli, reason}]` via a forced tool schema.
 5. Return the top-3 in score order, reason strings attached.
 
 **Events.** `agent_started`, `search_started`, `case_found { ecli, similarity }` (one per result), `reranked { kept: [ecli, ...] }`, `agent_finished`.
@@ -613,6 +614,9 @@ Environment variables (`.env`):
 - `JURIST_MODEL_SYNTH` — default `claude-sonnet-4-6`.
 - `JURIST_MAX_RETRIEVER_ITERS` — default `15`.
 - `JURIST_CASELAW_LIMIT` — default `0` (no cap). Dev-only safety bound on number of ECLIs fetched per run.
+- `JURIST_CASELAW_CANDIDATE_CHUNKS` — default `150`. Cosine over-fetch pool size before ECLI-dedupe (M3b).
+- `JURIST_CASELAW_CANDIDATE_ECLIS` — default `20`. Cap on unique ECLIs reaching the Haiku rerank (M3b).
+- `JURIST_CASELAW_RERANK_SNIPPET_CHARS` — default `400`. Chunk-text excerpt length per rerank candidate (M3b).
 
 `.env.example` is committed. No secrets are committed.
 
@@ -647,6 +651,9 @@ Environment variables (`.env`):
 | 13 | M3 split into M3a (ingestion + LanceDB) + M3b (real retriever) | Single M3 milestone as originally scoped | Mirrors M1→M2 ingest-then-retrieve rhythm; each half gets its own "done" gate. |
 | 14 | Source filter: `civielRecht_verbintenissenrecht` + date floor + local keyword fence | Original `rechtsgebied=Huurrecht` | Verified 2026-04-21: no `#huurrecht` URI exists in rechtspraak.nl's open-data taxonomy. Verbintenissenrecht is the legal parent; keyword fence restores precision. |
 | 15 | `CaseChunk` renamed to `CaseChunkRow`; adds `zaaknummer`, `subject_uri`, `modified`; drops `rechtsgebied` | Keep original schema | Disambiguates storage (`Row`) from retrieval output (`CitedCase`); `zaaknummer` needed for display; `subject_uri` preserves multi-rechtsgebied extensibility; `modified` supports freshness weighting. |
+| 16 | Case retriever over-fetches ~150 chunks → ECLI-dedupe → 20 unique → rerank 3 | Top-20 chunks literally (original §5.3) | M3a corpus stats: avg ~7.8 chunks/case ⇒ top-20 chunks collapses to ~2–3 unique ECLIs, starving the rerank. |
+| 17 | Closed-set grounding on case rerank via JSON-Schema `enum` on `ecli` | Post-hoc validation only | Applies the same schema-level hallucination block at the rerank-output boundary that decision #9 applies at the synthesis boundary. |
+| 18 | Case rerank hard-fails (one regen → `RerankFailedError` → `run_failed{case_rerank}`) on malformed output | Soft-degrade to cosine-only top-3 with generic reasons | Consistent with synthesizer's grounding philosophy; loud demo failure beats silent degradation. |
 
 ---
 
