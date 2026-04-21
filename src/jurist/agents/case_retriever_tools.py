@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from jurist.embedding import Embedder
-from jurist.schemas import CaseChunkRow
+from jurist.schemas import CaseChunkRow, CitedArticle
 from jurist.vectorstore import CaseStore
 
 
@@ -110,6 +110,46 @@ def build_rerank_tool_schema(candidate_eclis: list[str]) -> dict:
     }
 
 
+def build_rerank_user_message(
+    question: str,
+    sub_questions: list[str],
+    statute_context: list[CitedArticle],
+    candidates: list[CaseCandidate],
+) -> str:
+    """Render the Dutch user message for the Haiku rerank call."""
+    lines: list[str] = []
+    lines.append(f"Vraag: {question}")
+    lines.append("")
+    lines.append("Sub-vragen:")
+    for sq in sub_questions:
+        lines.append(f"- {sq}")
+    lines.append("")
+
+    if statute_context:
+        lines.append("Relevante wetsartikelen (uit de kennisgraaf):")
+        for art in statute_context:
+            lines.append(f"- {art.article_label}: {art.reason}")
+        lines.append("")
+
+    lines.append(f"Kandidaat-uitspraken ({len(candidates)}):")
+    for i, c in enumerate(candidates, start=1):
+        header = (
+            f"[{i}] {c.ecli} | {c.court} | {c.date} | "
+            f"sim {c.similarity:.2f}"
+        )
+        lines.append(header)
+        lines.append(f"    {c.snippet.replace(chr(10), ' ')}")
+    lines.append("")
+
+    lines.append(
+        "Kies 3 uitspraken via `select_cases`. Geef voor elke keuze een "
+        "korte Nederlandse reden (1–2 zinnen) die verwijst naar feitelijke "
+        "gelijkenis, juridische strekking, of toepassing van de genoemde "
+        "artikelen."
+    )
+    return "\n".join(lines)
+
+
 def _truncate(text: str, limit: int) -> str:
     if len(text) <= limit:
         return text
@@ -122,4 +162,5 @@ __all__ = [
     "InvalidRerankOutput",
     "retrieve_candidates",
     "build_rerank_tool_schema",
+    "build_rerank_user_message",
 ]

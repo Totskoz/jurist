@@ -7,9 +7,10 @@ import pytest
 from jurist.agents.case_retriever_tools import (
     CaseCandidate,
     build_rerank_tool_schema,
+    build_rerank_user_message,
     retrieve_candidates,
 )
-from jurist.schemas import CaseChunkRow
+from jurist.schemas import CaseChunkRow, CitedArticle
 from jurist.vectorstore import CaseStore
 
 
@@ -158,3 +159,76 @@ def test_rerank_tool_schema_top_level_required_is_picks() -> None:
     schema = build_rerank_tool_schema(["E1", "E2", "E3", "E4"])
     assert schema["input_schema"]["required"] == ["picks"]
     assert schema["input_schema"]["type"] == "object"
+
+
+def test_build_rerank_user_message_contains_all_inputs() -> None:
+    candidates = [
+        CaseCandidate(
+            ecli="ECLI:NL:RBAMS:2022:5678",
+            court="Rechtbank Amsterdam",
+            date="2022-03-14",
+            snippet="Huurverhoging van 15% …",
+            similarity=0.81,
+            url="https://uitspraken.rechtspraak.nl/details?id=ECLI:NL:RBAMS:2022:5678",
+        ),
+        CaseCandidate(
+            ecli="ECLI:NL:HR:2020:1234",
+            court="Hoge Raad",
+            date="2020-09-11",
+            snippet="De verhuurder mag …",
+            similarity=0.70,
+            url="u",
+        ),
+    ]
+    statute_context = [
+        CitedArticle(
+            bwb_id="BWBR0005290",
+            article_id="BWBR0005290/Boek7/Artikel248",
+            article_label="Boek 7, Artikel 248",
+            body_text="body",
+            reason="Regelt jaarlijkse huurverhoging.",
+        ),
+    ]
+    msg = build_rerank_user_message(
+        question="Mag de huur 15% omhoog?",
+        sub_questions=["Is 15% rechtmatig?", "Geldt dit ook bij vrije sector?"],
+        statute_context=statute_context,
+        candidates=candidates,
+    )
+    # Question rendered
+    assert "Mag de huur 15% omhoog?" in msg
+    # Sub-questions rendered as bullets
+    assert "- Is 15% rechtmatig?" in msg
+    assert "- Geldt dit ook bij vrije sector?" in msg
+    # Statute label + reason rendered
+    assert "Boek 7, Artikel 248" in msg
+    assert "Regelt jaarlijkse huurverhoging." in msg
+    # Candidates rendered with index + ECLI + court + date + similarity
+    assert "[1]" in msg
+    assert "ECLI:NL:RBAMS:2022:5678" in msg
+    assert "Rechtbank Amsterdam" in msg
+    assert "2022-03-14" in msg
+    # Similarity numeric (not the CaseCandidate repr)
+    assert "0.81" in msg
+    # Snippet rendered
+    assert "Huurverhoging van 15%" in msg
+    # Instruction to call select_cases
+    assert "select_cases" in msg
+
+
+def test_build_rerank_user_message_handles_empty_statute_context() -> None:
+    cand = CaseCandidate(
+        ecli="E", court="Rb", date="2025-01-01",
+        snippet="s", similarity=0.5, url="u",
+    )
+    msg = build_rerank_user_message(
+        question="Q",
+        sub_questions=["SQ"],
+        statute_context=[],
+        candidates=[cand],
+    )
+    # Does not crash; still contains the question + candidate
+    assert "Q" in msg
+    assert "ECLI:E" in msg or "E" in msg
+    # Statute header must be omitted entirely — no headerless section
+    assert "Relevante wetsartikelen" not in msg
