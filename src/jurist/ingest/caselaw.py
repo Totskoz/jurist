@@ -124,6 +124,11 @@ def run_ingest(
             except caselaw_fetch.FetchError as exc:
                 log.warning("  skip %s: %s", ecli, exc)
                 continue
+            except Exception as exc:
+                # Belt-and-braces: a long ingest shouldn't abort on an
+                # unexpected per-ECLI error. Log + skip, keep the rest going.
+                log.exception("  skip %s (unexpected): %s", ecli, exc)
+                continue
             xml_paths.append((ecli, path))
             result.fetched += 1
             if from_cache:

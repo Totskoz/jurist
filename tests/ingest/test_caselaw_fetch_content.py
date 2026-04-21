@@ -103,3 +103,47 @@ def test_fetch_content_raises_after_two_failures(tmp_path: Path, monkeypatch) ->
         monkeypatch.setattr(caselaw_fetch, "RETRY_BACKOFF_S", 0.01)
         with pytest.raises(caselaw_fetch.FetchError):
             caselaw_fetch.fetch_content(ecli, cache_dir=tmp_path)
+
+
+def test_fetch_content_retries_on_remote_disconnected(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Regression: rechtspraak.nl drops long-running connections without sending
+    a response. The raw http.client.RemoteDisconnected escaped the old URLError-
+    only catch and aborted the whole ingest. Fix broadens to (OSError,
+    HTTPException); verify that retry kicks in and recovery succeeds.
+    """
+    import http.client
+
+    from jurist.ingest import caselaw_fetch
+
+    ecli = "ECLI:NL:RBAMS:2025:DROP"
+    call_count = [0]
+
+    class _FakeResp:
+        status = 200
+
+        def __init__(self, body: bytes) -> None:
+            self._body = body
+
+        def read(self) -> bytes:
+            return self._body
+
+        def __enter__(self) -> _FakeResp:
+            return self
+
+        def __exit__(self, *_args: object) -> bool:
+            return False
+
+    def flaky_urlopen(*_args: object, **_kwargs: object) -> _FakeResp:
+        call_count[0] += 1
+        if call_count[0] == 1:
+            raise http.client.RemoteDisconnected("simulated mid-response drop")
+        return _FakeResp(SAMPLE_CONTENT)
+
+    monkeypatch.setattr(caselaw_fetch.urllib.request, "urlopen", flaky_urlopen)
+    monkeypatch.setattr(caselaw_fetch, "RETRY_BACKOFF_S", 0.01)
+
+    path = caselaw_fetch.fetch_content(ecli, cache_dir=tmp_path)
+    assert path.read_bytes() == SAMPLE_CONTENT
+    assert call_count[0] == 2  # first failed with RemoteDisconnected, retry succeeded

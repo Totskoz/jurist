@@ -9,6 +9,7 @@ via ThreadPoolExecutor (Task 9).
 """
 from __future__ import annotations
 
+import http.client
 import logging
 import time
 import urllib.error
@@ -109,7 +110,9 @@ def fetch_content(ecli: str, *, cache_dir: Path) -> Path:
             with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310
                 data = resp.read()
                 break
-        except urllib.error.URLError as exc:
+        except (OSError, http.client.HTTPException) as exc:
+            # OSError covers URLError, ConnectionError, TimeoutError.
+            # HTTPException covers RemoteDisconnected (mid-response TCP drop).
             last_exc = exc
             log.warning("fetch_content %s error: %s (attempt %d)", ecli, exc, attempt)
         if attempt == 1:
