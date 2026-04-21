@@ -4,6 +4,7 @@ from pydantic import ValidationError
 from jurist.schemas import (
     ArticleEdge,
     ArticleNode,
+    CaseChunkRow,
     CaseRetrieverIn,
     CaseRetrieverOut,
     CitedArticle,
@@ -98,6 +99,7 @@ def test_validator_out_defaults_empty_issues():
 
 # Reference imports to silence unused warnings and confirm all types load.
 _ = (
+    CaseChunkRow,
     CaseRetrieverIn,
     CaseRetrieverOut,
     CitedCase,
@@ -146,7 +148,6 @@ def test_kg_snapshot_rejects_missing_fields():
 
 
 def test_case_chunk_row_serializes_round_trip() -> None:
-    from jurist.schemas import CaseChunkRow
     row = CaseChunkRow(
         ecli="ECLI:NL:RBAMS:2025:1234",
         chunk_idx=0,
@@ -166,8 +167,5 @@ def test_case_chunk_row_serializes_round_trip() -> None:
 
 
 def test_case_chunk_row_rejects_missing_fields() -> None:
-    import pydantic
-
-    from jurist.schemas import CaseChunkRow
-    with pytest.raises(pydantic.ValidationError):
+    with pytest.raises(ValidationError):
         CaseChunkRow(ecli="ECLI:NL:RBAMS:2025:1", chunk_idx=0)  # missing many
