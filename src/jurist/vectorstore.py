@@ -42,7 +42,15 @@ class CaseStore:
     def open_or_create(self) -> None:
         self.lance_path.parent.mkdir(parents=True, exist_ok=True)
         self._db = lancedb.connect(str(self.lance_path))
-        if _TABLE_NAME in self._db.list_tables():
+        table_list = self._db.list_tables()
+        # list_tables() may return a ListTablesResponse object (newer LanceDB)
+        # or a plain list (older LanceDB). Normalise to a list of strings.
+        existing = (
+            table_list.tables
+            if hasattr(table_list, "tables")
+            else list(table_list)
+        )
+        if _TABLE_NAME in existing:
             self._table = self._db.open_table(_TABLE_NAME)
         else:
             self._table = self._db.create_table(_TABLE_NAME, schema=_SCHEMA)
