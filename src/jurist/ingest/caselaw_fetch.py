@@ -59,7 +59,7 @@ def list_eclis(
             "max": str(page_size),
             "from": str(offset),
         }
-        url = f"{ZOEKEN_URL}?{urllib.parse.urlencode(params, safe=':#/')}"
+        url = f"{ZOEKEN_URL}?{urllib.parse.urlencode(params, safe=':/')}"
         log.debug("list_eclis GET %s", url)
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
         with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310
