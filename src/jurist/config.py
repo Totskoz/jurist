@@ -31,9 +31,30 @@ class Settings:
         os.getenv("JURIST_STATUTE_CATALOG_SNIPPET_CHARS", "200")
     )
 
+    # M3a — caselaw ingestion
+    caselaw_profile: str = os.getenv("JURIST_CASELAW_PROFILE", "huurrecht")
+    caselaw_subject_uri: str | None = os.getenv("JURIST_CASELAW_SUBJECT_URI")
+    caselaw_since: str = os.getenv("JURIST_CASELAW_SINCE", "2024-01-01")
+    caselaw_max_list: int | None = (
+        int(os.getenv("JURIST_CASELAW_MAX_LIST", "0")) or None
+    )
+    caselaw_fetch_workers: int = int(os.getenv("JURIST_CASELAW_FETCH_WORKERS", "5"))
+    caselaw_chunk_words: int = int(os.getenv("JURIST_CASELAW_CHUNK_WORDS", "500"))
+    caselaw_chunk_overlap: int = int(os.getenv("JURIST_CASELAW_CHUNK_OVERLAP", "50"))
+    embed_model: str = os.getenv("JURIST_EMBED_MODEL", "BAAI/bge-m3")
+    embed_batch: int = int(os.getenv("JURIST_EMBED_BATCH", "32"))
+
     @property
     def kg_path(self) -> Path:
         return self.data_dir / "kg" / "huurrecht.json"
+
+    @property
+    def lance_path(self) -> Path:
+        return self.data_dir / "lancedb" / "cases.lance"
+
+    @property
+    def cases_dir(self) -> Path:
+        return self.data_dir / "cases"
 
 
 settings = Settings()

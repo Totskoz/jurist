@@ -22,3 +22,34 @@ def test_runcontext_is_frozen_dataclass():
     assert ctx.llm is not None
     with __import__("pytest").raises(Exception):  # FrozenInstanceError
         ctx.kg = object()  # type: ignore[misc]
+
+
+def test_m3a_settings_defaults() -> None:
+    from jurist.config import settings
+    assert settings.caselaw_profile == "huurrecht"
+    assert settings.caselaw_subject_uri is None  # profile default resolves later
+    assert settings.caselaw_since == "2024-01-01"
+    assert settings.caselaw_max_list is None
+    assert settings.caselaw_fetch_workers == 5
+    assert settings.caselaw_chunk_words == 500
+    assert settings.caselaw_chunk_overlap == 50
+    assert settings.embed_model == "BAAI/bge-m3"
+    assert settings.embed_batch == 32
+
+
+def test_m3a_settings_env_overrides(monkeypatch) -> None:
+    import importlib
+
+    import jurist.config
+    monkeypatch.setenv("JURIST_CASELAW_SINCE", "2020-01-01")
+    monkeypatch.setenv("JURIST_CASELAW_FETCH_WORKERS", "10")
+    monkeypatch.setenv("JURIST_CASELAW_CHUNK_WORDS", "300")
+    monkeypatch.setenv("JURIST_EMBED_BATCH", "16")
+    importlib.reload(jurist.config)
+    from jurist.config import settings as reloaded
+    assert reloaded.caselaw_since == "2020-01-01"
+    assert reloaded.caselaw_fetch_workers == 10
+    assert reloaded.caselaw_chunk_words == 300
+    assert reloaded.embed_batch == 16
+    # Reset for other tests
+    importlib.reload(jurist.config)
