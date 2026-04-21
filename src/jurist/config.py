@@ -9,7 +9,9 @@ from typing import TYPE_CHECKING, Any
 from dotenv import load_dotenv
 
 if TYPE_CHECKING:
+    from jurist.embedding import Embedder
     from jurist.kg.interface import KnowledgeGraph
+    from jurist.vectorstore import CaseStore
 
 load_dotenv()
 
@@ -46,6 +48,20 @@ class Settings:
     embed_model: str = os.getenv("JURIST_EMBED_MODEL", "BAAI/bge-m3")
     embed_batch: int = int(os.getenv("JURIST_EMBED_BATCH", "32"))
 
+    # M3b — case retriever
+    model_rerank: str = os.getenv(
+        "JURIST_MODEL_RERANK", "claude-haiku-4-5-20251001"
+    )
+    caselaw_candidate_chunks: int = int(
+        os.getenv("JURIST_CASELAW_CANDIDATE_CHUNKS", "150")
+    )
+    caselaw_candidate_eclis: int = int(
+        os.getenv("JURIST_CASELAW_CANDIDATE_ECLIS", "20")
+    )
+    caselaw_rerank_snippet_chars: int = int(
+        os.getenv("JURIST_CASELAW_RERANK_SNIPPET_CHARS", "400")
+    )
+
     @property
     def kg_path(self) -> Path:
         return self.data_dir / "kg" / "huurrecht.json"
@@ -65,9 +81,11 @@ settings = Settings()
 @dataclass(frozen=True)
 class RunContext:
     """Per-run injected state. Threaded through the orchestrator to agents
-    that need external resources (KG, LLM client, later: vector store)."""
+    that need external resources (KG, LLM client, CaseStore, Embedder)."""
 
     kg: KnowledgeGraph
     llm: Any  # AsyncAnthropic — kept untyped at runtime to avoid importing
               # the Anthropic SDK in contexts that don't need it (tests
               # pass mock objects).
+    case_store: CaseStore   # M3b — opened at lifespan
+    embedder: Embedder      # M3b — cold-loaded at lifespan (~5-10s one-time)

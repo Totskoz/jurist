@@ -17,9 +17,14 @@ def test_settings_exposes_m2_fields():
 
 
 def test_runcontext_is_frozen_dataclass():
-    ctx = RunContext(kg=object(), llm=object())
+    ctx = RunContext(
+        kg=object(), llm=object(),
+        case_store=object(), embedder=object(),
+    )
     assert ctx.kg is not None
     assert ctx.llm is not None
+    assert ctx.case_store is not None
+    assert ctx.embedder is not None
     with __import__("pytest").raises(Exception):  # FrozenInstanceError
         ctx.kg = object()  # type: ignore[misc]
 
@@ -77,4 +82,31 @@ def test_caselaw_max_list_env_variants(monkeypatch) -> None:
 
     # Reset for later tests
     monkeypatch.delenv("JURIST_CASELAW_MAX_LIST", raising=False)
+    importlib.reload(jurist.config)
+
+
+def test_settings_defaults_m3b() -> None:
+    from jurist.config import Settings
+    s = Settings()
+    assert s.model_rerank == "claude-haiku-4-5-20251001"
+    assert s.caselaw_candidate_chunks == 150
+    assert s.caselaw_candidate_eclis == 20
+    assert s.caselaw_rerank_snippet_chars == 400
+
+
+def test_settings_m3b_env_overrides(monkeypatch) -> None:
+    import importlib
+
+    import jurist.config
+    monkeypatch.setenv("JURIST_MODEL_RERANK", "claude-sonnet-4-6")
+    monkeypatch.setenv("JURIST_CASELAW_CANDIDATE_CHUNKS", "200")
+    monkeypatch.setenv("JURIST_CASELAW_CANDIDATE_ECLIS", "25")
+    monkeypatch.setenv("JURIST_CASELAW_RERANK_SNIPPET_CHARS", "500")
+    importlib.reload(jurist.config)
+    from jurist.config import settings as reloaded
+    assert reloaded.model_rerank == "claude-sonnet-4-6"
+    assert reloaded.caselaw_candidate_chunks == 200
+    assert reloaded.caselaw_candidate_eclis == 25
+    assert reloaded.caselaw_rerank_snippet_chars == 500
+    # Reset for other tests
     importlib.reload(jurist.config)
