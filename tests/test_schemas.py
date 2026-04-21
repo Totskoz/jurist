@@ -169,3 +169,25 @@ def test_case_chunk_row_serializes_round_trip() -> None:
 def test_case_chunk_row_rejects_missing_fields() -> None:
     with pytest.raises(ValidationError):
         CaseChunkRow(ecli="ECLI:NL:RBAMS:2025:1", chunk_idx=0)  # missing many
+
+
+def test_case_retriever_in_has_question_field() -> None:
+    inp = CaseRetrieverIn(
+        question="Mag de huur 15% omhoog?",
+        sub_questions=["Q1", "Q2"],
+        statute_context=[
+            CitedArticle(
+                bwb_id="BWBR0005290",
+                article_id="BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248",
+                article_label="Boek 7, Artikel 248",
+                body_text="body",
+                reason="relevant",
+            ),
+        ],
+    )
+    assert inp.question == "Mag de huur 15% omhoog?"
+
+
+def test_case_retriever_in_requires_question() -> None:
+    with pytest.raises(ValidationError):
+        CaseRetrieverIn(sub_questions=["Q"], statute_context=[])

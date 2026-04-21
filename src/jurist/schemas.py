@@ -106,6 +106,7 @@ class StatuteRetrieverOut(BaseModel):
 
 
 class CaseRetrieverIn(BaseModel):
+    question: str                    # M3b — user's original wording, threaded by orchestrator
     sub_questions: list[str]
     statute_context: list[CitedArticle]
 

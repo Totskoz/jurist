@@ -119,6 +119,7 @@ async def run_question(
 
     # 3. Case retriever
     case_in = CaseRetrieverIn(
+        question=question,
         sub_questions=decomposer_out.sub_questions,
         statute_context=stat_out.cited_articles,
     )

@@ -6,7 +6,11 @@ from jurist.schemas import CaseRetrieverIn, CaseRetrieverOut
 
 
 def _input() -> CaseRetrieverIn:
-    return CaseRetrieverIn(sub_questions=["huur 15% verhogen"], statute_context=[])
+    return CaseRetrieverIn(
+        question="Mag de verhuurder de huur met 15% verhogen?",
+        sub_questions=["huur 15% verhogen"],
+        statute_context=[],
+    )
 
 
 @pytest.mark.asyncio
