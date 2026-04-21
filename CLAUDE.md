@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-Jurist is a portfolio multi-agent demo answering Dutch **huurrecht** (tenancy law) questions with grounded citations. Locked demo question: *"Mijn verhuurder wil de huur met 15% verhogen per volgend jaar, mag dat?"*. Built as interview prep for an AI-engineer role at DAS (Dutch legal insurance). The scope is deliberately small — one rechtsgebied, ~9 KG nodes, ~300 cases, four live agents + one stubbed validator.
+Jurist is a portfolio multi-agent demo answering Dutch **huurrecht** (tenancy law) questions with grounded citations. Locked demo question: *"Mijn verhuurder wil de huur met 15% verhogen per volgend jaar, mag dat?"*. Built as interview prep for an AI-engineer role at DAS (Dutch legal insurance). The scope is deliberately small — one rechtsgebied, 218 KG nodes, ~few hundred cases (post-fence filter), four live agents + one stubbed validator.
 
 **Authoritative design:** `docs/superpowers/specs/2026-04-17-jurist-v1-design.md`. Read this before making substantive design decisions. Milestone plans live in `docs/superpowers/plans/YYYY-MM-DD-*.md`.
 
-Current state: **M3a landed** (branch `m3a-caselaw-ingestion`) — `python -m jurist.ingest.caselaw` pulls huur-related uitspraken from rechtspraak.nl open-data, chunks them, embeds with bge-m3, and writes to LanceDB. Prior: M2 shipped the real statute retriever. The `case_retriever` agent still emits canned events (M3b will swap it for a real bge-m3 + Haiku rerank flow). Decomposer and synthesizer remain M0 fakes; validator is a permanent stub. `/api/ask` requires `ANTHROPIC_API_KEY` for the statute retriever; ingestion itself does not.
+Current state: **M3a landed on master** — `python -m jurist.ingest.caselaw` pulls huur-related uitspraken from rechtspraak.nl open-data, chunks them, embeds with bge-m3, and writes to LanceDB. Full ingest is user-initiated (20–40 min, one-time); a 20-ECLI smoke test has been run. Prior: M2 shipped the real statute retriever. The `case_retriever` agent still emits canned events (M3b will swap it for a real bge-m3 + Haiku rerank flow). Decomposer and synthesizer remain M0 fakes; validator is a permanent stub. `/api/ask` requires `ANTHROPIC_API_KEY` for the statute retriever; ingestion itself does not.
 
 ## Commands
 
@@ -104,18 +104,18 @@ All 5 run on one asyncio task. Parallelization is explicitly out of scope for v1
 
 The synthesizer will use **per-request `Literal[...]` enums** over retrieved IDs to force Claude to cite only from the candidate set (schema-time constraint), followed by **post-hoc resolution** that confirms every ID + quote survives in the knowledge base, with **regenerate-once-then-hard-fail** on mismatch. Three-layer defense; no silent fallback. Detailed in spec §15.
 
-### What's fake vs. real after M2
+### What's fake vs. real after M3a
 
 | Component | State | Becomes real in |
 |---|---|---|
 | `decomposer` | M0 fake — yields canned thinking + fixed DecomposerOut | M4 (Haiku) |
 | `statute_retriever` | **Real** — Claude Sonnet tool-use loop over the 218-node KG (5 tools) | — |
-| `case_retriever` | M0 fake — emits `FAKE_CASES` one by one | M3 (bge-m3 + LanceDB + Haiku rerank) |
+| `case_retriever` | M0 fake — emits `FAKE_CASES` one by one | M3b (bge-m3 + LanceDB + Haiku rerank) |
 | `synthesizer` | M0 fake — streams `FAKE_ANSWER` token-by-token | M4 (Sonnet + closed-set grounding) |
 | `validator_stub` | Permanent stub — always returns `valid=True` | — (real validator is v2 scope) |
 | `/api/kg` | Real — loads `data/kg/huurrecht.json` at startup (built by `jurist.ingest.statutes`) | — |
 
-The validator is the only intentional stub; the three remaining fakes still emit realistic event streams so the frontend can be exercised end-to-end without the live LLM/vector-store dependencies they'll gain in M3–M4.
+The validator is the only intentional stub; the three remaining fakes still emit realistic event streams so the frontend can be exercised end-to-end without the live LLM/vector-store dependencies they'll gain in M3b/M4.
 
 ## Conventions worth knowing
 
