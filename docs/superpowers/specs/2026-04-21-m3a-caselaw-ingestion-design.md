@@ -66,7 +66,6 @@ Default ingestion window is `modified>=2024-01-01` → ~20k ECLIs pulled, locall
 - `tests/integration/test_m3a_ingestion_e2e.py` (RUN_E2E gated).
 
 **Modified:**
-- `src/jurist/ingest/__main__.py` — dispatch between `statutes` and `caselaw` subcommands.
 - `src/jurist/schemas.py` — add `CaseChunkRow` (storage schema).
 - `src/jurist/config.py` — add M3a tunables (§10).
 - `pyproject.toml` — add `sentence-transformers`, `lancedb` dependencies.
@@ -128,7 +127,7 @@ uv run python -m jurist.ingest.caselaw
   [-v]
 ```
 
-Routed via `jurist.ingest.__main__` — `python -m jurist.ingest.statutes …` and `python -m jurist.ingest.caselaw …` both work; `__main__` dispatches by the first argv.
+`caselaw.py` carries its own `if __name__ == "__main__":` block driving argparse directly. `python -m jurist.ingest.caselaw` executes it. The existing `src/jurist/ingest/__main__.py` (which hardcodes statutes-ingest dispatch) stays untouched — `python -m jurist.ingest` continues to run the statutes CLI.
 
 ## 4. Data model
 
