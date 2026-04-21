@@ -101,24 +101,23 @@ def fetch_content(ecli: str, *, cache_dir: Path) -> Path:
     url = f"{CONTENT_URL}?id={urllib.parse.quote(ecli, safe=':')}"
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
 
-    data: bytes | None = None
+    data: bytes = b""
+    last_exc: Exception | None = None
+
     for attempt in (1, 2):
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310
-                if resp.status == 200:
-                    data = resp.read()
-                    break
-                log.warning(
-                    "fetch_content %s HTTP %d (attempt %d)", ecli, resp.status, attempt
-                )
-        except (urllib.error.URLError, urllib.error.HTTPError) as exc:
+                data = resp.read()
+                break
+        except urllib.error.URLError as exc:
+            last_exc = exc
             log.warning("fetch_content %s error: %s (attempt %d)", ecli, exc, attempt)
         if attempt == 1:
             time.sleep(RETRY_BACKOFF_S)
     else:
-        raise FetchError(f"fetch_content failed after retry for {ecli}")
+        raise FetchError(f"fetch_content failed after retry for {ecli}") from last_exc
 
     tmp = target.with_suffix(".xml.tmp")
-    tmp.write_bytes(data)  # type: ignore[arg-type]
+    tmp.write_bytes(data)
     tmp.replace(target)
     return target
