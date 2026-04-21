@@ -62,7 +62,7 @@ Stages 1–3 are pure (sync, no Anthropic, no asyncio); stages 4–5 live in the
 - `src/jurist/config.py` — four new settings (§8); `RunContext` gains `case_store: CaseStore` and `embedder: Embedder`.
 - `src/jurist/api/app.py` — lifespan opens `CaseStore`, verifies non-empty, loads `Embedder`, threads both into `RunContext`. Fail-fast gate on missing/empty index.
 - `src/jurist/api/orchestrator.py` — case_retriever pump wrapped in try/except catching `RerankFailedError` → `run_failed{reason:"case_rerank"}` and generic `Exception` → `run_failed{reason:"llm_error"}`; mirrors the existing statute_retriever guard.
-- `src/jurist/llm/client.py` — add `MockMessagesClient` + `MockAnthropicForRerank` (test-only; mirror the existing `MockAnthropicClient` for streaming).
+- `tests/fixtures/mock_llm.py` — add `MockMessagesClient` + `MockAnthropicForRerank` (alongside the existing streaming `MockAnthropicClient`).
 - `tests/vectorstore/test_vectorstore.py` — update the one assertion that unpacks query results.
 - `tests/api/test_orchestrator.py` — extend with two failure-path tests (case_rerank, llm_error via case_retriever).
 - `docs/superpowers/specs/2026-04-17-jurist-v1-design.md` — §5.3 step 2, §5.3 `CaseRetrieverIn`, §13 env vars, §15 decision log (§12 of this doc).
@@ -457,9 +457,9 @@ class RunContext:
 - **400-char snippet.** ~60–80 Dutch words. Enough for Haiku to judge legal relevance; small enough to keep prompt compact. Tunable if empirically low recall.
 - **Haiku 4.5.** Per parent §4 + decision #5: "3-of-20 rerank — small, cheap, fast." Env-var-configurable in case quality testing reveals weak reasons and we need Sonnet.
 
-## 9. Mock clients for tests — `src/jurist/llm/client.py`
+## 9. Mock clients for tests — `tests/fixtures/mock_llm.py`
 
-Mirror the existing `MockAnthropicClient` (for streaming) with a non-streaming variant for rerank tests:
+Added alongside the existing `MockAnthropicClient` (streaming) for rerank tests:
 
 ```python
 class MockMessagesClient:
