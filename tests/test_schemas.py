@@ -143,3 +143,31 @@ def test_kg_snapshot_roundtrip():
 def test_kg_snapshot_rejects_missing_fields():
     with pytest.raises(ValidationError):
         KGSnapshot.model_validate({"nodes": [], "edges": []})  # missing required fields
+
+
+def test_case_chunk_row_serializes_round_trip() -> None:
+    from jurist.schemas import CaseChunkRow
+    row = CaseChunkRow(
+        ecli="ECLI:NL:RBAMS:2025:1234",
+        chunk_idx=0,
+        court="Rechtbank Amsterdam",
+        date="2025-06-15",
+        zaaknummer="C/13/123456 / HA ZA 25-001",
+        subject_uri="http://psi.rechtspraak.nl/rechtsgebied#civielRecht_verbintenissenrecht",
+        modified="2025-06-20T14:22:10Z",
+        text="De huurder heeft...",
+        embedding=[0.1] * 1024,
+        url="https://uitspraken.rechtspraak.nl/details?id=ECLI:NL:RBAMS:2025:1234",
+    )
+    dumped = row.model_dump()
+    restored = CaseChunkRow.model_validate(dumped)
+    assert restored == row
+    assert len(restored.embedding) == 1024
+
+
+def test_case_chunk_row_rejects_missing_fields() -> None:
+    import pydantic
+
+    from jurist.schemas import CaseChunkRow
+    with pytest.raises(pydantic.ValidationError):
+        CaseChunkRow(ecli="ECLI:NL:RBAMS:2025:1", chunk_idx=0)  # missing many

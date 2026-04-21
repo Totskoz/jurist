@@ -55,6 +55,34 @@ class CitedCase(BaseModel):
     url: str
 
 
+# ---------------- Case chunk storage (M3a) ----------------
+
+class CaseChunkRow(BaseModel):
+    """One LanceDB row: a chunked uitspraak passage + its bge-m3 embedding.
+
+    Logical primary key: (ecli, chunk_idx). LanceDB does not enforce
+    uniqueness; the ingester deduplicates on write.
+    """
+
+    # identity
+    ecli: str
+    chunk_idx: int
+
+    # metadata (from RDF)
+    court: str
+    date: str                    # ISO 8601
+    zaaknummer: str
+    subject_uri: str
+    modified: str                # ISO 8601 last-modified
+
+    # content
+    text: str
+    embedding: list[float]       # 1024-d bge-m3, L2-normalized
+
+    # display
+    url: str
+
+
 # ---------------- Agent I/O ----------------
 
 class DecomposerIn(BaseModel):
