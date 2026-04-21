@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<open-rechtspraak>
+  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+           xmlns:dcterms="http://purl.org/dc/terms/"
+           xmlns:psi="http://psi.rechtspraak.nl/">
+    <rdf:Description>
+      <dcterms:identifier>ECLI:NL:RBTEST:2025:9999</dcterms:identifier>
+      <dcterms:date>2025-06-15</dcterms:date>
+      <dcterms:creator resourceIdentifier="http://standaarden.overheid.nl/owms/terms/Rechtbank_Test">Rechtbank Test</dcterms:creator>
+      <dcterms:modified>2025-06-20T14:22:10</dcterms:modified>
+      <dcterms:subject resourceIdentifier="http://psi.rechtspraak.nl/rechtsgebied#civielRecht_verbintenissenrecht">Civiel recht; Verbintenissenrecht</dcterms:subject>
+      <!-- NOTE: no psi:zaaknummer; parser should default to empty string -->
+    </rdf:Description>
+  </rdf:RDF>
+  <uitspraak>
+    <section>
+      <para>De huurder heeft de verhuurder aangesproken op grond van artikel 7:248 BW. De woonruimte is geliberaliseerd.</para>
+    </section>
+  </uitspraak>
+</open-rechtspraak>

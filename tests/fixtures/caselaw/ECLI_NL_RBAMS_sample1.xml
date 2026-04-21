@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="utf-8"?>
+<open-rechtspraak>
+  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:ecli="https://e-justice.europa.eu/ecli" xmlns:tr="http://tuchtrecht.overheid.nl/" xmlns:eu="http://publications.europa.eu/celex/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:bwb="bwb-dl" xmlns:cvdr="http://decentrale.regelgeving.overheid.nl/cvdr/" xmlns:psi="http://psi.rechtspraak.nl/" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <rdf:Description>
+      <dcterms:identifier>ECLI:NL:RBAMS:2023:7706</dcterms:identifier>
+      <dcterms:format>text/xml</dcterms:format>
+      <dcterms:accessRights>public</dcterms:accessRights>
+      <dcterms:modified>2024-01-10T08:13:00</dcterms:modified>
+      <dcterms:issued rdfs:label="Publicatiedatum">2023-12-04</dcterms:issued>
+      <dcterms:publisher resourceIdentifier="http://rechtspraak.nl/">Raad voor de Rechtspraak</dcterms:publisher>
+      <dcterms:language>nl</dcterms:language>
+      <dcterms:creator rdfs:label="Instantie" resourceIdentifier="http://standaarden.overheid.nl/owms/terms/Rechtbank_Amsterdam" scheme="overheid.RechterlijkeMacht">Rechtbank Amsterdam</dcterms:creator>
+      <dcterms:date rdfs:label="Uitspraakdatum">2023-12-01</dcterms:date>
+      <psi:zaaknummer rdfs:label="Zaaknr">10446950 CV EXPL 23-5300</psi:zaaknummer>
+      <dcterms:type rdf:language="nl" resourceIdentifier="http://psi.rechtspraak.nl/uitspraak">Uitspraak</dcterms:type>
+      <psi:procedure rdf:language="nl" rdfs:label="Procedure" resourceIdentifier="http://psi.rechtspraak.nl/procedure#eersteAanlegEnkelvoudig">Eerste aanleg - enkelvoudig</psi:procedure>
+      <dcterms:coverage>NL</dcterms:coverage>
+      <dcterms:spatial rdfs:label="Zittingsplaats">Amsterdam</dcterms:spatial>
+      <dcterms:subject rdfs:label="Rechtsgebied" resourceIdentifier="http://psi.rechtspraak.nl/rechtsgebied#civielRecht_verbintenissenrecht">Civiel recht; Verbintenissenrecht</dcterms:subject>
+      <dcterms:hasVersion rdfs:label="Vindplaatsen" resourceIdentifier="http://psi.rechtspraak.nl/vindplaats">
+        <rdf:list>
+          <rdf:li>Rechtspraak.nl</rdf:li>
+          <rdf:li>Sdu Nieuws Huurrecht 2024/5</rdf:li>
+        </rdf:list>
+      </dcterms:hasVersion>
+    </rdf:Description>
+    <rdf:Description rdf:about="http://deeplink.rechtspraak.nl/uitspraak?id=ECLI:NL:RBAMS:2023:7706">
+      <dcterms:identifier>http://deeplink.rechtspraak.nl/uitspraak?id=ECLI:NL:RBAMS:2023:7706</dcterms:identifier>
+      <dcterms:format>text/html</dcterms:format>
+      <dcterms:accessRights>public</dcterms:accessRights>
+      <dcterms:modified>2023-12-20T16:12:10</dcterms:modified>
+      <dcterms:issued rdfs:label="Publicatiedatum">2024-01-03</dcterms:issued>
+      <dcterms:publisher resourceIdentifier="http://rechtspraak.nl/">Raad voor de Rechtspraak</dcterms:publisher>
+      <dcterms:language>nl</dcterms:language>
+      <dcterms:title rdf:language="nl">ECLI:NL:RBAMS:2023:7706 Rechtbank Amsterdam , 01-12-2023 / 10446950 CV EXPL 23-5300</dcterms:title>
+      <dcterms:abstract resourceIdentifier="../../rs:inhoudsindicatie" />
+    </rdf:Description>
+  </rdf:RDF>
+  <inhoudsindicatie id="ECLI:NL:RBAMS:2023:7706:INH" lang="nl" xml:space="preserve" xmlns="http://www.rechtspraak.nl/schema/rechtspraak-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <para>Vordering einde huurovereenkomst wegens dringend eigen gebruik wordt afgewezen. Toepassing van het Heerenhuis-arrest (Hoge Raad van 26 maart 2010, ECLI:NL:HR:2010:BL0683). De berekening van verhuurder als onderbouwing dat sprake is van een structurele wanverhouding tussen de exploitatiekosten en de huuropbrengsten, acht de kantonrechter onvolledig en onvoldoende inzichtelijk. De verhuurder heeft onder meer geen rekening gehouden met de substantiële waardestijging van de woning. Verder acht de kantonrechter de belangen van de huurder zwaarder wegen dan die van de verhuurder.</para>
+    </inhoudsindicatie>
+  <uitspraak id="ECLI:NL:RBAMS:2023:7706:DOC" lang="nl" xml:space="preserve" xmlns="http://www.rechtspraak.nl/schema/rechtspraak-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <uitspraak.info>
+    <bridgehead role="bold">RECHTBANK AMSTERDAM</bridgehead>
+    <para />
+    <parablock>
+      <para>Civiel recht</para>
+      <para>Kantonrechter </para>
+      <para>f.no.: 598</para>
+    </parablock>
+    <para />
+    <parablock>
+      <para>Zaaknummer: 10446950 \ CV EXPL  23-5300</para>
+    </parablock>
+    <para />
+    <parablock>
+      <para>
+        <emphasis role="bold">Vonnis van 1 december 2023</emphasis>
+      </para>
+    </parablock>
+    <para />
+    <parablock>
+      <para>in de zaak van</para>
+    </parablock>
+    <para />
+    <parablock>
+      <para>de besloten vennootschap</para>
+      <para>
+        <emphasis role="bold">B.V. WONINGBOUW II</emphasis>, </para>
+      <para>gevestigd te Amsterdam,</para>
+      <para>eisende partij,</para>
+      <para>hierna te noemen: Woningbouw II,</para>
+      <para>gemachtigde: mr. Th.C. Visser,</para>
+    </parablock>
+    <para />
+    <parablock>
+      <para>tegen</para>
+    </parablock>
+    <para />
+    <parablock>
+      <para>
+        <emphasis role="bold">
+          [gedaagde]
+        </emphasis>, </para>
+      <para>wonende te [woonplaats] ,</para>
+      <para>gedaagde partij,</para>
+      <para>hierna te noemen: [gedaagde] ,</para>
+      <para>gemachtigde: mr. L. Hellinga.</para>
+    </parablock>
+    <para />
+    <para />
+  </uitspraak.info>
+  <section>
+    <title>
+      <nr>1</nr>De procedure</title>
+    <para />
+    <paragroup>
+      <nr>1.1.</nr>
+      <para>Het verloop van de procedure blijkt uit:</para>
+      <para>- de dagvaarding van 4 april 2023,</para>
+      <para>- de akte indienen producties (producties 1 t/m 4 en 6) van de zijde van Woningbouw II,</para>
+      <para>- de conclusie van antwoord met producties,</para>
+      <para>- het ambtshalve gewezen tussenvonnis van 21 juli 2023 waarbij een mondelinge behandeling is bepaald,</para>
+      <para>- de akte indienen aanvullende producties (producties 5, 7 en 8) van de zijde van Woningbouw II,</para>
+      <para>- de akte indienen aanvullende producties (producties 1 t/m 4) van de zijde van [gedaagde] .</para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>1.2.</nr>
+      <para>De mondelinge behandeling heeft op 20 november 2023 plaatsgevonden. Namens Woningbouw II zijn mr. Visser, voornoemd, en mr. M. Kool verschenen. Verder is [gedaagde] met zijn gemachtigde mr. Hellinga, voornoemd, verschenen. Mr. Kool heeft spreekaantekeningen overgelegd die bij het dossier zijn gevoegd. De griffier heeft van de mondelinge behandeling aantekeningen gemaakt die eveneens bij het dossier zijn gevoegd. </para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>1.3.</nr>
+      <para>Ten slotte is vonnis bepaald.</para>
+      <para />
+      <para />
+      <para />
+    </paragroup>
+  </section>
+  <section>
+    <title>
+      <nr>2</nr>De feiten</title>
+    <para />
+    <paragroup>
+      <nr>2.1.</nr>
+      <para>
+        [gedaagde] , op dit moment 59 jaar oud, huurt sinds 1990 de woning gelegen aan de [adres 1] (hierna: de woning). De woning heeft een oppervlakte van ongeveer 44m2. De huurprijs die [gedaagde] voor de woning betaalt, bedraagt € 271,68 per maand. </para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>2.2.</nr>
+      <para>Woningbouw II is de verhuurder van de woning. Zij heeft het gehele pand aan de [locatie] (drie verdiepingen en de zolderverdieping) in 2014 gekocht voor een bedrag van € 150.000,-. </para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>2.3.</nr>
+      <para>In 2016 heeft Woningbouw II de woning gelegen op de tweede verdieping, [adres 2] , verkocht voor een bedrag van € 257.000,-. Deze woning heeft een oppervlakte van ongeveer 47m2. </para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>2.4.</nr>
+      <para>Het verzamelinkomen van [gedaagde] over het jaar 2022 bedroeg € 11.685,-.</para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>2.5.</nr>
+      <para>Bij aangetekende brief van 30 maart 2023 heeft Woningbouw II de huurovereenkomst met [gedaagde] opgezegd vanwege de opzeggingsgrond “dringend eigen gebruik”. </para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>2.6.</nr>
+      <para>
+        [gedaagde] heeft niet ingestemd met de opzegging van de huurovereenkomst. </para>
+      <para />
+    </paragroup>
+  </section>
+  <section>
+    <title>
+      <nr>3</nr>Het geschil</title>
+    <para />
+    <paragroup>
+      <nr>3.1.</nr>
+      <para>Woningbouw II vordert – zakelijk weergegeven – dat de kantonrechter bij vonnis, uitvoerbaar bij voorraad: </para>
+      <para />
+      <orderedlist numeration="lowerroman">
+        <listitem>
+          <para>het tijdstip waarop de huurovereenkomst eindigt, vaststelt op 1 december 2025, onder de voorwaarde dat alsdan passende woonruimte voor [gedaagde] beschikbaar is;</para>
+        </listitem>
+        <listitem>
+          <para>
+            [gedaagde] veroordeelt de woning op het onder i) bedoelde tijdstip te ontruimen;</para>
+        </listitem>
+        <listitem>
+          <para>
+            [gedaagde] veroordeelt in de proceskosten. </para>
+        </listitem>
+      </orderedlist>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>3.2.</nr>
+      <para>Woningbouw II stelt – samengevat – dat zij een dringende noodzaak heeft tot renovatie van de woning. Zij wil de derde verdieping renoveren en samenvoegen met de vierde verdieping. Door deze renovatie zal het rendement van de woning aanzienlijk hoger worden dan het huidige rendement. Volgens Woningbouw II is op dit moment het rendement -146%, waardoor sprake is van een structurele wanverhouding tussen de huuropbrengsten en de exploitatiekosten van de woning. Woningbouw II is van mening dat deze (financiële) belangen zwaarder wegen dan de belangen van [gedaagde] . Nu deze renovatie niet mogelijk is met voortzetting van de huurovereenkomst, dient die te worden beëindigd, aldus steeds Woningbouw II. </para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>3.3.</nr>
+      <para>
+        [gedaagde] stelt zich – samengevat – op het standpunt dat Woningbouw II haar financiële belangen die ten grondslag liggen aan de dringende noodzaak voor renovatie, onvoldoende aannemelijk heeft gemaakt. Hij betwist dat de huidige situatie niet rendabel zou zijn. Volgens [gedaagde] moet bij de beoordeling of sprake is van een structurele wanverhouding tussen de exploitatiekosten en de huuropbrengsten van de woning het gehele pand worden betrokken. Verder heeft [gedaagde] erop gewezen dat zijn belang om in de woning te blijven wonen zwaarder weegt dan de louter financiële belangen van Woningbouw II. </para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>3.4.</nr>
+      <para>Op de stellingen van partijen wordt hierna, voor zover nodig, nader ingegaan.</para>
+      <para />
+    </paragroup>
+  </section>
+  <section role="overwegingen">
+    <title>
+      <nr>4</nr>De beoordeling</title>
+    <para />
+    <paragroup>
+      <nr>4.1.</nr>
+      <para>De vorderingen van Woningbouw II zijn gegrond op artikel 7:274 lid 1 aanhef en sub c van het Burgerlijk Wetboek (BW). In dit artikel staat dat opzegging van de huurovereenkomst door de verhuurder de huur van woonruimte doet eindigen indien de verhuurder aannemelijk maakt dat hij het verhuurde zo dringend nodig heeft voor eigen gebruik, dat van hem, de belangen van beide partijen naar billijkheid in aanmerking genomen, niet kan worden gevergd dat de huurovereenkomst wordt verlengd, en tevens blijkt dat de huurder andere passende woonruimte kan verkrijgen. Onder eigen gebruik kan op grond van lid 3 van artikel 7:274 BW mede worden begrepen de renovatie van woonruimte die zonder beëindiging van de huur niet mogelijk is.</para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>4.2.</nr>
+      <para>Gelet op de tekst van artikel 7:274 lid 1 aanhef en sub c BW kan de huurovereenkomst dus pas worden opgezegd als is voldaan aan drie voorwaarden: </para>
+      <orderedlist numeration="lowerroman">
+        <listitem>
+          <para>er is sprake van dringend eigen gebruik voor de verhuurder (waaronder ook renovatie valt), </para>
+        </listitem>
+        <listitem>
+          <para>de belangen van de verhuurder wegen zwaarder dan de belangen van de huurder, en </para>
+        </listitem>
+        <listitem>
+          <para>er is passende woonruimte voor de huurder te verkrijgen. </para>
+        </listitem>
+      </orderedlist>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>4.3.</nr>
+      <para>Voor de beoordeling of bij een renovatie sprake is van dringend eigen gebruik, is de uitspraak van de Hoge Raad van 26 maart 2010, ECLI:NL:HR:2010:BL0683 van belang. In dit arrest is overwogen dat het enkele feit dat de verhuurder wil overgaan tot de uitvoering van een bouw- en renovatieplan, geen grond kan opleveren voor het aannemen van dringend eigen gebruik, in de regel ook niet ingeval de exploitatie van het verhuurde in ongewijzigde staat onrendabel is. Indien echter sprake is van een structurele wanverhouding tussen de exploitatiekosten en de huuropbrengsten, kan het oordeel gerechtvaardigd zijn dat de verhuurder het verhuurde in verband met renovatie zo dringend nodig heeft voor eigen gebruik dat van hem, de belangen van beide partijen naar billijkheid in aanmerking genomen, niet kan worden verlangd dat de huurverhouding wordt voortgezet. Volgens de Hoge Raad mag bij de beoordeling van een dergelijke vordering ook de waardestijging van het verhuurde, zoals die zich na de verwerving ervan heeft voorgedaan, bij de omstandigheden worden meegenomen. </para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>4.4.</nr>
+      <para>De kantonrechter is van oordeel dat Woningbouw II onvoldoende aannemelijk heeft gemaakt dat sprake is van een zodanig structurele wanverhouding tussen de exploitatiekosten en de huurkosten van de woning dat op grond daarvan voortduring van de huurovereenkomst niet van haar kan worden verlangd. Woningbouw II heeft weliswaar ter onderbouwing van haar stelling een rendementsberekening overgelegd waaruit volgens haar zou blijken dat het huidige rendement -146% is, maar de kantonrechter acht deze berekening onvolledig en onvoldoende inzichtelijk. </para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>4.5.</nr>
+      <para>Zoals uit het hiervoor genoemde arrest van de Hoge Raad blijkt, mag bij de vraag of sprake is van een structurele wanverhouding tussen de exploitatiekosten en de huuropbrengsten de waardestijging van de woning worden meegenomen. In deze zaak staat vast dat Woningbouw II het gehele pand in 2014 voor € 150.000,- heeft gekocht. Nu het pand uit drie verdiepingen en een zolderverdieping bestaat, kan de aankoopsom voor de woning grofweg worden vastgesteld op € 50.000,-. Woningbouw II is overigens in haar eigen rendementsberekening ook van dit bedrag als aankoopsom uitgegaan. </para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>4.6.</nr>
+      <para>Ter zitting is de WOZ-waarde van de woning besproken. De exacte WOZ-waarde van de woning is niet duidelijk geworden, maar ter zitting is wel gebleken dat de WOZ-waarde van [adres 2] op peildatum 1 januari 2022 € 432.000,- bedroeg. Gelet hierop kan, hoewel de woning op [adres 2] drie vierkante meter groter is, er genoegzaam van worden uitgegaan dat de WOZ-waarde van de woning ongeveer rond dit bedrag zal liggen. </para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>4.7.</nr>
+      <para>Het voorgaande brengt met zich dat de waarde van de woning sinds 2014 substantieel is gestegen. Dit wordt bevestigd door de omstandigheid dat de woning op de tweede verdieping al in 2016 voor een bedrag van € 257.000,- is verkocht en sindsdien de huizenprijzen in Amsterdam aanzienlijk zijn gestegen. Deze waardestijging van de woning heeft Woningbouw II echter niet in haar rendementsberekening meegenomen. Integendeel, zij heeft de aankoopsom van de woning in veertig jaar met een restwaarde van veertig procent afgeschreven. Hoewel dit wellicht boekhoudkundig mogelijk is, acht de kantonrechter het niet opportuun om bij een dergelijke substantiële waardestijging van de woning de aankoopsom in een berekening van het rendement als afschrijving mee te nemen. Deze afschrijving werkt namelijk in de berekening te veel in het nadeel van [gedaagde] door, terwijl de woning juist in waarde is gestegen. Nu Woningbouw II in het geheel geen rekening heeft gehouden met deze substantiële waardestijging van de woning, acht de kantonrechter – gelet op het hiervoor genoemde arrest van de Hoge Raad – de door Woningbouw II overgelegde rendementsberekening reeds om die reden onvolledig. Dit betekent dat op grond van die berekening niet kan worden geconcludeerd dat sprake is van een structurele wanverhouding tussen de exploitatiekosten en de huurkosten van de woning.</para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>4.8.</nr>
+      <para>Verder wordt meegewogen dat [gedaagde] de door Woningbouw II gebruikte cijfers in de rendementsberekening heeft betwist. Gelet op deze betwisting had het op de weg van Woningbouw II gelegen inzichtelijk te maken waar deze cijfers op zijn gebaseerd. Er wordt bijvoorbeeld in de rendementsberekening meegenomen dat de aankoopsom uit eigen vermogen tegen acht procent rente is gefinancierd, maar een verdere toelichting hierop ontbreekt. Nu Woningbouw II de woning uit eigen middelen heeft gefinancierd tegen een hogere rente dan in 2014 bij een financiering met vreemd vermogen het geval was en dit hogere percentage in de rendementsberekening ten nadele van [gedaagde] doorwerkt, had het op de weg van Woningbouw II gelegen dit nader toe te lichten. Evenmin zijn de kosten voor het schilderwerk en de beheerskosten die in de rendementsberekening worden genoemd, nader gespecificeerd. De enkele opmerking van Woningbouw II dat deze rendementsberekening is gedaan door een gerenommeerd bedrijf, is als onderbouwing onvoldoende. Ook gelet op deze omstandigheden heeft Woningbouw II met haar rendementsberekening onvoldoende onderbouwd dat sprake is van een structureel rendementsverlies. </para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>4.9.</nr>
+      <para>Het voorgaande leidt ertoe dat Woningbouw II onvoldoende aannemelijk heeft gemaakt dat zij de woning zo dringend voor eigen gebruik nodig heeft dat niet van haar kan worden gevergd dat de huurovereenkomst wordt voortgezet. De vorderingen zullen reeds daarom worden afgewezen. </para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>4.10.</nr>
+      <para>De kantonrechter is van oordeel dat de vorderingen ook op grond van de belangenafweging als bedoeld in artikel 7:274 lid 1 aanhef en sub c BW dienen te worden afgewezen. Vaststaat dat geen sprake is van een noodzakelijke renovatie tot behoud van de woning. Dit betekent dat Woningbouw II enkel een financieel belang heeft bij het samenvoegen van de twee verdiepingen, zodat zij de woning voor een hogere huurprijs kan verhuren. [gedaagde] is 59 jaar en huurt sinds 1990 de woning. Dit betekent dat hij al 33 jaar, en dus meer dan de helft van zijn leven, in de woning woont. Hij heeft als gevolg daarvan een sterke sociale binding met de buurt. Bovendien is de woning gunstig gelegen voor zijn werk. Verder weegt mee dat het verzamelinkomen van [gedaagde] laag is (zie hiervoor onder 2.4.). Hierdoor zal het voor hem in de huidige woningmarkt uiterst lastig zijn een betaalbare woning te vinden, laat staan een woning die ook op een redelijke afstand van zijn werk is gelegen. [gedaagde] heeft voorts onbetwist gesteld dat hij vanwege de inkomenseis en zijn leeftijd niet voor de door Woningbouw II voorgestelde woningen in aanmerking komt. De kantonrechter acht deze belangen van [gedaagde] zwaarder wegen dan het enkele financieel belang van Woningbouw II. </para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>4.11.</nr>
+      <para>Tot slot merkt de kantonrechter op dat Woningbouw II haar vordering onder i) op een wijze heeft geformuleerd die niet uitvoerbaar is. Hoewel de kantonrechter begrijpt dat Woningbouw II met deze formulering van de vordering [gedaagde] heeft willen tegemoetkomen, is onduidelijk door wie en op welke wijze zal worden beoordeeld of sprake is van een passende woonruimte voor [gedaagde] . Een dergelijke voorwaardelijke vordering is ook om die reden niet toewijsbaar. </para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>4.12.</nr>
+      <para>Nu de vorderingen van Woningbouw II zullen worden afgewezen, zal zij als de in het ongelijk gestelde partij in de proceskosten worden veroordeeld. De kosten aan de zijde van [gedaagde] worden begroot op € 398,- (2 punten x tarief € 199,-) aan salaris gemachtigde.</para>
+      <para />
+    </paragroup>
+    <paragroup>
+      <nr>4.13.</nr>
+      <para>Verder zal Woningbouw II worden veroordeeld in de nakosten voor zover deze kosten op dit moment reeds kunnen worden begroot. De nakosten zullen worden begroot op de wijze zoals in de beslissing vermeld.</para>
+      <para />
+      <para />
+      <parablock>
+        <para>
+          <emphasis role="bold">BESLISSING</emphasis>
+        </para>
+      </parablock>
+      <para />
+      <parablock>
+        <para>De kantonrechter:</para>
+      </parablock>
+      <para />
+      <parablock>
+        <para>I. wijst de vorderingen af;</para>
+      </parablock>
+      <para />
+      <parablock>
+        <para>II. veroordeelt Woningbouw II in de proceskosten, aan de zijde van [gedaagde] tot op heden begroot op € 398,-, voor zover van toepassing, inclusief btw;<?linebreak?></para>
+        <para>III. veroordeelt Woningbouw II in de na dit vonnis ontstane kosten, begroot op € 66,- aan salaris gemachtigde, een en ander voor zover van toepassing inclusief btw;</para>
+      </parablock>
+      <para />
+      <parablock>
+        <para>IV. verklaart de kostenveroordelingen uitvoerbaar bij voorraad.</para>
+        <para>Dit vonnis is gewezen door mr. H.D. Coumou, kantonrechter, en in het openbaar uitgesproken op 1 december 2023, in tegenwoordigheid van de griffier. </para>
+      </parablock>
+      <para />
+    </paragroup>
+  </section>
+</uitspraak>
+</open-rechtspraak>
