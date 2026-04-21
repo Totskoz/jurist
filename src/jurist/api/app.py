@@ -17,8 +17,10 @@ from sse_starlette.sse import EventSourceResponse
 from jurist.api.orchestrator import run_question
 from jurist.api.sse import EventBuffer
 from jurist.config import RunContext, settings
+from jurist.embedding import Embedder
 from jurist.kg.interface import KnowledgeGraph
 from jurist.kg.networkx_kg import NetworkXKG
+from jurist.vectorstore import CaseStore
 
 # Ensure our jurist.* INFO logs surface when uvicorn's reload worker imports
 # this module without running jurist.api.__main__.main(). basicConfig is a
@@ -35,6 +37,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # KG gate (existing)
     try:
         app.state.kg = NetworkXKG.load_from_json(settings.kg_path)
     except FileNotFoundError as e:
@@ -53,8 +56,39 @@ async def lifespan(app: FastAPI):
         len(app.state.kg.all_edges()),
         settings.kg_path,
     )
+
+    # LanceDB gate (M3b)
+    if not settings.lance_path.exists():
+        raise RuntimeError(
+            f"LanceDB case index missing at {settings.lance_path}. "
+            f"Run: uv run python -m jurist.ingest.caselaw"
+        )
+    case_store = CaseStore(settings.lance_path)
+    case_store.open_or_create()
+    if case_store.row_count() == 0:
+        raise RuntimeError(
+            f"LanceDB at {settings.lance_path} is empty. "
+            f"Run: uv run python -m jurist.ingest.caselaw"
+        )
+    app.state.case_store = case_store
+    logger.info(
+        "Opened case index: %d rows across %d ECLIs at %s",
+        case_store.row_count(),
+        len(case_store.all_eclis()),
+        settings.lance_path,
+    )
+
+    # Embedder cold-load (~5-10s, one-time per process)
+    logger.info(
+        "Loading embedder %s (cold load ~5-10s; subsequent requests are fast)",
+        settings.embed_model,
+    )
+    app.state.embedder = Embedder(model_name=settings.embed_model)
+    logger.info("Embedder ready")
+
     app.state.anthropic = AsyncAnthropic(api_key=settings.anthropic_api_key)
-    logger.info("Anthropic client ready (model: %s)", settings.model_retriever)
+    logger.info("Anthropic client ready (model_retriever=%s model_rerank=%s)",
+                settings.model_retriever, settings.model_rerank)
     yield
 
 
@@ -85,7 +119,12 @@ async def ask(req: AskRequest) -> AskResponse:
     question_id = f"run_{uuid.uuid4().hex[:10]}"
     buf = EventBuffer(max_history=settings.max_history_per_run)
     _runs[question_id] = buf
-    ctx = RunContext(kg=app.state.kg, llm=app.state.anthropic)
+    ctx = RunContext(
+        kg=app.state.kg,
+        llm=app.state.anthropic,
+        case_store=app.state.case_store,
+        embedder=app.state.embedder,
+    )
     task = asyncio.create_task(run_question(req.question, question_id, buf, ctx))
     _tasks[question_id] = task
     return AskResponse(question_id=question_id)

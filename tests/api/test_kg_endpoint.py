@@ -1,10 +1,13 @@
 import json
 from pathlib import Path
 
+import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
 from jurist.config import Settings
+from jurist.schemas import CaseChunkRow
+from jurist.vectorstore import CaseStore
 
 _SAMPLE_SNAPSHOT = {
     "generated_at": "2026-04-20T10:00:00Z",
@@ -54,13 +57,37 @@ def _write_kg(tmp_path: Path) -> Path:
     return p
 
 
+def _seed_lance(tmp_path: Path) -> None:
+    """Create a non-empty LanceDB so the M3b lifespan gate passes."""
+    store = CaseStore(tmp_path / "lancedb" / "cases.lance")
+    store.open_or_create()
+    store.add_rows([CaseChunkRow(
+        ecli="ECLI:NL:STUB:1", chunk_idx=0, court="Rb", date="2025-01-01",
+        zaaknummer="z", subject_uri="u", modified="2025-01-01",
+        text="t", embedding=np.zeros(1024, dtype=np.float32).tolist(), url="u",
+    )])
+
+
+class _NoOpEmbedder:
+    """Stub that satisfies the Embedder interface without loading bge-m3."""
+    def __init__(self, model_name: str) -> None:
+        pass
+
+    def encode(self, texts, *, batch_size=32):
+        return np.zeros((len(texts), 1024), dtype=np.float32)
+
+
 def test_api_kg_returns_loaded_nodes_and_edges(tmp_path: Path, monkeypatch):
     _isolate_kg(tmp_path, monkeypatch)
     _write_kg(tmp_path)
+    _seed_lance(tmp_path)
 
-    from jurist.api.app import app
+    from jurist.api import app as app_module
 
-    with TestClient(app) as client:
+    # Prevent bge-m3 cold-load (2.3 GB) during unit test.
+    monkeypatch.setattr(app_module, "Embedder", _NoOpEmbedder)
+
+    with TestClient(app_module.app) as client:
         resp = client.get("/api/kg")
         assert resp.status_code == 200
         body = resp.json()
