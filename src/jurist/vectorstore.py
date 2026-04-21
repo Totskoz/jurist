@@ -87,14 +87,23 @@ class CaseStore:
         vector: np.ndarray,
         *,
         top_k: int = 20,
-    ) -> list[CaseChunkRow]:
+    ) -> list[tuple[CaseChunkRow, float]]:
+        """Cosine top-K. Returns (row, similarity) pairs sorted by descending
+        similarity. similarity = max(0.0, 1.0 - _distance) — clamped at 0 for
+        anti-parallel vectors (rare with L2-normalized bge-m3 embeddings)."""
         self._require_open()
         vec = np.asarray(vector, dtype=np.float32).reshape(-1).tolist()
         df = self._table.search(vec).metric("cosine").limit(top_k).to_pandas()
-        out: list[CaseChunkRow] = []
+        out: list[tuple[CaseChunkRow, float]] = []
         for rec in df.to_dict(orient="records"):
-            rec.pop("_distance", None)
-            out.append(CaseChunkRow.model_validate(rec))
+            if "_distance" not in rec:
+                raise RuntimeError(
+                    "LanceDB returned record without _distance: "
+                    f"ecli={rec.get('ecli', '?')}"
+                )
+            distance = float(rec.pop("_distance"))
+            similarity = max(0.0, 1.0 - distance)
+            out.append((CaseChunkRow.model_validate(rec), similarity))
         return out
 
     def drop(self) -> None:

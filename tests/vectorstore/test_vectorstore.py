@@ -64,7 +64,8 @@ def test_query_top_k_by_cosine(tmp_path: Path) -> None:
     ])
     results = store.query(np.array([1.0, 0.0] + [0.0] * 1022, dtype=np.float32), top_k=1)
     assert len(results) == 1
-    assert results[0].ecli == "ECLI:NL:NEAR:1"
+    row, _sim = results[0]
+    assert row.ecli == "ECLI:NL:NEAR:1"
 
 
 def test_drop_removes_table(tmp_path: Path) -> None:
@@ -75,3 +76,38 @@ def test_drop_removes_table(tmp_path: Path) -> None:
     store.drop()
     store.open_or_create()
     assert store.all_eclis() == set()
+
+
+def test_query_returns_row_similarity_tuples(tmp_path: Path) -> None:
+    from jurist.vectorstore import CaseStore
+
+    store = CaseStore(tmp_path / "cases.lance")
+    store.open_or_create()
+
+    # Two distinct vectors; query with one exactly and verify ordering + score.
+    v1 = (np.eye(1024)[0]).astype(np.float32).tolist()
+    v2 = (np.eye(1024)[1]).astype(np.float32).tolist()
+    rows = [
+        CaseChunkRow(
+            ecli="ECLI:NL:X:2025:1", chunk_idx=0, court="Rb", date="2025-01-01",
+            zaaknummer="z1", subject_uri="u", modified="2025-01-01",
+            text="t1", embedding=v1, url="u1",
+        ),
+        CaseChunkRow(
+            ecli="ECLI:NL:X:2025:2", chunk_idx=0, court="Rb", date="2025-01-01",
+            zaaknummer="z2", subject_uri="u", modified="2025-01-01",
+            text="t2", embedding=v2, url="u2",
+        ),
+    ]
+    store.add_rows(rows)
+
+    results = store.query(np.asarray(v1, dtype=np.float32), top_k=2)
+    assert len(results) == 2
+    # Each entry is a (CaseChunkRow, float) tuple
+    (first_row, first_sim), (second_row, second_sim) = results
+    assert first_row.ecli == "ECLI:NL:X:2025:1"
+    assert second_row.ecli == "ECLI:NL:X:2025:2"
+    # Perfect match similarity ≈ 1.0; orthogonal ≈ 0.0
+    assert first_sim > second_sim
+    assert 0.99 <= first_sim <= 1.0 + 1e-6
+    assert -1e-6 <= second_sim <= 0.01
