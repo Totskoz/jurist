@@ -8,7 +8,7 @@ Jurist is a portfolio multi-agent demo answering Dutch **huurrecht** (tenancy la
 
 **Authoritative design:** `docs/superpowers/specs/2026-04-17-jurist-v1-design.md`. Read this before making substantive design decisions. Milestone plans live in `docs/superpowers/plans/YYYY-MM-DD-*.md`.
 
-Current state: **M3a landed on master** — `python -m jurist.ingest.caselaw` pulls huur-related uitspraken from rechtspraak.nl open-data, chunks them, embeds with bge-m3, and writes to LanceDB. Full ingest is user-initiated (20–40 min, one-time); a 20-ECLI smoke test has been run. Prior: M2 shipped the real statute retriever. The `case_retriever` agent still emits canned events (M3b will swap it for a real bge-m3 + Haiku rerank flow). Decomposer and synthesizer remain M0 fakes; validator is a permanent stub. `/api/ask` requires `ANTHROPIC_API_KEY` for the statute retriever; ingestion itself does not.
+Current state: **M3b landed on m3b-case-retriever (pending merge)** — the `case_retriever` agent runs a real pipeline: embed sub-questions with bge-m3, retrieve top-150 LanceDB chunks, dedupe to 20 unique ECLIs, Haiku-rerank to 3 `CitedCase`s with Dutch reason strings. Closed-set grounding via JSON-Schema `enum` on ECLI; one regen then `run_failed{reason:"case_rerank"}` on malformed output. API startup adds an Embedder cold-load (~5-10s, one-time per process) and a fail-fast gate on `data/lancedb/cases.lance`. Decomposer and synthesizer remain M0 fakes (→ M4); validator is a permanent stub.
 
 ## Commands
 
@@ -20,7 +20,7 @@ Current state: **M3a landed on master** — `python -m jurist.ingest.caselaw` pu
 - Run full test suite: `uv run pytest -v` (~75s due to `asyncio.sleep` in fake agents)
 - Run a single test: `uv run pytest tests/api/test_orchestrator.py::test_orchestrator_runs_agents_in_expected_order -v`
 - Lint: `uv run ruff check .`
-- Start API server: `uv run python -m jurist.api` — listens on `http://127.0.0.1:8766` with hot-reload. API hard-fails at startup if `data/kg/huurrecht.json` is missing — run the KG build step first on a fresh clone. `ANTHROPIC_API_KEY` is not required at startup (the SDK defers the auth check), but the statute retriever will 401 on first tool call without it; see `.env.example`.
+- Start API server: `uv run python -m jurist.api` — listens on `http://127.0.0.1:8766` with hot-reload. API hard-fails at startup if `data/kg/huurrecht.json` OR `data/lancedb/cases.lance` is missing/empty — run both ingest steps first on a fresh clone. First boot additionally cold-loads bge-m3 (~5-10s; ~1.1 GB RAM resident). `ANTHROPIC_API_KEY` is not required at startup (the SDK defers the auth check), but the statute retriever and case rerank will 401 on first call without it; see `.env.example`.
 
 ### Frontend (Node 20+, from `web/`)
 
@@ -98,24 +98,33 @@ All 5 run on one asyncio task. Parallelization is explicitly out of scope for v1
 - **Embedder:** `src/jurist/embedding.py::Embedder` wraps `sentence-transformers` `BAAI/bge-m3` (1024-d, L2-normalized). Shared with M3b.
 - **Storage:** `src/jurist/vectorstore.py::CaseStore` concrete LanceDB class (no interface — parent spec §15 decision #12). Deduplicates on `(ecli, chunk_idx)`.
 - **Profiles:** `src/jurist/ingest/caselaw_profiles.py` — `{rechtsgebied_name → (subject_uri, keyword_terms)}`. Only `huurrecht` populated; multi-rechtsgebied is a dict-entry diff.
-- **What's fake after M3a:** `case_retriever` still yields `FAKE_CASES` — M3b swaps it.
+- **Consumed by:** M3b `case_retriever` via `Embedder` + `CaseStore.query()` + Haiku rerank. See "Case retriever (M3b)" below.
+
+### Case retriever (M3b)
+
+- **Pipeline:** `src/jurist/agents/case_retriever.py::run` — 5 stages (embed → LanceDB top-K → ECLI dedupe → Haiku rerank → assemble `CitedCase`s). Pure helper `src/jurist/agents/case_retriever_tools.py` owns stages 1-3 + JSON-Schema tool + Dutch prompt builders; the agent module owns events + the Haiku call + regen/hard-fail.
+- **Over-fetch ratio:** top-150 chunks → group-by-ECLI → cap 20 unique (tunable via `JURIST_CASELAW_CANDIDATE_CHUNKS` / `JURIST_CASELAW_CANDIDATE_ECLIS`). Sized against M3a's ~7.8 chunks/case average; top-20 chunks literally would collapse to ~2-3 unique ECLIs post-dedupe.
+- **Closed-set grounding:** per-request JSON-Schema `enum` on `ecli` in the `select_cases` tool definition — mirror of the synthesizer's per-request `Literal[...]` at the retrieval boundary (parent spec §15 decision #17). Agent-side `_validate_picks` is the belt-and-suspenders check.
+- **Error handling:** `InvalidRerankOutput` on malformed tool output → regen once with a Dutch error note appended. Second failure → `RerankFailedError` → orchestrator emits `run_failed{reason:"case_rerank"}`. `<3` candidates → same hard-fail (index underpopulated or query wildly off-topic).
+- **Cost/latency:** one Haiku call per run (two on regen). System prompt + candidate list cached at one `cache_control: ephemeral` breakpoint. ~200-500ms typical; ~1-2s worst case.
+- **Tests:** 10 pure-helper tests + 2 happy-path agent tests + 7 error-path agent tests + 2 lifespan gate tests + 2 orchestrator integration tests. 1 RUN_E2E-gated e2e test (`tests/integration/test_m3b_case_retriever_e2e.py`) asserts 3 valid `CitedCase`s for the locked question.
 
 ### Closed-set citation grounding (deferred to M4)
 
 The synthesizer will use **per-request `Literal[...]` enums** over retrieved IDs to force Claude to cite only from the candidate set (schema-time constraint), followed by **post-hoc resolution** that confirms every ID + quote survives in the knowledge base, with **regenerate-once-then-hard-fail** on mismatch. Three-layer defense; no silent fallback. Detailed in spec §15.
 
-### What's fake vs. real after M3a
+### What's fake vs. real after M3b
 
 | Component | State | Becomes real in |
 |---|---|---|
 | `decomposer` | M0 fake — yields canned thinking + fixed DecomposerOut | M4 (Haiku) |
 | `statute_retriever` | **Real** — Claude Sonnet tool-use loop over the 218-node KG (5 tools) | — |
-| `case_retriever` | M0 fake — emits `FAKE_CASES` one by one | M3b (bge-m3 + LanceDB + Haiku rerank) |
+| `case_retriever` | **Real** — bge-m3 + LanceDB top-150→20 ECLIs + Haiku rerank to 3 | — |
 | `synthesizer` | M0 fake — streams `FAKE_ANSWER` token-by-token | M4 (Sonnet + closed-set grounding) |
 | `validator_stub` | Permanent stub — always returns `valid=True` | — (real validator is v2 scope) |
 | `/api/kg` | Real — loads `data/kg/huurrecht.json` at startup (built by `jurist.ingest.statutes`) | — |
 
-The validator is the only intentional stub; the three remaining fakes still emit realistic event streams so the frontend can be exercised end-to-end without the live LLM/vector-store dependencies they'll gain in M3b/M4.
+The validator is the only intentional stub; the two remaining fakes (`decomposer`, `synthesizer`) still emit realistic event streams so the frontend can be exercised end-to-end without the live LLM/vector-store dependencies they'll gain in M4.
 
 ## Conventions worth knowing
 
