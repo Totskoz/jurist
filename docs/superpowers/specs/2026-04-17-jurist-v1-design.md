@@ -198,7 +198,7 @@ class CaseRetrieverOut(BaseModel):
 
 **Implementation.**
 1. Embed the concatenated `sub_questions` with bge-m3; normalize to unit length.
-2. LanceDB cosine top-20 with filter `rechtsgebied == "Huurrecht"`.
+2. LanceDB cosine top-20 (no subject_uri filter — the keyword fence at ingest time ensures all rows are huurrecht-relevant).
 3. Deduplicate to one chunk per ECLI (keep the highest-similarity chunk).
 4. Haiku rerank: prompt includes the statute context (titles + one-line explanations) and the 20 candidate snippets; returns top-3 as `[{ecli, reason}]` via a forced tool schema.
 5. Return the top-3 in score order, reason strings attached.
@@ -352,15 +352,21 @@ class ArticleEdge(BaseModel):
 ### 7.4 Case chunk (LanceDB row)
 
 ```python
-class CaseChunk(BaseModel):
+class CaseChunkRow(BaseModel):
+    # identity
     ecli: str
-    court: str
-    date: str
-    rechtsgebied: str
     chunk_idx: int
+    # metadata (from RDF)
+    court: str
+    date: str                    # ISO 8601
+    zaaknummer: str
+    subject_uri: str             # "http://psi.rechtspraak.nl/rechtsgebied#civielRecht_verbintenissenrecht"
+    modified: str                # ISO 8601 last-modified
+    # content
     text: str
-    embedding: list[float]       # 1024-dim (bge-m3)
-    url: str
+    embedding: list[float]       # 1024-d bge-m3, L2-normalized
+    # display
+    url: str                     # "https://uitspraken.rechtspraak.nl/details?id=..."
 ```
 
 ## 8. Data ingestion
@@ -384,20 +390,24 @@ class CaseChunk(BaseModel):
 
 ### 8.2 Case law — `python -m jurist.ingest.caselaw`
 
-**Scope.** rechtspraak.nl open-data ECLI search:
-- `rechtsgebied = "Huurrecht"`
-- `instantie ∈ {Huurcommissie, Rechtbank, Gerechtshof}`
-- `datum` descending
-- first N (default 300; `--limit` overrides)
+**Scope.** rechtspraak.nl open-data ECLI search over the verified taxonomy:
+- `subject = http://psi.rechtspraak.nl/rechtsgebied#civielRecht_verbintenissenrecht` (huurrecht's taxonomic parent in Dutch law — a standalone `#huurrecht` URI does not exist)
+- `modified >= 2024-01-01` (date floor, configurable)
+- Local keyword fence post-download: body must contain any of `{huur, verhuur, woonruimte, huurcommissie}` (case-folded substring)
+- No instantie filter; all courts
+- No hard count cap; ingests everything passing the fence
+
+See the M3a design doc for verified URI list, the missing-`huurrecht` finding, and the volume stats (≈20k candidates since 2024 → few hundred post-fence).
 
 **Steps.**
-1. Query the ECLI search API; collect ECLIs.
-2. For each ECLI, fetch the open-data XML; extract `ecli`, `date`, `court`, `rechtsgebied`, `tekst`, `url`.
-3. Chunk `tekst` into ~500-token chunks with 50-token overlap using an in-house paragraph-aware recursive splitter (`src/jurist/ingest/splitter.py`; ~30 lines, stdlib-only). Respects paragraph boundaries first, then sentence, then character. No LangChain dependency — strict adherence to the "no agent framework" non-goal.
-4. Embed each chunk with bge-m3 (`sentence_transformers.SentenceTransformer("BAAI/bge-m3")`). Normalize.
-5. Insert into LanceDB at `data/lancedb/cases.lance`.
-6. Dump `data/cases/{ecli}.md` for linking and debug.
-7. Idempotent: skip ECLIs already present unless `--refresh`.
+1. Paginate `GET https://data.rechtspraak.nl/uitspraken/zoeken?subject=<URI>&modified=<YYYY-MM-DD>&max=1000&from=N` until an empty feed page. Collect `[(ecli, modified_ts), …]`.
+2. For each ECLI not yet cached, `GET https://data.rechtspraak.nl/uitspraken/content?id=<ECLI>`; write raw XML to `data/cases/<ecli>.xml`. 5-way parallel via `ThreadPoolExecutor`. Polite `User-Agent`.
+3. Parse RDF metadata: `dcterms:identifier`, `dcterms:date`, `dcterms:creator` (court), `dcterms:subject`, `psi:zaaknummer`, `dcterms:modified`, plus the deeplink `https://uitspraken.rechtspraak.nl/details?id=<ECLI>`. Strip XML tags from body text; collapse whitespace; preserve paragraph breaks.
+4. Drop cases whose body fails the keyword fence.
+5. Chunk surviving bodies via `src/jurist/ingest/splitter.py` (~500-word target, 50-word overlap, paragraph-aware recursive splitter — stdlib-only).
+6. Embed chunks with bge-m3 via `src/jurist/embedding.py`; normalize.
+7. Insert rows into LanceDB at `data/lancedb/cases.lance` with `CaseChunkRow` schema (§7.4).
+8. Idempotent: re-runs skip already-cached ECLIs and already-embedded chunks unless `--refresh`.
 
 ## 9. Frontend
 
@@ -547,13 +557,25 @@ Done when:
 - Guardrail test: forcing a duplicate-call loop triggers the detector and advances.
 - Unit tests: each tool implementation (`search_articles`, `get_article`, `follow_cross_ref`) against a fixture KG.
 
-### M3 — Case ingestion + case retriever
+### M3a — Case ingestion
 
 Done when:
-- `python -m jurist.ingest.caselaw --limit 300` populates LanceDB with huurrecht ECLIs.
-- `CaseRetriever` returns top-3 on the locked question. All returned ECLIs exist in LanceDB. Similarity scores are real. Rerank reasons are non-trivial.
+- `uv run python -m jurist.ingest.caselaw` populates `data/lancedb/cases.lance` with ≥100 unique ECLIs, each with ≥1 chunk row, every row bge-m3-embedded (1024-d, unit-norm) and passing the keyword fence.
+- Re-running without `--refresh` is idempotent; `--refresh` wipes + rebuilds.
+- Unit tests cover: parser, filter, splitter, fetch-with-cache, mocked embedder, vectorstore round-trip.
+- Integration test (`RUN_E2E=1`) ingests ~10 live ECLIs and verifies bge-m3 determinism.
+- `case_retriever` agent remains the M0 fake; no orchestrator or frontend changes.
+
+See `docs/superpowers/specs/2026-04-21-m3a-caselaw-ingestion-design.md`.
+
+### M3b — Real case retriever
+
+Done when:
+- `CaseRetriever` returns top-3 cases on the locked question; all returned ECLIs exist in LanceDB; similarity scores are real; rerank reasons are non-trivial.
 - Citation click opens `uitspraken.rechtspraak.nl/...` in a new tab.
-- Unit test: bge-m3 embedding is deterministic across runs for the same input.
+- Unit test: bge-m3 embedding is deterministic across runs for the same input (actually lands in M3a integration test; reaffirmed here).
+
+Separate design + plan to follow M3a.
 
 ### M4 — Decomposer + Synthesizer + grounding
 
@@ -622,6 +644,9 @@ Environment variables (`.env`):
 | 10 | One SSE stream per run, with a short ring buffer | Per-agent streams; WebSocket; polled fetch | Simpler frontend state; reconnect-replay makes a live demo robust. |
 | 11 | No agent framework | LangChain, LangGraph, CrewAI, AutoGen | User-specified non-goal; direct Pydantic + SDK calls make the contract readable. |
 | 12 | One `KnowledgeGraph` Protocol interface; no `CaseStore` interface | Full symmetry with vector store Protocol | Only the KG has a stated swap path (Neo4j). The vector store has no such path, so an interface there is premature abstraction. |
+| 13 | M3 split into M3a (ingestion + LanceDB) + M3b (real retriever) | Single M3 milestone as originally scoped | Mirrors M1→M2 ingest-then-retrieve rhythm; each half gets its own "done" gate. |
+| 14 | Source filter: `civielRecht_verbintenissenrecht` + date floor + local keyword fence | Original `rechtsgebied=Huurrecht` | Verified 2026-04-21: no `#huurrecht` URI exists in rechtspraak.nl's open-data taxonomy. Verbintenissenrecht is the legal parent; keyword fence restores precision. |
+| 15 | `CaseChunk` renamed to `CaseChunkRow`; adds `zaaknummer`, `subject_uri`, `modified`; drops `rechtsgebied` | Keep original schema | Disambiguates storage (`Row`) from retrieval output (`CitedCase`); `zaaknummer` needed for display; `subject_uri` preserves multi-rechtsgebied extensibility; `modified` supports freshness weighting. |
 
 ---
 
