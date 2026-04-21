@@ -78,6 +78,38 @@ def retrieve_candidates(
     return candidates
 
 
+def build_rerank_tool_schema(candidate_eclis: list[str]) -> dict:
+    """Anthropic tool JSON-schema with per-request `enum` on ecli — the
+    closed-set constraint (JSON-Schema form of Pydantic Literal[...])."""
+    return {
+        "name": "select_cases",
+        "description": (
+            "Selecteer exact 3 van de kandidaat-uitspraken die het meest "
+            "relevant zijn voor de vraag en het wettelijk kader."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "picks": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "uniqueItems": True,
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "ecli":   {"type": "string", "enum": list(candidate_eclis)},
+                            "reason": {"type": "string", "minLength": 20},
+                        },
+                        "required": ["ecli", "reason"],
+                    },
+                },
+            },
+            "required": ["picks"],
+        },
+    }
+
+
 def _truncate(text: str, limit: int) -> str:
     if len(text) <= limit:
         return text
@@ -89,4 +121,5 @@ __all__ = [
     "RerankPick",
     "InvalidRerankOutput",
     "retrieve_candidates",
+    "build_rerank_tool_schema",
 ]

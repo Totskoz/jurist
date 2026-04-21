@@ -6,6 +6,7 @@ import pytest
 
 from jurist.agents.case_retriever_tools import (
     CaseCandidate,
+    build_rerank_tool_schema,
     retrieve_candidates,
 )
 from jurist.schemas import CaseChunkRow
@@ -136,3 +137,24 @@ def test_case_candidate_is_frozen() -> None:
     )
     with pytest.raises(dataclasses.FrozenInstanceError):
         c.ecli = "F"  # type: ignore[misc]
+
+
+def test_rerank_tool_schema_populates_enum() -> None:
+    eclis = ["ECLI:NL:A:1", "ECLI:NL:B:2", "ECLI:NL:C:3"]
+    schema = build_rerank_tool_schema(eclis)
+    assert schema["name"] == "select_cases"
+    props = schema["input_schema"]["properties"]["picks"]
+    assert props["minItems"] == 3
+    assert props["maxItems"] == 3
+    assert props["uniqueItems"] is True
+    item_props = props["items"]["properties"]
+    assert item_props["ecli"]["enum"] == eclis
+    assert item_props["ecli"]["type"] == "string"
+    assert item_props["reason"]["minLength"] == 20
+    assert set(props["items"]["required"]) == {"ecli", "reason"}
+
+
+def test_rerank_tool_schema_top_level_required_is_picks() -> None:
+    schema = build_rerank_tool_schema(["E1", "E2", "E3", "E4"])
+    assert schema["input_schema"]["required"] == ["picks"]
+    assert schema["input_schema"]["type"] == "object"
