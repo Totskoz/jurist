@@ -6,6 +6,7 @@ models one assistant reply. When the script is exhausted, the mock
 returns an empty turn so the loop under test coerces on its own."""
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any
 
 from jurist.llm.turn import ModelToolUse as ScriptedToolUse
@@ -28,4 +29,51 @@ class MockAnthropicClient:
         return self._script.pop(0)
 
 
-__all__ = ["MockAnthropicClient", "ScriptedToolUse", "ScriptedTurn"]
+class MockMessagesClient:
+    """Mocks `AsyncAnthropic.messages.create` for forced-tool, non-streaming
+    calls (M3b case rerank). Returns a canned tool_use response from a queue.
+
+    A queued Exception is raised instead of returning — for simulating 5xx/network.
+    An empty queue raises RuntimeError to surface test-setup mistakes."""
+
+    def __init__(self, tool_inputs: list) -> None:
+        # Each entry is either a `dict` (canned tool input) or an `Exception`.
+        self._queue = list(tool_inputs)
+        self.calls: list[dict[str, Any]] = []
+
+    async def create(self, **kwargs: Any) -> Any:
+        self.calls.append(kwargs)
+        if not self._queue:
+            raise RuntimeError("MockMessagesClient: tool_inputs queue exhausted")
+        item = self._queue.pop(0)
+        if isinstance(item, type) and issubclass(item, BaseException):
+            raise TypeError(
+                f"MockMessagesClient: queue item {item!r} is an exception "
+                "class, not an instance — did you forget the parentheses?"
+            )
+        if isinstance(item, Exception):
+            raise item
+        # Mirror the Anthropic SDK's `Message` object shape (enough for our agent).
+        tool_use = SimpleNamespace(
+            type="tool_use",
+            name="select_cases",
+            input=item,
+        )
+        return SimpleNamespace(content=[tool_use])
+
+
+class MockAnthropicForRerank:
+    """Mirrors `AsyncAnthropic`'s `.messages` attribute shape for one-shot
+    `messages.create` tests."""
+
+    def __init__(self, tool_inputs: list) -> None:
+        self.messages = MockMessagesClient(tool_inputs)
+
+
+__all__ = [  # alphabetical
+    "MockAnthropicClient",
+    "MockAnthropicForRerank",
+    "MockMessagesClient",
+    "ScriptedToolUse",
+    "ScriptedTurn",
+]
