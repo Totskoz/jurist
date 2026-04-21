@@ -21,6 +21,6 @@ def test_unknown_profile_raises() -> None:
 
 
 def test_resolve_returns_correct_profile() -> None:
-    from jurist.ingest.caselaw_profiles import resolve_profile
+    from jurist.ingest.caselaw_profiles import PROFILES, resolve_profile
     prof = resolve_profile("huurrecht")
-    assert prof.name == "huurrecht"
+    assert prof is PROFILES["huurrecht"]
