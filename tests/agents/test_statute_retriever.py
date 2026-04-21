@@ -1,3 +1,7 @@
+import tempfile
+from pathlib import Path
+
+import numpy as np
 import pytest
 
 from jurist.agents import statute_retriever
@@ -6,11 +10,30 @@ from jurist.kg.networkx_kg import NetworkXKG
 from jurist.schemas import (
     ArticleEdge,
     ArticleNode,
+    CaseChunkRow,
     KGSnapshot,
     StatuteRetrieverIn,
     StatuteRetrieverOut,
 )
+from jurist.vectorstore import CaseStore
 from tests.fixtures.mock_llm import MockAnthropicClient, ScriptedToolUse, ScriptedTurn
+
+
+class _NoOpEmbedder:
+    def encode(self, texts, *, batch_size=32):
+        return np.zeros((len(texts), 1024), dtype=np.float32)
+
+
+def _minimal_case_store() -> CaseStore:
+    tmp = Path(tempfile.mkdtemp()) / "cases.lance"
+    store = CaseStore(tmp)
+    store.open_or_create()
+    store.add_rows([CaseChunkRow(
+        ecli="ECLI:NL:STUB:1", chunk_idx=0, court="Rb", date="2025-01-01",
+        zaaknummer="z", subject_uri="u", modified="2025-01-01",
+        text="t", embedding=np.zeros(1024, dtype=np.float32).tolist(), url="u",
+    )])
+    return store
 
 
 @pytest.fixture
@@ -51,7 +74,10 @@ async def test_agent_emits_event_sequence(small_kg, monkeypatch):
         ),
     ]
     mock = MockAnthropicClient(script)
-    ctx = RunContext(kg=small_kg, llm=mock)
+    ctx = RunContext(
+        kg=small_kg, llm=mock,
+        case_store=_minimal_case_store(), embedder=_NoOpEmbedder(),
+    )
 
     events = []
     async for ev in statute_retriever.run(
@@ -91,7 +117,10 @@ async def test_agent_node_visited_on_get_article_but_not_on_list_neighbors(small
         )]),
     ]
     mock = MockAnthropicClient(script)
-    ctx = RunContext(kg=small_kg, llm=mock)
+    ctx = RunContext(
+        kg=small_kg, llm=mock,
+        case_store=_minimal_case_store(), embedder=_NoOpEmbedder(),
+    )
     events = []
     async for ev in statute_retriever.run(
         StatuteRetrieverIn(sub_questions=[], concepts=[], intent="other"),

@@ -13,6 +13,7 @@ from jurist.agents import (
     synthesizer,
     validator_stub,
 )
+from jurist.agents.case_retriever import RerankFailedError
 from jurist.api.sse import EventBuffer
 from jurist.config import RunContext
 from jurist.schemas import (
@@ -117,18 +118,42 @@ async def run_question(
         return
     stat_out = StatuteRetrieverOut.model_validate(stat_final.data)
 
-    # 3. Case retriever
+    # 3. Case retriever — real in M3b
     case_in = CaseRetrieverIn(
         question=question,
         sub_questions=decomposer_out.sub_questions,
         statute_context=stat_out.cited_articles,
     )
-    case_final = await _pump(
-        "case_retriever",
-        case_retriever.run(case_in),
-        run_id,
-        buffer,
-    )
+    try:
+        case_final = await _pump(
+            "case_retriever",
+            case_retriever.run(case_in, ctx=ctx),
+            run_id,
+            buffer,
+        )
+    except RerankFailedError as exc:
+        logger.warning(
+            "run_failed id=%s reason=case_rerank: %s", run_id, exc,
+        )
+        await buffer.put(
+            TraceEvent(
+                type="run_failed", run_id=run_id, ts=_now_iso(),
+                data={"reason": "case_rerank", "detail": str(exc)},
+            )
+        )
+        return
+    except Exception as exc:  # noqa: BLE001 — surface LLM/network errors
+        logger.exception(
+            "run_failed id=%s reason=llm_error detail=%s: %s",
+            run_id, type(exc).__name__, exc,
+        )
+        await buffer.put(
+            TraceEvent(
+                type="run_failed", run_id=run_id, ts=_now_iso(),
+                data={"reason": "llm_error", "detail": f"{type(exc).__name__}: {exc}"},
+            )
+        )
+        return
     case_out = CaseRetrieverOut.model_validate(case_final.data)
 
     # 4. Synthesizer
