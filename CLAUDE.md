@@ -8,14 +8,15 @@ Jurist is a portfolio multi-agent demo answering Dutch **huurrecht** (tenancy la
 
 **Authoritative design:** `docs/superpowers/specs/2026-04-17-jurist-v1-design.md`. Read this before making substantive design decisions. Milestone plans live in `docs/superpowers/plans/YYYY-MM-DD-*.md`.
 
-Current state: **M2 landed** (branch `m2-statute-retriever`; tag pending UI smoke) — real Claude Sonnet tool-use loop over the 218-node huurrecht KG replaces the statute retriever fake. Decomposer, case retriever, and synthesizer remain M0 fakes; validator is a permanent stub. `/api/ask` now requires `ANTHROPIC_API_KEY` to exercise the statute retriever; the other stages still drive the rest of the canned answer. M3–M5 replace the remaining fakes (see spec §11).
+Current state: **M3a landed** (branch `m3a-caselaw-ingestion`) — `python -m jurist.ingest.caselaw` pulls huur-related uitspraken from rechtspraak.nl open-data, chunks them, embeds with bge-m3, and writes to LanceDB. Prior: M2 shipped the real statute retriever. The `case_retriever` agent still emits canned events (M3b will swap it for a real bge-m3 + Haiku rerank flow). Decomposer and synthesizer remain M0 fakes; validator is a permanent stub. `/api/ask` requires `ANTHROPIC_API_KEY` for the statute retriever; ingestion itself does not.
 
 ## Commands
 
 ### Backend (Python 3.11, `uv`)
 
 - Install deps: `uv sync --extra dev`
-- Build KG (prerequisite for API start): `uv run python -m jurist.ingest.statutes --refresh -v`
+- Build KG (prerequisite for API start): `uv run python -m jurist.ingest --refresh -v` (dispatches via `src/jurist/ingest/__main__.py`).
+- Build caselaw index: `uv run python -m jurist.ingest.caselaw -v` (one-time ~20–40 min; downloads ~2.3 GB bge-m3 on first run; uses `data/cases/` disk cache + `data/lancedb/cases.lance`).
 - Run full test suite: `uv run pytest -v` (~75s due to `asyncio.sleep` in fake agents)
 - Run a single test: `uv run pytest tests/api/test_orchestrator.py::test_orchestrator_runs_agents_in_expected_order -v`
 - Lint: `uv run ruff check .`
@@ -89,6 +90,15 @@ All 5 run on one asyncio task. Parallelization is explicitly out of scope for v1
 - **Tool surface:** `src/jurist/agents/statute_retriever_tools.py::ToolExecutor` implements 5 tools (`search_articles`, `list_neighbors`, `get_article`, `follow_cross_ref`, `done`). `tool_definitions()` exposes the Anthropic JSON-schema array; `build_catalog(kg)` renders the full corpus as the system-prompt preamble (~63KB, cached at one `ephemeral` breakpoint).
 - **Agent translation:** `src/jurist/agents/statute_retriever.py::run` maps each `LoopEvent` to `TraceEvent`s; on coercion it also emits synthetic `tool_call_started`/`tool_call_completed` for "done" so the UI sees a consistent terminator. `_is_mock(ctx.llm)` (checks `next_turn` without `messages`) routes test vs prod.
 - **Tests:** 113 unit tests use `MockAnthropicClient` — no network. 1 RUN_E2E-gated integration test (`tests/integration/test_m2_statute_retriever_e2e.py`) asserts art. 7:248 BW is cited on the locked question; run with `RUN_E2E=1 uv run pytest tests/integration/...`.
+
+### Caselaw ingestion (M3a)
+
+- **Pipeline:** `src/jurist/ingest/caselaw.py::run_ingest` — nine stages (warm model → list → resume → fetch → parse → filter → chunk → embed → write). Sync + `ThreadPoolExecutor(max_workers=5)` for the fetch stage.
+- **Data source:** `data.rechtspraak.nl/uitspraken/zoeken` filtered on `subject=civielRecht_verbintenissenrecht` + `modified>=2024-01-01`, then a local keyword fence (`huur`/`verhuur`/`woonruimte`/`huurcommissie`). Parent spec §8.2's original `rechtsgebied=Huurrecht` filter was wrong — no such URI exists in the taxonomy.
+- **Embedder:** `src/jurist/embedding.py::Embedder` wraps `sentence-transformers` `BAAI/bge-m3` (1024-d, L2-normalized). Shared with M3b.
+- **Storage:** `src/jurist/vectorstore.py::CaseStore` concrete LanceDB class (no interface — parent spec §15 decision #12). Deduplicates on `(ecli, chunk_idx)`.
+- **Profiles:** `src/jurist/ingest/caselaw_profiles.py` — `{rechtsgebied_name → (subject_uri, keyword_terms)}`. Only `huurrecht` populated; multi-rechtsgebied is a dict-entry diff.
+- **What's fake after M3a:** `case_retriever` still yields `FAKE_CASES` — M3b swaps it.
 
 ### Closed-set citation grounding (deferred to M4)
 
