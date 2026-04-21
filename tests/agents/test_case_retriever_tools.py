@@ -1,0 +1,138 @@
+"""Pure-helper tests for case_retriever_tools — no asyncio, no Anthropic."""
+from __future__ import annotations
+
+import numpy as np
+import pytest
+
+from jurist.agents.case_retriever_tools import (
+    CaseCandidate,
+    retrieve_candidates,
+)
+from jurist.schemas import CaseChunkRow
+from jurist.vectorstore import CaseStore
+
+
+class _FakeEmbedder:
+    """Returns a fixed (1, 1024) vector. Ignores input texts."""
+
+    def __init__(self, vector: np.ndarray) -> None:
+        self._vector = vector.reshape(1, -1).astype(np.float32)
+
+    def encode(self, texts: list[str], *, batch_size: int = 32) -> np.ndarray:
+        return np.repeat(self._vector, len(texts) or 1, axis=0)
+
+
+def _row(ecli: str, chunk_idx: int, text: str, embedding: list[float]) -> CaseChunkRow:
+    return CaseChunkRow(
+        ecli=ecli, chunk_idx=chunk_idx,
+        court="Rb", date="2025-01-01", zaaknummer="z",
+        subject_uri="u", modified="2025-01-01",
+        text=text, embedding=embedding,
+        url=f"https://uitspraken.rechtspraak.nl/details?id={ecli}",
+    )
+
+
+@pytest.fixture
+def populated_store(tmp_path):
+    store = CaseStore(tmp_path / "cases.lance")
+    store.open_or_create()
+    # 12 chunks across 4 ECLIs: A has 5, B has 4, C has 2, D has 1.
+    # Vectors are crafted so that A's chunk 0 has the highest similarity
+    # to the query basis e[0], followed by A's chunk 1, then B's chunks…
+    def vec(dim: int, scale: float = 1.0) -> list[float]:
+        v = np.zeros(1024, dtype=np.float32)
+        v[dim] = scale
+        return v.tolist()
+
+    rows = [
+        _row("ECLI:A", 0, "A best",  vec(0, 1.00)),
+        _row("ECLI:A", 1, "A next",  vec(0, 0.95)),
+        _row("ECLI:A", 2, "A mid",   vec(0, 0.90)),
+        _row("ECLI:A", 3, "A late",  vec(0, 0.85)),
+        _row("ECLI:A", 4, "A worst", vec(0, 0.80)),
+        _row("ECLI:B", 0, "B best",  vec(0, 0.75)),
+        _row("ECLI:B", 1, "B next",  vec(0, 0.70)),
+        _row("ECLI:B", 2, "B mid",   vec(0, 0.65)),
+        _row("ECLI:B", 3, "B late",  vec(0, 0.60)),
+        _row("ECLI:C", 0, "C best",  vec(0, 0.55)),
+        _row("ECLI:C", 1, "C next",  vec(0, 0.50)),
+        _row("ECLI:D", 0, "D only " * 100, vec(0, 0.45)),
+    ]
+    store.add_rows(rows)
+    return store
+
+
+def test_retrieve_candidates_preserves_descending_similarity(populated_store) -> None:
+    query_vec = np.zeros(1024, dtype=np.float32)
+    query_vec[0] = 1.0
+    embedder = _FakeEmbedder(query_vec)
+    cands = retrieve_candidates(
+        populated_store, embedder, "any query",
+        chunks_top_k=12, eclis_limit=10, snippet_chars=50,
+    )
+    assert [c.ecli for c in cands] == ["ECLI:A", "ECLI:B", "ECLI:C", "ECLI:D"]
+    sims = [c.similarity for c in cands]
+    assert sims == sorted(sims, reverse=True)
+
+
+def test_retrieve_candidates_keeps_best_chunk_per_ecli(populated_store) -> None:
+    query_vec = np.zeros(1024, dtype=np.float32)
+    query_vec[0] = 1.0
+    embedder = _FakeEmbedder(query_vec)
+    cands = retrieve_candidates(
+        populated_store, embedder, "any query",
+        chunks_top_k=12, eclis_limit=10, snippet_chars=200,
+    )
+    by_ecli = {c.ecli: c for c in cands}
+    # A's best chunk (idx 0, scale 1.00) wins over chunks 1-4
+    assert by_ecli["ECLI:A"].snippet.startswith("A best")
+    # B's best (idx 0, 0.75)
+    assert by_ecli["ECLI:B"].snippet.startswith("B best")
+
+
+def test_retrieve_candidates_caps_at_eclis_limit(populated_store) -> None:
+    query_vec = np.zeros(1024, dtype=np.float32)
+    query_vec[0] = 1.0
+    embedder = _FakeEmbedder(query_vec)
+    cands = retrieve_candidates(
+        populated_store, embedder, "any query",
+        chunks_top_k=12, eclis_limit=2, snippet_chars=50,
+    )
+    assert len(cands) == 2
+    assert [c.ecli for c in cands] == ["ECLI:A", "ECLI:B"]
+
+
+def test_retrieve_candidates_truncates_snippet_with_ellipsis(populated_store) -> None:
+    query_vec = np.zeros(1024, dtype=np.float32)
+    query_vec[0] = 1.0
+    embedder = _FakeEmbedder(query_vec)
+    cands = retrieve_candidates(
+        populated_store, embedder, "any query",
+        chunks_top_k=12, eclis_limit=10, snippet_chars=30,
+    )
+    d = next(c for c in cands if c.ecli == "ECLI:D")
+    # D's text is "D only D only ..." — text[:30] ends with a trailing space
+    # that rstrip() removes, yielding 29 content chars + 1 ellipsis = 30 total.
+    assert d.snippet.endswith("…")
+    assert len(d.snippet) == 30
+    assert not d.snippet.startswith(" ") and " …" not in d.snippet  # rstrip fired
+
+
+def test_retrieve_candidates_returns_empty_for_empty_store(tmp_path) -> None:
+    store = CaseStore(tmp_path / "empty.lance")
+    store.open_or_create()
+    embedder = _FakeEmbedder(np.zeros(1024, dtype=np.float32))
+    cands = retrieve_candidates(
+        store, embedder, "q", chunks_top_k=10, eclis_limit=5, snippet_chars=50,
+    )
+    assert cands == []
+
+
+def test_case_candidate_is_frozen() -> None:
+    import dataclasses
+    c = CaseCandidate(
+        ecli="E", court="Rb", date="2025-01-01",
+        snippet="s", similarity=0.5, url="u",
+    )
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        c.ecli = "F"  # type: ignore[misc]
