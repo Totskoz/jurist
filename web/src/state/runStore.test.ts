@@ -312,3 +312,81 @@ describe('runStore — apply() archives on terminal events (Task 9)', () => {
     expect(s.history[0].status).toBe('failed');
   });
 });
+
+describe('runStore — decomposition_done + enriched reranked/citation_resolved (inline expansion)', () => {
+  beforeEach(() => {
+    useRunStore.getState().reset();
+    useRunStore.setState({ history: [] });
+  });
+
+  it('appends decomposition_done to traceLog via default case with no side-effect', () => {
+    const store = useRunStore.getState();
+    store.start('r1', 'q');
+    const before = useRunStore.getState();
+    const beforeKg = before.kgState.size;
+    const beforeThinking = Object.keys(before.thinkingByAgent).length;
+    const beforeCases = before.cases.length;
+    const beforeResolutions = before.resolutions.length;
+
+    store.apply(ev('decomposition_done', {
+      sub_questions: ['sq1'],
+      concepts: ['c1'],
+      intent: 'legality_check',
+      huurtype_hypothese: 'onbekend',
+    }, 'decomposer'));
+
+    const s = useRunStore.getState();
+    // Event lands on traceLog verbatim.
+    expect(s.traceLog).toHaveLength(1);
+    expect(s.traceLog[0].type).toBe('decomposition_done');
+    expect(s.traceLog[0].data.sub_questions).toEqual(['sq1']);
+    expect(s.traceLog[0].data.huurtype_hypothese).toBe('onbekend');
+    // No side-effects on other slices.
+    expect(s.kgState.size).toBe(beforeKg);
+    expect(Object.keys(s.thinkingByAgent)).toHaveLength(beforeThinking);
+    expect(s.cases).toHaveLength(beforeCases);
+    expect(s.resolutions).toHaveLength(beforeResolutions);
+  });
+
+  it('appends enriched reranked with picks verbatim to traceLog', () => {
+    const store = useRunStore.getState();
+    store.start('r1', 'q');
+    store.apply(ev('reranked', {
+      picks: [
+        { ecli: 'ECLI:NL:A:1', reason: 'Feitelijk vergelijkbaar.' },
+      ],
+      kept: ['ECLI:NL:A:1'],
+    }, 'case_retriever'));
+
+    const s = useRunStore.getState();
+    expect(s.traceLog).toHaveLength(1);
+    const picks = s.traceLog[0].data.picks as Array<{ ecli: string; reason: string }>;
+    expect(picks[0].ecli).toBe('ECLI:NL:A:1');
+    expect(picks[0].reason).toBe('Feitelijk vergelijkbaar.');
+  });
+
+  it('citation_resolved side-effect ignores enrichment fields but keeps them on traceLog', () => {
+    const store = useRunStore.getState();
+    store.start('r1', 'q');
+    store.apply(ev('citation_resolved', {
+      kind: 'artikel',
+      id: 'BWBR0005290',
+      resolved_url: 'https://wetten.overheid.nl/BWBR0005290',
+      label: 'Boek 7, Artikel 248',
+      quote: 'letterlijke passage uit de wettekst',
+      explanation: 'Regelt huurverhoging.',
+    }, 'synthesizer'));
+
+    const s = useRunStore.getState();
+    // resolutions slice stays shape-compatible — only kind/id/resolved_url.
+    expect(s.resolutions).toEqual([{
+      kind: 'artikel',
+      id: 'BWBR0005290',
+      resolved_url: 'https://wetten.overheid.nl/BWBR0005290',
+    }]);
+    // traceLog keeps every field.
+    expect(s.traceLog[0].data.label).toBe('Boek 7, Artikel 248');
+    expect(s.traceLog[0].data.quote).toBe('letterlijke passage uit de wettekst');
+    expect(s.traceLog[0].data.explanation).toBe('Regelt huurverhoging.');
+  });
+});
