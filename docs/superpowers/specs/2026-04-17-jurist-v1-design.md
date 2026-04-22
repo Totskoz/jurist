@@ -42,7 +42,7 @@ GET  /stream?question_id=...  (Server-Sent Events)
   Decomposer           (Claude Haiku, forced tool schema for structured output)
       → DecomposerOut
   StatuteRetriever     (Claude Sonnet, tool-use loop, max 15 iterations)
-      → StatuteRetrieverOut
+      → StatuteOut
   CaseRetriever        (bge-m3 embedding + LanceDB top-K + Haiku rerank)
       → CaseRetrieverOut
   Synthesizer          (Claude Sonnet, closed-set citation tool schema)
@@ -109,9 +109,12 @@ class DecomposerOut(BaseModel):
     sub_questions: list[str]                                          # 1–5
     concepts: list[str]                                               # Dutch terms: "huurverhoging", "geliberaliseerd", ...
     intent: Literal["legality_check", "calculation", "procedure", "other"]
+    huurtype_hypothese: Literal["sociale", "middeldure", "vrije", "onbekend"]  # M5: segment classification
 ```
 
 **Implementation.** Single Anthropic call with a forced tool `emit_decomposition` used as a structured-output schema. Haiku. System prompt marked cacheable. One regen with a Dutch advisory appended to the user message on first failure, then hard-fail to `DecomposerFailedError` → `run_failed{reason:"decomposition"}`. Consistent with M3b rerank and M4 synthesizer.
+
+M5 adds `huurtype_hypothese` so the synthesizer can present segment-specific procedure recommendations (AQ1). Prompt classifies on signal words; ambiguous → `"onbekend"`.
 
 **Events.**
 - `agent_started { agent: "decomposer" }`
@@ -139,8 +142,9 @@ class CitedArticle(BaseModel):
     body_text: str               # matches ArticleNode.body_text from the KG
     reason: str                  # model's justification for inclusion
 
-class StatuteRetrieverOut(BaseModel):
+class StatuteOut(BaseModel):
     cited_articles: list[CitedArticle]
+    low_confidence: bool = False  # M5: True when <3 articles selected
 ```
 
 The traversal path is reconstructable from the event log (`node_visited` / `edge_traversed` in order) and is not duplicated on each cited article.
@@ -166,9 +170,11 @@ The traversal path is reconstructable from the event log (`node_visited` / `edge
 - `tool_call_completed { tool, args, result_summary }`
 - `node_visited { article_id }` — emitted alongside `get_article` / `follow_cross_ref`
 - `edge_traversed { from_id, to_id }` — emitted alongside `follow_cross_ref`
-- `agent_finished { payload: StatuteRetrieverOut }`
+- `agent_finished { payload: StatuteOut }`
 
 **Prompt caching.** System prompt + the full KG article catalog (`[article_id, label, title, ≤200-char summary]` for all articles, ~100 rows) are marked as a single cache block. This lets the model pick seeds without always issuing an initial `search_articles` call.
+
+M5 derives `low_confidence = len(done.selected) < 3` post-loop. Feeds the synthesizer's early-branch refusal decision (AQ8).
 
 ### 5.3 CaseRetriever
 
@@ -196,6 +202,7 @@ class CitedCase(BaseModel):
 
 class CaseRetrieverOut(BaseModel):
     cited_cases: list[CitedCase]
+    low_confidence: bool = False  # M5: True when all top-3 similarity < 0.55
 ```
 
 **Implementation.**
@@ -206,6 +213,8 @@ class CaseRetrieverOut(BaseModel):
 5. Return the top-3 in score order, reason strings attached.
 
 **Events.** `agent_started`, `search_started`, `case_found { ecli, similarity }` (one per result), `reranked { kept: [ecli, ...] }`, `agent_finished`.
+
+M5 sets `low_confidence = True` when the three reranked picks all have similarity `< settings.case_similarity_floor` (default `0.55`). Distinct from the existing `RerankFailedError` hard-fail (which still fires when `<3` unique ECLIs come back from LanceDB at all). Feeds AQ8.
 
 ### 5.4 Synthesizer
 
@@ -234,10 +243,12 @@ class UitspraakCitation(BaseModel):
     explanation: str
 
 class StructuredAnswer(BaseModel):
-    korte_conclusie: str
-    relevante_wetsartikelen: list[WetArtikelCitation]
-    vergelijkbare_uitspraken: list[UitspraakCitation]
-    aanbeveling: str
+    kind: Literal["answer", "insufficient_context"]  # M5
+    korte_conclusie: str                    # 40–2000 chars
+    relevante_wetsartikelen: list[WetArtikelCitation]   # may be [] iff kind=="insufficient_context"
+    vergelijkbare_uitspraken: list[UitspraakCitation]   # may be [] iff kind=="insufficient_context"
+    aanbeveling: str                        # 40–2000 chars
+    insufficient_context_reason: str | None = None   # required iff kind=="insufficient_context"
 
 class SynthesizerOut(BaseModel):
     answer: StructuredAnswer
@@ -247,6 +258,12 @@ class SynthesizerOut(BaseModel):
 - The Anthropic tool schema for synthesis is built per-request with `article_id` and `bwb_id` typed as `Literal[<exact retrieved ids>]` (over the candidate article paths and their parent BWBs respectively) and `ecli` typed as `Literal[<exact retrieved eclis>]`. Tool-schema validation rejects generations that do not match.
 - After generation, `verify_citations()` (a) confirms each `article_id`/`ecli` is in the candidate set (catches schema-bypass), and (b) confirms each `quote` appears in the source text — NFC-normalize both sides, collapse whitespace runs to single spaces, strict case-sensitive substring. Quote length bounds 40–500 characters, enforced in the tool schema and re-checked post-hoc. Quotes for uitspraken verify against `CitedCase.chunk_text` (the full best-chunk text, not the 400-char `snippet`).
 - On resolution failure: **one** regeneration attempt is made, with an added instruction listing the valid IDs and any quotes that failed lookup. If still failing, the run emits `run_failed { reason: "citation_grounding" }` and the UI renders a visible error. No silent fallback path.
+- M5: when `kind == "insufficient_context"`, `verify_citations` is a no-op (empty lists have nothing to verify). The root Pydantic validator enforces: `kind=="answer"` requires non-empty citation lists and `insufficient_context_reason is None`; `kind=="insufficient_context"` requires a non-empty reason string.
+
+**System prompt.**
+- AQ1 (M5): on `huurtype_hypothese == "onbekend"` the `aanbeveling` must present beding-route and voorstel-route as alternatives ("Als ... Als ..."), never stacked; on known huurtype only the applicable path shows.
+- AQ2 (M5): if any cited case's `chunk_text` contains `Richtlijn 93/13`, `oneerlijk beding`, or `algehele vernietiging`, the `korte_conclusie` must surface the fully-void consequence and the `aanbeveling` must flag the consumer-route option.
+- AQ8 (M5): if the synth judges the retrieved material insufficient to answer, emit `kind="insufficient_context"` with empty lists and a Dutch `insufficient_context_reason` naming what was searched, what's missing, and which specialism (out of `{arbeidsrecht, verzekeringsrecht, burenrecht, consumentenrecht, familierecht, algemeen}`) to suggest. `algemeen` is the catch-all when no named specialism applies; forcing the closed set prevents free generation of imaginary specialisms.
 
 **Events.** `agent_started`, `answer_delta { text }`, `citation_resolved { kind, id, resolved_url }` (one per citation once resolved), `agent_finished`.
 
@@ -313,7 +330,7 @@ One SSE stream per question.
 | `answer_delta` | synthesizer | `{ text }` |
 | `citation_resolved` | synthesizer | `{ kind, id, resolved_url }` |
 | `agent_finished` | any agent | `{ payload }` — the agent's typed output |
-| `run_finished` | orchestrator | `{ final_answer: StructuredAnswer }` |
+| `run_finished` | orchestrator | `{ final_answer: StructuredAnswer }` — `final_answer.kind ∈ {"answer","insufficient_context"}` since M5. Frontend discriminates on `kind`. |
 | `run_failed` | orchestrator | `{ reason, detail }` — `reason ∈ {"llm_error", "rate_limit", "case_rerank", "decomposition", "citation_grounding"}`. `rate_limit` is raised by the orchestrator when `anthropic.RateLimitError` escapes the SDK's built-in retry budget (`AsyncAnthropic(max_retries=8)`); it is distinct from `llm_error` so the UI can show a "service is busy, try again" message rather than a generic failure. |
 
 ## 7. Data model
@@ -587,12 +604,13 @@ Done when:
 - The structured Dutch answer renders. Every citation resolves. Clicking each citation navigates to the correct source.
 - Grounding guard test (`tests/agents/test_synthesizer_grounding.py`) asserts three layers: (a) `build_synthesis_tool_schema(...)`'s `article_id.enum` and `ecli.enum` equal exactly the candidate set; (b) `verify_citations()` fed a tampered `StructuredAnswer` whose IDs are out of set returns `FailedCitation(reason="unknown_id")`, not `KeyError`; (c) agent end-to-end with a mock that produces imagined-ID tool_inputs twice in a row raises `CitationGroundingFailedError` (→ `run_failed{reason:"citation_grounding"}` at the orchestrator level). No silent success.
 
-### M5 — Validator stub + polish + README
+### M5 — Answer quality: AQ1 procedure routing, AQ2 EU escalation, AQ8 graceful refusal, AQ3 HR coverage expansion, eval suite
 
 Done when:
-- `ValidatorStub` is wired in and emits `agent_finished` with `valid: true`. TracePanel shows the validator step as its own section.
-- Failure paths (citation grounding failure, tool-error exhaustion, LanceDB unavailable, Anthropic 5xx) render a readable error in the UI instead of a white screen.
-- README covers: what this is, how to run from a fresh Windows clone (uv sync, npm install, `.env`, ingestion, server, frontend), the demo question, expected behavior, known limitations, v2 ideas.
+- Decomposer emits `huurtype_hypothese`; retrievers emit `low_confidence`; synthesizer routes segment-specific procedure recommendations (AQ1), surfaces EU-law void consequence when relevant (AQ2), and refuses gracefully with `kind="insufficient_context"` when retrieval is insufficient (AQ8).
+- Caselaw fence expanded + priority-ECLI top-up for better HR coverage (AQ3).
+- 5-question eval manifest with pre/post run docs.
+- Frontend renders refusal variant (`InsufficientContextBanner` or equivalent).
 
 ### v1 acceptance
 
@@ -618,6 +636,7 @@ Environment variables (`.env`):
 - `JURIST_CASELAW_CANDIDATE_CHUNKS` — default `150`. Cosine over-fetch pool size before ECLI-dedupe (M3b).
 - `JURIST_CASELAW_CANDIDATE_ECLIS` — default `20`. Cap on unique ECLIs reaching the Haiku rerank (M3b).
 - `JURIST_CASELAW_RERANK_SNIPPET_CHARS` — default `400`. Chunk-text excerpt length per rerank candidate (M3b).
+- `JURIST_CASE_SIMILARITY_FLOOR` — default `0.55`. M5: cosine-similarity floor below which all three reranked cases trip `CaseRetrieverOut.low_confidence=True`.
 - `JURIST_MODEL_DECOMPOSER` — default `claude-haiku-4-5-20251001`. Forced-tool structured output; small task, small model.
 - `JURIST_MODEL_SYNTHESIZER` — default `claude-sonnet-4-6`. Dutch structured generation with closed-set citations.
 - `JURIST_SYNTHESIZER_MAX_TOKENS` — default `8192`. Budget for reasoning prose + structured output combined.
@@ -663,6 +682,16 @@ Environment variables (`.env`):
 | 21 | Quote verification = NFC + whitespace-normalized + case-sensitive strict substring; 40–500 char bounds | Fuzzy (Levenshtein); strict byte match; case-insensitive | Preserves "verbatim" claim while tolerating LLM reformatting. Bounds keep citations substantive without "quote the whole article." |
 | 22 | Decomposer mirrors synthesizer/rerank regen policy (one regen then hard-fail) | Zero regen (trust schema); deterministic fallback | Consistent across the three forced-tool agents. Silent fallback contradicts decision #18 philosophy. |
 | 23 | `verify_citations()` returns `FailedCitation(reason="unknown_id")` on out-of-set IDs, not `KeyError` | Raise KeyError; assert IDs pre-verify | Makes the helper robust to schema-bypass (grounding guard test); turns an invariant into a regen-compatible signal. |
+| M5-1 | Refusal is `StructuredAnswer.kind` variant, not a new terminal event | New terminal SSE event type | Data variant on `run_finished` is cheaper to plumb and doesn't churn SSE or the frontend |
+| M5-2 | Both retriever `low_confidence` flags must be True to trip early-branch refusal | OR-semantics: single flag trips refusal | AND lets synthesizer see full corpus when one retriever still has signal; avoids refusing borderline questions |
+| M5-3 | Synth can *also* emit `kind="insufficient_context"` on the normal path | Only retrievers set early-branch flag; synth always outputs `kind="answer"` | Synth has final authority when retrieval looks confident-by-score but content is actually off-topic |
+| M5-4 | Tool schema uses JSON-Schema `if/then/else` for kind-dependent required fields | Two tool names (`emit_answer` / `emit_refusal`) | One tool name keeps routing simple; `if/then/else` handles field variance without a second tool |
+| M5-5 | `case_similarity_floor = 0.55` default, env-overridable | Hard-coded threshold in source | Derived from M4 eval score distribution (on-topic ~0.71; off-topic ~0.3–0.5); env override avoids code change for tuning |
+| M5-6 | `huurtype_hypothese` is four-way Literal, includes `onbekend` | Optional field (omit when unknown) | Forces explicit classification; honest `onbekend` variant beats a silently absent field |
+| M5-7 | AQ2 EU-escalation is prompt-only, not a retrieval stage | Extra index or subject-URI filter for EU law | Signal is already in `chunk_text`; prompt rule has same effect at zero plumbing cost |
+| M5-8 | Fence expansion + priority ECLI list, not subject-URI broadening | Broaden to `civielRecht` parent URI | `civielRecht` explodes corpus ~5× with irrelevant content; keyword fence was always the real precision mechanism |
+| M5-9 | Priority ECLI list is a text file in git | In-code list or database table | Text file in git is auditable and fixes the "what did we index last" reproducibility hole |
+| M5-10 | Refusal prose uses the same `answer_delta` replay | Separate refusal event type or plain error response | Preserves UX contract; refusals feel first-class, not error screens |
 
 ---
 
