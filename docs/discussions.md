@@ -88,3 +88,99 @@ at chunk boundary doesn't get truncated).
 - **31% huur-fence hit rate** means the retriever sees ~6k embedded ECLIs to search over — plenty of signal, not so much noise that rerank can't dedupe.
 - **Average chunks/case (7.8)** means top-k=20 chunk retrieval translates to ~2-3 distinct cases after ECLI-dedup. Rerank stage will likely widen k to 30-50.
 - **rechtspraak.nl is sensitive to sustained parallelism**; 5 workers is OK with retries but politer would be 2-3 for a re-ingest.
+
+---
+
+## M4 post-eval — external-review pass (2026-04-22)
+
+After M4 landed and produced substantively-correct Dutch answers on the locked
+question (see `docs/evaluations/2026-04-22-m4-e2e-run.md`), the user fed one
+rendered answer into both Claude and Gemini for independent review and shared
+their verdicts. This section triages that feedback against what the pipeline
+actually does, and catalogues the answer-quality limitations the review exposed
+that the mechanical eval did not. M5 is scoped to address a subset; the rest
+are deferred with reasons.
+
+**Important framing.** The reviewers do **not** see our corpus, our grounding
+mechanism, or our system dates. Their critique reads the rendered answer like a
+legal reviewer reads a junior's memo: substantively skeptical. Several of their
+claims turn out to be **reviewer training-data artefacts** rather than real
+defects — cases where their training lags our corpus snapshot. Others are
+real. Both get written down honestly.
+
+### Verified findings — real system defects (drive M5)
+
+| # | Finding | Root cause | Addressed by |
+|---|---|---|---|
+| AQ1 | Synthesizer stacks beding-route (art. 7:248 lid 4 → Huurcommissie binnen 4 mnd na ingang) and voorstel-route (art. 7:253 bezwaar vóór ingang) as sequential steps in the `aanbeveling`. These apply to mutually exclusive huurtypes. | Synthesizer system prompt has no procedure-routing rule; decomposer doesn't emit a huurtype hypothesis for the synth to branch on. | M5 — `DecomposerOut.huurtype_hypothese ∈ {sociale, middeldure, vrije, onbekend}`; synth prompt branches ("Als … is: X. Als … is: Y.") on `onbekend` and single-path on known. |
+| AQ2 | Synthesizer echoes only the statutory "nietig voor het meerdere" even when retrieved Rotterdam/Amsterdam rulings apply Richtlijn 93/13/EEG to conclude **algehele vernietiging**. Material consumer-law angle lost between retrieval and prose. | Case chunks carry the EU-directive reasoning but the synth prompt has no escalation rule; the statutory frame dominates. | M5 — prompt rule: if any cited `chunk_text` contains "Richtlijn 93/13" / "oneerlijk beding" / "algehele vernietiging", `korte_conclusie` + `aanbeveling` must surface the fully-void consequence. |
+| AQ3 | Reviewer named ECLI:NL:HR:2024:1780 as a key 29-nov-2024 HR arrest on oneerlijke huurverhogingsbedingen. Not present in `cases.lance` (0 chunks). We do have 33 distinct HR ECLIs including sibling late-2024 arrests (1663, 1709, 1761, 1763) but not 1780. | Combination of the `modified≥2024-01-01` floor + the huur-fence `{huur, verhuur, woonruimte, huurcommissie}` missed this arrest; unknown whether the ECLI itself even exists (reviewer recollection unverified). | M5 — fence expansion `{huurverhoging, huurprijs, indexering, "oneerlijk beding", "onredelijk beding"}`; curated priority-ECLI sidecar top-up; one live audit task against rechtspraak.nl to verify (or disprove) ECLI:NL:HR:2024:1780 and identify other late-2024 HR huur arrests not yet indexed. |
+| AQ8 | System is corpus-scoped to huurrecht but the behaviour is not — on a non-huur question, the pipeline still dumps a forced `emit_answer` over weak grounding. Today nothing emits a structured refusal. | `StructuredAnswer` has no refusal kind; forced-tool synthesizer cannot decline; retrievers don't expose a low-confidence signal. | M5 — `StructuredAnswer.kind ∈ {answer, insufficient_context}`; `StatuteOut.low_confidence` + `CaseRetrieverOut.low_confidence` (cosine-threshold-based); synth prompt rule to emit refusal when both signals trip or when judged ungrounded. |
+
+### Deferred findings — real but out of M5 scope
+
+| # | Finding | Why now is wrong time |
+|---|---|---|
+| AQ4 | Corpus statute snapshot has no temporal awareness. The rendered 7:248 / Uhw 10 text is correct for today (2026-04-22) but the Wet betaalbare huur revision per 1 juli 2026 will stale it. | Needs a re-ingest discipline + version markers on KG nodes. Tracked separately; not a one-PR fix. |
+| AQ5 | No ministeriële regeling corpus. Actual annual % caps (sociale 4,1 / middel 6,1 / vrij 4,4 per 2026) live outside wetteksten + rechtspraak. | Requires a third ingest source with different structure. Real milestone in its own right. |
+| AQ6 | Grounding verifies "quote is in chunk_text" — not "chunk_text is from the named case's holding". A chunk could be boilerplate quoted from an earlier ruling; we'd still attribute it to the outer case. | Provenance per quote needs parser-level XML structure (section tags, footnotes). M3a's current chunker is section-blind. Non-trivial ingest rework. |
+| AQ7 | Two back-to-back runs on the same question produce different citation sets. AQ1's procedure fix will tighten the recommendation; the citation-picking variability itself is not the locked-question showstopper. | Partly absorbed by AQ1. Pure variability reduction (temperature / preferred sources) costs more than the demo return justifies. |
+
+### Rejected findings — reviewer training-data artefacts
+
+Two specific reviewer claims were **verified against our corpus and rejected** as
+reviewer-side errors. Documented here so future review passes don't re-ingest
+the same mis-critique:
+
+- **Claude claimed art. 7:248 BW citation is a "samengesteld, niet-bestaand
+  citaat"** — specifically that our quote containing *"artikel 10 lid 2 of
+  artikel 10a"* is fabricated. **False.** That exact string is in
+  `data/kg/huurrecht.json` (line 512), sourced from BWB BWBR0005290 at the
+  2026-01-01 snapshot. The phrasing reflects the post-Wet-betaalbare-huur
+  (2024) renumbering. Claude's training pre-dates this amendment; its expected
+  wetstekst is the pre-2024 version. **Our corpus and the rendered answer are
+  correct.**
+
+- **Claude claimed art. 7:265 BW should contain "ten nadele van de huurder"** —
+  i.e. that the article establishes semi-dwingend recht. **Not in this article.**
+  Our corpus has *"Van de bepalingen van deze onderafdeling kan niet worden
+  afgeweken, tenzij uit die bepalingen anders voortvloeit"* (line 745). The
+  "ten nadele" formulation exists elsewhere in Boek 7 (notably 7:209 for
+  opstalrecht-in-huur and 7:242 for gebreken), not in 7:265. Reviewer appears
+  to have confused articles. Our corpus matches BWB.
+
+- **Claude claimed Uhw art. 10 formula (CPI + 1 procentpunt) is "achterhaald"
+  for 2026.** On date (2026-04-22) this is still the operative formula. The
+  Wet betaalbare huur does change it per 1 juli 2026 (ca. 10 weeks hence), at
+  which point our corpus goes stale unless re-ingested. This is AQ4, not a
+  current defect.
+
+### What this pass actually tells us about the system
+
+Three generalisable signals beyond the specific findings:
+
+1. **Grounding works; the reviewer couldn't find a hallucinated citation.**
+   Every quote in the rendered answer appeared verbatim in our corpus body
+   because `verify_citations` forces it. The two reviewer complaints about
+   "fabricated" statute text were reviewer-side confabulation, not synth
+   hallucination. The three-layer defence (schema enum → pydantic →
+   substring) holds.
+
+2. **Retrieval-to-reasoning propagation is the soft seam.** AQ2 is the
+   clearest case: the Rotterdam oneerlijk-beding chunk *is* in the user
+   message Sonnet sees, but Sonnet's synth-prompt doesn't instruct it to
+   escalate when that signal appears. Closed-set grounding stops the model
+   from inventing material; it doesn't make the model *use* all the material
+   in front of it. That's a prompt-engineering problem, not a grounding one.
+
+3. **Scope containment is behavioural, not just textual.** The system is
+   structurally a huur-only engine, but without AQ8 it won't tell a user
+   that. A car-insurance question today would produce a confidently-wrong
+   answer with real-looking huurrecht citations stitched to it. The fix is
+   not to make the system broader — it's to make it *honest about being
+   narrow*. AQ8 delivers that without corpus growth.
+
+### Informs
+
+- M5 spec: `docs/superpowers/specs/2026-04-22-m5-answer-quality-design.md`
+- M5 plan: `docs/superpowers/plans/2026-04-22-m5-answer-quality.md`
