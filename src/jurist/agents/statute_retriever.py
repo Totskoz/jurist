@@ -159,5 +159,8 @@ async def run(
 
 
 def _is_mock(obj: object) -> bool:
-    """Heuristic: the MockAnthropicClient exposes next_turn; AsyncAnthropic does not."""
-    return hasattr(obj, "next_turn") and not hasattr(obj, "messages")
+    """Heuristic: MockAnthropicClient and the M4 _DualMock both expose
+    `next_turn`; AsyncAnthropic does not. A dual-shape test mock may also
+    expose `.messages` (for decomposer's forced-tool path), so we key on
+    `next_turn` alone."""
+    return hasattr(obj, "next_turn")

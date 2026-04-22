@@ -10,12 +10,41 @@ from jurist.config import RunContext
 from jurist.kg.networkx_kg import NetworkXKG
 from jurist.schemas import ArticleNode, CaseChunkRow, KGSnapshot
 from jurist.vectorstore import CaseStore
-from tests.fixtures.mock_llm import MockAnthropicClient, ScriptedToolUse, ScriptedTurn
+from tests.fixtures.mock_llm import (
+    MockAnthropicClient,
+    MockAnthropicForRerank,
+    ScriptedToolUse,
+    ScriptedTurn,
+)
 
 
 class _NoOpEmbedder:
     def encode(self, texts, *, batch_size=32):
         return np.zeros((len(texts), 1024), dtype=np.float32)
+
+
+class _DualMock:
+    """Supports both statute_retriever's .next_turn(history) (streaming
+    tool-loop mock) and decomposer's .messages.create (forced-tool mock).
+
+    Shape-duck-types AsyncAnthropic enough for both M2 and M4 agents."""
+
+    def __init__(self, script: list[ScriptedTurn]) -> None:
+        self._stream = MockAnthropicClient(script)
+        self._msg = MockAnthropicForRerank([
+            {
+                "sub_questions": ["q1"],
+                "concepts": ["c1"],
+                "intent": "legality_check",
+            },
+        ])
+
+    def next_turn(self, history):
+        return self._stream.next_turn(history)
+
+    @property
+    def messages(self):
+        return self._msg.messages
 
 
 def _orch_ctx() -> RunContext:
@@ -47,7 +76,7 @@ def _orch_ctx() -> RunContext:
 
     return RunContext(
         kg=kg,
-        llm=MockAnthropicClient(script),
+        llm=_DualMock(script),
         case_store=store,
         embedder=_NoOpEmbedder(),
     )
@@ -109,10 +138,25 @@ async def test_orchestrator_run_finished_carries_final_answer():
 
 
 class _BoomLLM:
-    """Raises on first turn — simulates Anthropic 429/5xx."""
+    """Decomposer path succeeds (canned emit_decomposition); statute_retriever
+    path raises on first turn to simulate Anthropic 429/5xx. The test asserts
+    run_failed{llm_error} bubbles from the statute retriever pump."""
+
+    def __init__(self) -> None:
+        self._msg = MockAnthropicForRerank([
+            {
+                "sub_questions": ["q1"],
+                "concepts": ["c1"],
+                "intent": "legality_check",
+            },
+        ])
 
     def next_turn(self, history):
         raise RuntimeError("anthropic 503")
+
+    @property
+    def messages(self):
+        return self._msg.messages
 
 
 @pytest.mark.asyncio

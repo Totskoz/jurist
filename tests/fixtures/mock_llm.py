@@ -53,10 +53,16 @@ class MockMessagesClient:
             )
         if isinstance(item, Exception):
             raise item
+        # Derive tool name from tool_choice kwarg so the mock works for any
+        # forced-tool call (select_cases for M3b rerank, emit_decomposition
+        # for M4 decomposer, etc.). Fall back to select_cases for back-compat
+        # with tests that don't set tool_choice.
+        tool_choice = kwargs.get("tool_choice") or {}
+        tool_name = tool_choice.get("name", "select_cases")
         # Mirror the Anthropic SDK's `Message` object shape (enough for our agent).
         tool_use = SimpleNamespace(
             type="tool_use",
-            name="select_cases",
+            name=tool_name,
             input=item,
         )
         return SimpleNamespace(content=[tool_use])

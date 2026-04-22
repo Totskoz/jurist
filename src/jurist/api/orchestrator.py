@@ -75,21 +75,24 @@ async def run_question(
         )
     )
 
-    # 1. Decomposer — fake
+    # All real agents (decomposer in M4, statute_retriever in M2, case_retriever
+    # in M3b) share the injected RunContext. Fail fast if it's missing.
+    if ctx is None:
+        raise RuntimeError(
+            "run_question requires a RunContext in M2+. "
+            "The API lifespan must provide one."
+        )
+
+    # 1. Decomposer — real in M4
     dec_final = await _pump(
         "decomposer",
-        decomposer.run(DecomposerIn(question=question)),
+        decomposer.run(DecomposerIn(question=question), ctx=ctx),
         run_id,
         buffer,
     )
     decomposer_out = DecomposerOut.model_validate(dec_final.data)
 
     # 2. Statute retriever — real in M2
-    if ctx is None:
-        raise RuntimeError(
-            "run_question requires a RunContext in M2+. "
-            "The API lifespan must provide one."
-        )
     stat_in = StatuteRetrieverIn(
         sub_questions=decomposer_out.sub_questions,
         concepts=decomposer_out.concepts,
