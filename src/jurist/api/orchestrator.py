@@ -15,6 +15,7 @@ from jurist.agents import (
 )
 from jurist.agents.case_retriever import RerankFailedError
 from jurist.agents.decomposer import DecomposerFailedError
+from jurist.agents.synthesizer import CitationGroundingFailedError
 from jurist.api.sse import EventBuffer
 from jurist.config import RunContext
 from jurist.schemas import (
@@ -182,18 +183,42 @@ async def run_question(
         return
     case_out = CaseRetrieverOut.model_validate(case_final.data)
 
-    # 4. Synthesizer
+    # 4. Synthesizer — real in M4
     synth_in = SynthesizerIn(
         question=question,
         cited_articles=stat_out.cited_articles,
         cited_cases=case_out.cited_cases,
     )
-    synth_final = await _pump(
-        "synthesizer",
-        synthesizer.run(synth_in, ctx=ctx),
-        run_id,
-        buffer,
-    )
+    try:
+        synth_final = await _pump(
+            "synthesizer",
+            synthesizer.run(synth_in, ctx=ctx),
+            run_id,
+            buffer,
+        )
+    except CitationGroundingFailedError as exc:
+        logger.warning(
+            "run_failed id=%s reason=citation_grounding: %s", run_id, exc,
+        )
+        await buffer.put(
+            TraceEvent(
+                type="run_failed", run_id=run_id, ts=_now_iso(),
+                data={"reason": "citation_grounding", "detail": str(exc)},
+            )
+        )
+        return
+    except Exception as exc:  # noqa: BLE001 — surface LLM/network errors
+        logger.exception(
+            "run_failed id=%s reason=llm_error detail=%s: %s",
+            run_id, type(exc).__name__, exc,
+        )
+        await buffer.put(
+            TraceEvent(
+                type="run_failed", run_id=run_id, ts=_now_iso(),
+                data={"reason": "llm_error", "detail": f"{type(exc).__name__}: {exc}"},
+            )
+        )
+        return
     synth_out = SynthesizerOut.model_validate(synth_final.data)
 
     # 5. Validator stub

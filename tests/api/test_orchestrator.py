@@ -311,3 +311,50 @@ async def test_orchestrator_decomposer_generic_error_surfaces_as_llm_error(monke
     assert events[-1].type == "run_failed"
     assert events[-1].data["reason"] == "llm_error"
     assert "RuntimeError" in events[-1].data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_synthesizer_grounding_failure_surfaces(monkeypatch):
+    """CitationGroundingFailedError → run_failed{reason:"citation_grounding"}."""
+    from jurist.agents import synthesizer
+    from jurist.agents.synthesizer import CitationGroundingFailedError
+    from jurist.schemas import TraceEvent
+
+    async def _boom(_input, *, ctx):
+        yield TraceEvent(type="agent_started")
+        raise CitationGroundingFailedError("two strikes")
+
+    monkeypatch.setattr(synthesizer, "run", _boom)
+
+    buf = EventBuffer()
+    await run_question("q", run_id="run_sg", buffer=buf, ctx=_orch_ctx())
+
+    events = []
+    async for ev in buf.subscribe():
+        events.append(ev)
+
+    assert events[-1].type == "run_failed"
+    assert events[-1].data["reason"] == "citation_grounding"
+    assert "two strikes" in events[-1].data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_synthesizer_generic_error_is_llm_error(monkeypatch):
+    from jurist.agents import synthesizer
+    from jurist.schemas import TraceEvent
+
+    async def _boom(_input, *, ctx):
+        yield TraceEvent(type="agent_started")
+        raise RuntimeError("network down")
+
+    monkeypatch.setattr(synthesizer, "run", _boom)
+
+    buf = EventBuffer()
+    await run_question("q", run_id="run_sg2", buffer=buf, ctx=_orch_ctx())
+
+    events = []
+    async for ev in buf.subscribe():
+        events.append(ev)
+
+    assert events[-1].type == "run_failed"
+    assert events[-1].data["reason"] == "llm_error"
