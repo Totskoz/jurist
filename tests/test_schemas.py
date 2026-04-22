@@ -317,3 +317,31 @@ def test_structured_answer_roundtrip_both_kinds():
         insufficient_context_reason="r" * 50,
     )
     assert StructuredAnswer.model_validate(refusal.model_dump()) == refusal
+
+
+def test_decomposer_out_huurtype_required():
+    with pytest.raises(ValidationError):
+        DecomposerOut(
+            sub_questions=["q1"],
+            concepts=["c1"],
+            intent="legality_check",
+            # huurtype_hypothese missing
+        )
+
+def test_decomposer_out_huurtype_enum():
+    out = DecomposerOut(
+        sub_questions=["q1"],
+        concepts=["c1"],
+        intent="legality_check",
+        huurtype_hypothese="onbekend",
+    )
+    assert out.huurtype_hypothese == "onbekend"
+
+def test_decomposer_out_huurtype_rejects_invalid():
+    with pytest.raises(ValidationError):
+        DecomposerOut(
+            sub_questions=["q1"],
+            concepts=["c1"],
+            intent="legality_check",
+            huurtype_hypothese="commercieel",  # not in enum
+        )

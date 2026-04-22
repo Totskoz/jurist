@@ -94,6 +94,7 @@ class DecomposerOut(BaseModel):
     sub_questions: list[str]
     concepts: list[str]
     intent: Literal["legality_check", "calculation", "procedure", "other"]
+    huurtype_hypothese: Literal["sociale", "middeldure", "vrije", "onbekend"]  # M5 — AQ1
 
 
 class StatuteRetrieverIn(BaseModel):
