@@ -1,9 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { clusterOf, shortLabelFor } from './clusters';
+import { clusterOf, shortLabelFor, type KgNodeLike } from './clusters';
 
-type Node = { article_id: string; bwb_id: string; label: string; title: string };
-
-const n = (article_id: string, bwb_id: string, label: string, title: string): Node =>
+const n = (article_id: string, bwb_id: string, label: string, title: string): KgNodeLike =>
   ({ article_id, bwb_id, label, title });
 
 describe('clusterOf', () => {
@@ -89,7 +87,7 @@ describe('clusterOf — real data coverage', () => {
       expect(['verplichtingen', 'algemeen', 'bedrijfsruimte', 'huurcommissie', 'eindigen', 'huurprijzen', 'overig']).toContain(key);
       seen.add(key);
     }
-    // Sanity: at least 5 of the 7 buckets are non-empty on real data.
-    expect(seen.size).toBeGreaterThanOrEqual(5);
+    // Sanity: all 7 clusters are non-empty on the current corpus.
+    expect(seen.size).toBe(7);
   });
 });
