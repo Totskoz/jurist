@@ -84,7 +84,7 @@ async def run(
             snippet=by_ecli[p.ecli].snippet,
             similarity=by_ecli[p.ecli].similarity,
             reason=p.reason,
-            chunk_text=getattr(by_ecli[p.ecli], "chunk_text", by_ecli[p.ecli].snippet),
+            chunk_text=by_ecli[p.ecli].chunk_text,
             url=by_ecli[p.ecli].url,
         )
         for p in picks

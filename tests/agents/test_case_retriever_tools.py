@@ -134,7 +134,7 @@ def test_case_candidate_is_frozen() -> None:
     import dataclasses
     c = CaseCandidate(
         ecli="E", court="Rb", date="2025-01-01",
-        snippet="s", similarity=0.5, url="u",
+        snippet="s", chunk_text="s", similarity=0.5, url="u",
     )
     with pytest.raises(dataclasses.FrozenInstanceError):
         c.ecli = "F"  # type: ignore[misc]
@@ -168,6 +168,7 @@ def test_build_rerank_user_message_contains_all_inputs() -> None:
             court="Rechtbank Amsterdam",
             date="2022-03-14",
             snippet="Huurverhoging van 15% …",
+            chunk_text="Huurverhoging van 15% — volledige tekst van het beste chunk.",
             similarity=0.81,
             url="https://uitspraken.rechtspraak.nl/details?id=ECLI:NL:RBAMS:2022:5678",
         ),
@@ -176,6 +177,7 @@ def test_build_rerank_user_message_contains_all_inputs() -> None:
             court="Hoge Raad",
             date="2020-09-11",
             snippet="De verhuurder mag …",
+            chunk_text="De verhuurder mag — volledige tekst van het beste chunk.",
             similarity=0.70,
             url="u",
         ),
@@ -219,7 +221,7 @@ def test_build_rerank_user_message_contains_all_inputs() -> None:
 def test_build_rerank_user_message_handles_empty_statute_context() -> None:
     cand = CaseCandidate(
         ecli="E", court="Rb", date="2025-01-01",
-        snippet="s", similarity=0.5, url="u",
+        snippet="s", chunk_text="s", similarity=0.5, url="u",
     )
     msg = build_rerank_user_message(
         question="Q",
@@ -232,3 +234,45 @@ def test_build_rerank_user_message_handles_empty_statute_context() -> None:
     assert "ECLI:E" in msg or "E" in msg
     # Statute header must be omitted entirely — no headerless section
     assert "Relevante wetsartikelen" not in msg
+
+
+def test_candidate_carries_full_chunk_text(tmp_path):
+    """CaseCandidate.chunk_text is the full row text; .snippet is the truncated version."""
+    from jurist.agents.case_retriever_tools import retrieve_candidates
+    from jurist.schemas import CaseChunkRow
+    from jurist.vectorstore import CaseStore
+
+    class _FixedEmbedder:
+        def encode(self, texts, *, batch_size=32):
+            import numpy as np
+            v = np.zeros((len(texts), 1024), dtype=np.float32)
+            v[:, 0] = 1.0
+            return v
+
+    store = CaseStore(tmp_path / "cases.lance")
+    store.open_or_create()
+
+    long_body = "paragraaf " * 200          # ~1800 chars; well over snippet_chars
+    vec = np.zeros(1024, dtype=np.float32)
+    vec[0] = 1.0
+    store.add_rows([CaseChunkRow(
+        ecli="ECLI:NL:TEST:1",
+        chunk_idx=0,
+        court="Rb Test", date="2025-01-01",
+        zaaknummer="z", subject_uri="u", modified="2025-01-01",
+        text=long_body,
+        embedding=vec.tolist(),
+        url="https://uitspraken.rechtspraak.nl/details?id=ECLI:NL:TEST:1",
+    )])
+
+    cands = retrieve_candidates(
+        store=store, embedder=_FixedEmbedder(),
+        query="huurverhoging",
+        chunks_top_k=10, eclis_limit=5, snippet_chars=400,
+    )
+
+    assert len(cands) == 1
+    c = cands[0]
+    assert c.chunk_text == long_body              # full
+    assert c.snippet.rstrip("…").strip() == long_body[:400].rstrip()   # truncated
+    assert len(c.snippet) <= 401                  # 400 + ellipsis

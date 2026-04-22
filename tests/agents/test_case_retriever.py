@@ -131,6 +131,9 @@ async def test_happy_path_emits_expected_events(tmp_path) -> None:
     assert out.cited_cases[0].url == (
         "https://uitspraken.rechtspraak.nl/details?id=ECLI:NL:A:1"
     )
+    # M4: chunk_text propagates from candidate → CitedCase
+    assert all(c.chunk_text for c in out.cited_cases)
+    assert all(len(c.chunk_text) >= len(c.snippet) for c in out.cited_cases)
 
 
 @pytest.mark.asyncio

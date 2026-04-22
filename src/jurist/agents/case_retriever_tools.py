@@ -19,7 +19,8 @@ class CaseCandidate:
     ecli: str
     court: str
     date: str
-    snippet: str          # first N chars of best chunk, ellipsized
+    snippet: str          # first N chars of best chunk, ellipsized — rerank prompt
+    chunk_text: str       # M4: full best-chunk text — synthesizer prompt + quote-verification
     similarity: float     # cosine from best chunk (0..1]
     url: str
 
@@ -72,6 +73,7 @@ def retrieve_candidates(
             court=row.court,
             date=row.date,
             snippet=snippet,
+            chunk_text=row.text,
             similarity=float(sim),
             url=row.url,
         ))
