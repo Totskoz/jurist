@@ -8,6 +8,9 @@ import IdlePhase from './phases/IdlePhase';
 import RunningPhase from './phases/RunningPhase';
 import AnswerReadyPhase from './phases/AnswerReadyPhase';
 import InspectNodePhase from './phases/InspectNodePhase';
+import HistoryIcon from './HistoryIcon';
+import HistoryDrawer from './HistoryDrawer';
+import ViewingHistoryPill from './ViewingHistoryPill';
 
 export default function Panel() {
   const phase = usePhase();
@@ -34,6 +37,11 @@ export default function Panel() {
     return () => window.removeEventListener('keydown', handler);
   }, [inspectedNode, closeInspector]);
 
+  const hydrateHistory = useRunStore((s) => s.hydrateHistory);
+  useEffect(() => {
+    void hydrateHistory();
+  }, [hydrateHistory]);
+
   const collapseOffset = panelWidth + PANEL_COLLAPSE_OVERSHOOT;
 
   return (
@@ -57,8 +65,10 @@ export default function Panel() {
         zIndex: 5,
       }}
     >
+      <HistoryIcon />
       <CollapseHandle />
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: 28 }}>
+        <ViewingHistoryPill />
         <AnimatePresence mode="wait">
           <motion.div
             key={phase}
@@ -74,6 +84,7 @@ export default function Panel() {
           </motion.div>
         </AnimatePresence>
       </div>
+      <HistoryDrawer />
     </motion.aside>
   );
 }
