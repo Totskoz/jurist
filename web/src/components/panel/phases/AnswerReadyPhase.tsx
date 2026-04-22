@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRunStore } from '../../../state/runStore';
+import { useActiveRun } from '../../../hooks/useActiveRun';
 import CitationLink from '../../CitationLink';
 import { InsufficientContextBanner } from '../../InsufficientContextBanner';
 import PipelineProgress from '../PipelineProgress';
@@ -11,11 +12,9 @@ const AGENT_ORDER = ['decomposer', 'statute_retriever', 'case_retriever', 'synth
 
 export default function AnswerReadyPhase() {
   const status = useRunStore((s) => s.status);
-  const finalAnswer = useRunStore((s) => s.finalAnswer);
   const question = useRunStore((s) => s.question);
-  const traceLog = useRunStore((s) => s.traceLog);
-  const thinkingByAgent = useRunStore((s) => s.thinkingByAgent);
   const reset = useRunStore((s) => s.reset);
+  const { finalAnswer, traceLog, thinkingByAgent } = useActiveRun();
 
   const [showReasoning, setShowReasoning] = useState(false);
 

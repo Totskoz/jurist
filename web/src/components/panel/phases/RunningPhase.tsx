@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRunStore } from '../../../state/runStore';
+import { useActiveRun } from '../../../hooks/useActiveRun';
 import PipelineProgress from '../PipelineProgress';
 import AgentThinking from '../AgentThinking';
 import TraceLines from '../TraceLines';
@@ -8,9 +9,7 @@ const AGENT_ORDER = ['decomposer', 'statute_retriever', 'case_retriever', 'synth
 
 export default function RunningPhase() {
   const question = useRunStore((s) => s.question);
-  const traceLog = useRunStore((s) => s.traceLog);
-  const thinkingByAgent = useRunStore((s) => s.thinkingByAgent);
-  const answerText = useRunStore((s) => s.answerText);
+  const { traceLog, thinkingByAgent, answerText } = useActiveRun();
 
   // Which agent is currently active (most recent agent_started without a matching agent_finished)?
   // Also capture when it started so we can show live elapsed time — makes it obvious

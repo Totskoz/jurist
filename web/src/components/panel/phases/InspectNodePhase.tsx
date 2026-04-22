@@ -1,4 +1,5 @@
 import { useRunStore } from '../../../state/runStore';
+import { useActiveRun } from '../../../hooks/useActiveRun';
 import { useKgData } from '../../../hooks/useKgData';
 import { shortLabelFor } from '../../graph/clusters';
 
@@ -8,9 +9,9 @@ function sourceUrlFor(bwbId: string): string {
 
 export default function InspectNodePhase() {
   const inspectedNode = useRunStore((s) => s.inspectedNode);
-  const citedSet = useRunStore((s) => s.citedSet);
   const closeInspector = useRunStore((s) => s.closeInspector);
   const inspectNode = useRunStore((s) => s.inspectNode);
+  const { citedSet } = useActiveRun();
   const { data } = useKgData();
 
   if (!inspectedNode || !data) return null;

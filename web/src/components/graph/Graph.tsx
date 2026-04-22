@@ -4,6 +4,7 @@ import ForceGraph2D from 'react-force-graph-2d';
 // @ts-expect-error — transitive dep shipped with react-force-graph-2d; no bundled types
 import { forceCenter, forceX, forceY } from 'd3-force-3d';
 import { useRunStore } from '../../state/runStore';
+import { useActiveRun } from '../../hooks/useActiveRun';
 import { useKgData } from '../../hooks/useKgData';
 import { clusterOf, shortLabelFor } from './clusters';
 import { FORCE_CONFIG } from './forceConfig';
@@ -66,8 +67,7 @@ export default function Graph() {
   const [hover, setHover] = useState<{ label: string; title: string; x: number; y: number } | null>(null);
 
   // Subscribe narrowly.
-  const kgState = useRunStore((s) => s.kgState);
-  const edgeState = useRunStore((s) => s.edgeState);
+  const { kgState, edgeState } = useActiveRun();
   const inspectedNode = useRunStore((s) => s.inspectedNode);
   const inspectNode = useRunStore((s) => s.inspectNode);
 
