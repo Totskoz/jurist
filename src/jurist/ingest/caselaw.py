@@ -175,6 +175,10 @@ def run_ingest(
     log.info("  %d chunks total", len(all_chunks))
 
     if not all_chunks:
+        # No new chunks this run; report the pre-existing index size so
+        # idempotent re-runs report a consistent `unique_eclis`.
+        result.unique_eclis = len(seen)
+        result.unique_eclis_added = 0
         result.wall_clock_s = time.perf_counter() - started
         return result
 

@@ -36,14 +36,13 @@ async def test_m2_retriever_finds_7_248_on_locked_question():
 
     # Real Anthropic client.
     client = AsyncAnthropic()  # picks ANTHROPIC_API_KEY from env
+    ctx = RunContext(kg=kg, llm=client)
 
-    # Drive the fake decomposer to get realistic canned input.
+    # Drive the real decomposer (Haiku forced-tool) to get realistic input.
     dec_events = []
-    async for ev in decomposer_run(DecomposerIn(question=LOCKED_QUESTION)):
+    async for ev in decomposer_run(DecomposerIn(question=LOCKED_QUESTION), ctx=ctx):
         dec_events.append(ev)
     dec_out = DecomposerOut.model_validate(dec_events[-1].data)
-
-    ctx = RunContext(kg=kg, llm=client)
     stat_in = StatuteRetrieverIn(
         sub_questions=dec_out.sub_questions,
         concepts=dec_out.concepts,
