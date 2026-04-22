@@ -116,14 +116,25 @@ async def test_synthesizer_happy_path():
         events.append(ev)
 
     types = [ev.type for ev in events]
-    # agent_started is first; agent_finished is last; thinking comes before
-    # citation_resolved and answer_delta.
     assert types[0] == "agent_started"
     assert types[-1] == "agent_finished"
-    assert types.count("agent_thinking") == 3                       # one per text_delta
-    # two citations total → two citation_resolved events
+    assert types.count("agent_thinking") == 3
     assert types.count("citation_resolved") == 2
-    assert types.count("answer_delta") >= 5                         # at least several tokens
+    assert types.count("answer_delta") >= 5
+
+    citations = [ev for ev in events if ev.type == "citation_resolved"]
+    # Artikel event — kind=artikel, label populated, quote + explanation present.
+    artikel_ev = next(c for c in citations if c.data["kind"] == "artikel")
+    assert artikel_ev.data["id"] == "BWBR0005290"
+    assert artikel_ev.data["label"] == "Boek 7, Artikel 248"
+    assert "drie jaren" in artikel_ev.data["quote"]
+    assert "bevoegdheid" in artikel_ev.data["explanation"].lower()
+    # Uitspraak event — kind=uitspraak, no label field, quote + explanation present.
+    uitspraak_ev = next(c for c in citations if c.data["kind"] == "uitspraak")
+    assert uitspraak_ev.data["id"] == "ECLI:NL:RBAMS:2022:5678"
+    assert "label" not in uitspraak_ev.data
+    assert "15%" in uitspraak_ev.data["quote"]
+    assert "buitensporig" in uitspraak_ev.data["explanation"]
 
     out = SynthesizerOut.model_validate(events[-1].data)
     assert "15%" in out.answer.korte_conclusie

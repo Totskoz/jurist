@@ -384,6 +384,9 @@ async def run(
                 "kind": "artikel",
                 "id": wa.bwb_id,
                 "resolved_url": _ARTIKEL_URL.format(bwb_id=wa.bwb_id),
+                "label": wa.article_label,
+                "quote": wa.quote,
+                "explanation": wa.explanation,
             },
         )
     for uc in answer.vergelijkbare_uitspraken:
@@ -393,6 +396,8 @@ async def run(
                 "kind": "uitspraak",
                 "id": uc.ecli,
                 "resolved_url": _UITSPRAAK_URL.format(ecli=uc.ecli),
+                "quote": uc.quote,
+                "explanation": uc.explanation,
             },
         )
 
