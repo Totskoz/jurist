@@ -53,6 +53,7 @@ class _EndpointsMock:
                 "sub_questions": ["q1"],
                 "concepts": ["c1"],
                 "intent": "legality_check",
+                "huurtype_hypothese": "onbekend",
             },
         ])
         self._synth_stream = MockStreamingClient([

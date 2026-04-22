@@ -32,6 +32,7 @@ async def test_decomposer_happy_path():
             "sub_questions": ["Is de woning gereguleerd?", "Wat is het maximum?"],
             "concepts": ["huurverhoging", "gereguleerd"],
             "intent": "legality_check",
+            "huurtype_hypothese": "onbekend",
         }
     ])
     events = []
@@ -74,6 +75,7 @@ async def test_decomposer_regens_on_missing_tool_use():
                             "sub_questions": ["q1"],
                             "concepts": ["c1"],
                             "intent": "procedure",
+                            "huurtype_hypothese": "onbekend",
                         },
                     ),
                 ])
@@ -151,6 +153,7 @@ async def test_decomposer_regens_on_bad_intent():
                         "sub_questions": ["q1"],
                         "concepts": ["c1"],
                         "intent": "foo",         # not in enum
+                        "huurtype_hypothese": "onbekend",
                     }
                     return SimpleNamespace(content=[
                         SimpleNamespace(
@@ -165,6 +168,7 @@ async def test_decomposer_regens_on_bad_intent():
                             "sub_questions": ["q1"],
                             "concepts": ["c1"],
                             "intent": "calculation",
+                            "huurtype_hypothese": "onbekend",
                         },
                     ),
                 ])

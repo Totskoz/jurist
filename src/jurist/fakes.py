@@ -8,6 +8,7 @@ from jurist.schemas import (
     ArticleEdge,
     ArticleNode,
     CitedCase,
+    DecomposerOut,
     StructuredAnswer,
     UitspraakCitation,
     WetArtikelCitation,
@@ -103,6 +104,20 @@ FAKE_KG: tuple[list[ArticleNode], list[ArticleEdge]] = (_NODES, _EDGES)
 
 FAKE_VISIT_PATH: list[str] = [_A248, _A249, _A250, _A254, _A255]
 
+FAKE_DECOMPOSER_OUT = DecomposerOut(
+    sub_questions=[
+        "Welke wettelijke maxima gelden voor huurverhoging?",
+        "Onder welke voorwaarden is een verhoging van 15% toegestaan?",
+    ],
+    concepts=[
+        "huurprijs",
+        "wettelijk maximum huurverhoging",
+        "huurverhogingsbeding",
+    ],
+    intent="legality_check",
+    huurtype_hypothese="onbekend",  # M5
+)
+
 FAKE_CASES: list[CitedCase] = [
     CitedCase(
         ecli="ECLI:NL:HR:2020:1234",
@@ -156,6 +171,7 @@ FAKE_CASES: list[CitedCase] = [
 ]
 
 FAKE_ANSWER: StructuredAnswer = StructuredAnswer(
+    kind="answer",
     korte_conclusie=(
         "Een huurverhoging van 15% is in de meeste gevallen niet toegestaan. "
         "Bij gereguleerde woonruimte geldt een jaarlijks maximum dat door de minister wordt "
@@ -198,4 +214,5 @@ FAKE_ANSWER: StructuredAnswer = StructuredAnswer(
         "Maak binnen zes weken na ontvangst van het voorstel bezwaar bij de verhuurder; "
         "kom je er niet uit, leg het geschil voor aan de Huurcommissie."
     ),
+    insufficient_context_reason=None,
 )

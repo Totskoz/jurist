@@ -74,6 +74,11 @@ class Settings:
         os.getenv("JURIST_SYNTHESIZER_MAX_TOKENS", "8192")
     )
 
+    # M5 — case retriever low-confidence threshold
+    case_similarity_floor: float = float(
+        os.getenv("JURIST_CASE_SIMILARITY_FLOOR", "0.55")
+    )
+
     @property
     def kg_path(self) -> Path:
         return self.data_dir / "kg" / "huurrecht.json"

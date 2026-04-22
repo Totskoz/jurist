@@ -52,6 +52,7 @@ def test_decomposer_out_intent_literal():
         sub_questions=["Mag de huur omhoog?"],
         concepts=["huurverhoging"],
         intent="legality_check",
+        huurtype_hypothese="onbekend",
     )
     assert out.intent == "legality_check"
 
