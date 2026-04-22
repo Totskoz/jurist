@@ -7,27 +7,28 @@ otherwise be lost to git history.
 
 ---
 
-## M3a — Caselaw ingestion (landed 2026-04-21)
+## M3a — Caselaw ingestion (landed 2026-04-22)
 
 ### Final corpus stats
 
-From the first full ingest run against live rechtspraak.nl. Stage-8 embedding
-was still running at time of commit; the two TBD rows will be filled in
-with a follow-up commit once stage 9 completes.
+From the first full ingest run against live rechtspraak.nl. Total wall clock
+20.7 hours, with stage 8 (embedding) absorbing ~95% of that on a 16 GB
+Ryzen 7 5800H — see "Observations for M3b" below for throughput analysis.
 
 | Stage | Count | Notes |
 |---|---|---|
 | Listed (from `/uitspraken/zoeken`) | 19,841 | `subject=civielRecht_verbintenissenrecht`, `modified>=2024-01-01` |
 | Skipped at resume gate | 11 | Already indexed from earlier 20-ECLI smoke test |
-| Fetched XML | 19,830 | 5-way parallel via `ThreadPoolExecutor` |
-| Parse failures | 4 | 0.02% — malformed XML at line 2 col 39 (likely BOM/encoding); skipped |
+| Fetched XML | 19,830 | 5-way parallel via `ThreadPoolExecutor`; 19,829 cache hits on the final run (cache built up across earlier retry cycles) |
+| Parse failures | 4 | 0.02% — malformed XML at line 2 col 39 (likely BOM/encoding); ECLIs `RBAMS:2023:295`, `RBGEL:2025:3408`, `RBDHA:2026:1804`, `RBLIM:2026:1366`; skipped |
 | Parsed successfully | 19,826 | |
 | Passed huur fence | 6,088 | 31% hit rate on verbintenissenrecht — confirms huur is a material subset |
 | Chunks generated | 47,202 | ~7.8 chunks/case, 500-word target + 50-word overlap |
-| **Unique ECLIs in LanceDB (final)** | **TBD — paste final `unique_eclis` line** | |
-| **Rows written** | **TBD — paste final `chunks` line** | |
+| **Unique ECLIs in LanceDB (final)** | **6,099** | 6,088 new + 11 resumed from smoke test |
+| **Rows written** | **47,202** | One row per chunk; 1024-d bge-m3 embedding per row |
 
-Store: `data/lancedb/cases.lance` (pyarrow schema; 1024-d bge-m3 embeddings, L2-normalized).
+Total wall clock: **74,437 s (20.7 h)**. Store: `data/lancedb/cases.lance`
+(pyarrow schema; 1024-d bge-m3 embeddings, L2-normalized).
 
 ### Why this shape?
 
@@ -81,7 +82,9 @@ at chunk boundary doesn't get truncated).
 
 ### Observations for M3b
 
-- **bge-m3 on CPU is ~20-80 chunks/sec** (varies with chunk length); 47k chunks took ~15-30 min. Retriever-time query embedding is 1 chunk → milliseconds.
+- **bge-m3 on CPU is ~0.64 chunks/sec on this hardware** (16 GB Ryzen 7 5800H). Measured via `py-spy dump --locals` on the live process over a 38-minute window mid-run; matches the 14h-average back-computation. Full stage 8 took ~20 h wall clock — dominated by memory pressure (committed 27 GB against 16 GB physical), not FLOPs. On a machine with ≥32 GB RAM or a GPU, expect 20-80× faster. Retriever-time query embedding is 1 chunk → milliseconds regardless.
+- **No progress logging was a mistake.** The first indication that stage 8 was making forward progress came from live `py-spy dump --locals` reads of `sentences_sorted` / `start_index` — not from the process itself. M3b (and any re-ingest) should thread a `show_progress_bar=True` or equivalent logging hook through `Embedder.encode` so the operator can see chunks/sec without attaching a debugger.
+- **No checkpointing was also a mistake.** Stage 8 embeds all chunks in-memory, then stage 9 writes in one pass. A 20h process with zero persisted progress is a single point of failure — if it crashes at hour 19, everything is lost. A batched write loop (embed N chunks → write to LanceDB → repeat) would make the pipeline resumable at ≤N-chunk granularity.
 - **31% huur-fence hit rate** means the retriever sees ~6k embedded ECLIs to search over — plenty of signal, not so much noise that rerank can't dedupe.
 - **Average chunks/case (7.8)** means top-k=20 chunk retrieval translates to ~2-3 distinct cases after ECLI-dedup. Rerank stage will likely widen k to 30-50.
 - **rechtspraak.nl is sensitive to sustained parallelism**; 5 workers is OK with retries but politer would be 2-3 for a re-ingest.
