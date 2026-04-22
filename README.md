@@ -1,6 +1,6 @@
 # Jurist
 
-Grounded Dutch **huurrecht** (tenancy-law) Q&A — a small multi-agent demo. Every citation is a real BWB article or ECLI, every answer goes through a post-hoc grounding check, and the whole pipeline streams over SSE so the UI can narrate each step.
+Grounded Dutch **huurrecht** (tenancy-law) Q&A, a small multi-agent demo. Every citation is a real BWB article or ECLI, every answer goes through a post-hoc grounding check, and the whole pipeline streams over SSE so the UI can narrate each step.
 
 ![Jurist frontend — two-cluster force-directed KG of huurrecht (Boek 7 BW + Uhw) alongside a docked answer panel](docs/images/kg-hero.png)
 
