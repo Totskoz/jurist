@@ -1,11 +1,11 @@
-"""M3b case retriever — happy path."""
+"""M3b case retriever — happy path + M5 low_confidence."""
 from __future__ import annotations
 
 import numpy as np
 import pytest
 
 from jurist.agents import case_retriever
-from jurist.config import RunContext
+from jurist.config import RunContext, Settings
 from jurist.kg.networkx_kg import NetworkXKG
 from jurist.schemas import (
     ArticleNode,
@@ -151,3 +151,121 @@ async def test_embedder_called_once_with_joined_sub_questions(tmp_path) -> None:
     assert len(embedder.calls) == 1
     # Joined with newline
     assert embedder.calls[0] == ["SQ1\nSQ2"]
+
+
+# ---------------------------------------------------------------------------
+# M5 low_confidence tests
+# ---------------------------------------------------------------------------
+
+def _make_chunk_row(ecli: str, text: str) -> CaseChunkRow:
+    """Minimal CaseChunkRow for _FakeCaseStore — embedding field unused."""
+    return CaseChunkRow(
+        ecli=ecli, chunk_idx=0, court="Rb", date="2025-01-01",
+        zaaknummer="z", subject_uri="u", modified="2025-01-01",
+        text=text, embedding=[0.0] * 1024,
+        url=f"https://uitspraken.rechtspraak.nl/details?id={ecli}",
+    )
+
+
+class _FakeCaseStore:
+    """Bypasses LanceDB. Returns predetermined (CaseChunkRow, similarity) pairs."""
+
+    def __init__(self, rows_with_sims: list[tuple[CaseChunkRow, float]]) -> None:
+        self._rows = rows_with_sims
+
+    def query(self, vector: np.ndarray, *, top_k: int = 20) -> list[tuple[CaseChunkRow, float]]:  # noqa: ARG002
+        return self._rows[:top_k]
+
+
+def _weak_store() -> _FakeCaseStore:
+    """3 candidates with similarities [0.42, 0.38, 0.40] — all below 0.55."""
+    return _FakeCaseStore([
+        (_make_chunk_row("ECLI:NL:W:1", "weak alpha text"), 0.42),
+        (_make_chunk_row("ECLI:NL:W:2", "weak beta text"), 0.40),
+        (_make_chunk_row("ECLI:NL:W:3", "weak gamma text"), 0.38),
+    ])
+
+
+def _mixed_store() -> _FakeCaseStore:
+    """3 candidates with similarities [0.71, 0.52, 0.48] — top one above 0.55."""
+    return _FakeCaseStore([
+        (_make_chunk_row("ECLI:NL:M:1", "strong alpha text"), 0.71),
+        (_make_chunk_row("ECLI:NL:M:2", "medium beta text"), 0.52),
+        (_make_chunk_row("ECLI:NL:M:3", "medium gamma text"), 0.48),
+    ])
+
+
+def _rerank_picks(eclis: list[str]) -> dict:
+    assert len(eclis) == 3
+    return {"picks": [
+        {"ecli": eclis[0], "reason": "Meest relevante uitspraak voor deze zaak."},
+        {"ecli": eclis[1], "reason": "Relevant voor juridische context huurrecht."},
+        {"ecli": eclis[2], "reason": "Toepassing van vergelijkbare huurprocedure."},
+    ]}
+
+
+@pytest.mark.asyncio
+async def test_case_retriever_low_confidence_true_when_all_below_floor() -> None:
+    """All three reranked picks have similarity < 0.55 → low_confidence=True."""
+    store = _weak_store()
+    embedder = _FakeEmbedder()
+    eclis = ["ECLI:NL:W:1", "ECLI:NL:W:2", "ECLI:NL:W:3"]
+    mock = MockAnthropicForRerank(tool_inputs=[_rerank_picks(eclis)])
+    ctx = RunContext(kg=_kg_stub(), llm=mock, case_store=store, embedder=embedder)
+    inp = CaseRetrieverIn(
+        question="off-topic vraag", sub_questions=["?"], statute_context=[],
+    )
+
+    out_events = []
+    async for ev in case_retriever.run(inp, ctx=ctx):
+        out_events.append(ev)
+
+    out = CaseRetrieverOut.model_validate(out_events[-1].data)
+    assert len(out.cited_cases) == 3
+    assert all(c.similarity < 0.55 for c in out.cited_cases)
+    assert out.low_confidence is True
+
+
+@pytest.mark.asyncio
+async def test_case_retriever_low_confidence_false_when_any_above_floor() -> None:
+    """At least one picked case ≥ 0.55 → low_confidence=False."""
+    store = _mixed_store()
+    embedder = _FakeEmbedder()
+    eclis = ["ECLI:NL:M:1", "ECLI:NL:M:2", "ECLI:NL:M:3"]
+    mock = MockAnthropicForRerank(tool_inputs=[_rerank_picks(eclis)])
+    ctx = RunContext(kg=_kg_stub(), llm=mock, case_store=store, embedder=embedder)
+    inp = CaseRetrieverIn(
+        question="relevante huurvraag", sub_questions=["?"], statute_context=[],
+    )
+
+    out_events = []
+    async for ev in case_retriever.run(inp, ctx=ctx):
+        out_events.append(ev)
+
+    out = CaseRetrieverOut.model_validate(out_events[-1].data)
+    assert out.low_confidence is False
+
+
+@pytest.mark.asyncio
+async def test_case_retriever_low_confidence_respects_floor_threshold(monkeypatch) -> None:
+    """Lowering the floor to 0.80 makes even similarity=0.71 count as low → True."""
+    # Patch the settings object in the case_retriever module directly.
+    # This avoids importlib.reload complications with module-level bindings.
+    high_floor_settings = Settings(case_similarity_floor=0.80)
+    monkeypatch.setattr("jurist.agents.case_retriever.settings", high_floor_settings)
+
+    store = _mixed_store()  # similarities [0.71, 0.52, 0.48] — all < 0.80
+    embedder = _FakeEmbedder()
+    eclis = ["ECLI:NL:M:1", "ECLI:NL:M:2", "ECLI:NL:M:3"]
+    mock = MockAnthropicForRerank(tool_inputs=[_rerank_picks(eclis)])
+    ctx = RunContext(kg=_kg_stub(), llm=mock, case_store=store, embedder=embedder)
+    inp = CaseRetrieverIn(
+        question="relevante huurvraag", sub_questions=["?"], statute_context=[],
+    )
+
+    out_events = []
+    async for ev in case_retriever.run(inp, ctx=ctx):
+        out_events.append(ev)
+
+    out = CaseRetrieverOut.model_validate(out_events[-1].data)
+    assert out.low_confidence is True

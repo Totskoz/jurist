@@ -89,9 +89,14 @@ async def run(
         )
         for p in picks
     ]
+    floor = settings.case_similarity_floor
+    low_confidence = (
+        len(cited) >= 3
+        and all(c.similarity < floor for c in cited)
+    )
     yield TraceEvent(
         type="agent_finished",
-        data=CaseRetrieverOut(cited_cases=cited).model_dump(),
+        data=CaseRetrieverOut(cited_cases=cited, low_confidence=low_confidence).model_dump(),
     )
 
 
