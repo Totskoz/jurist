@@ -8,7 +8,7 @@ Jurist is a portfolio multi-agent demo answering Dutch **huurrecht** (tenancy la
 
 **Authoritative design:** `docs/superpowers/specs/2026-04-17-jurist-v1-design.md`. Read this before making substantive design decisions. Milestone plans live in `docs/superpowers/plans/YYYY-MM-DD-*.md`.
 
-Current state: **M3b landed on m3b-case-retriever (pending merge)** — the `case_retriever` agent runs a real pipeline: embed sub-questions with bge-m3, retrieve top-150 LanceDB chunks, dedupe to 20 unique ECLIs, Haiku-rerank to 3 `CitedCase`s with Dutch reason strings. Closed-set grounding via JSON-Schema `enum` on ECLI; one regen then `run_failed{reason:"case_rerank"}` on malformed output. API startup adds an Embedder cold-load (~5-10s, one-time per process) and a fail-fast gate on `data/lancedb/cases.lance`. Decomposer and synthesizer remain M0 fakes (→ M4); validator is a permanent stub.
+Current state: **M3b landed on master** — the `case_retriever` agent runs a real pipeline: embed sub-questions with bge-m3, retrieve top-150 LanceDB chunks, dedupe to 20 unique ECLIs, Haiku-rerank to 3 `CitedCase`s with Dutch reason strings. Closed-set grounding via JSON-Schema `enum` on ECLI; one regen then `run_failed{reason:"case_rerank"}` on malformed output. API startup adds an Embedder cold-load (~5-10s, one-time per process) and a fail-fast gate on `data/lancedb/cases.lance`. Decomposer and synthesizer remain M0 fakes (→ M4); validator is a permanent stub.
 
 ## Commands
 
