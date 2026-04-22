@@ -4,6 +4,7 @@ from __future__ import annotations
 import pytest
 
 from jurist.agents import synthesizer
+from jurist.agents.synthesizer import CitationGroundingFailedError
 from jurist.config import RunContext
 from jurist.schemas import (
     CitedArticle,
@@ -126,3 +127,92 @@ async def test_synthesizer_happy_path():
     out = SynthesizerOut.model_validate(events[-1].data)
     assert "15%" in out.answer.korte_conclusie
     assert out.answer.relevante_wetsartikelen[0].article_id.endswith("/Artikel248")
+
+
+def _invalid_tool_input_quote_not_in_source():
+    ti = _valid_tool_input()
+    ti["relevante_wetsartikelen"][0]["quote"] = (
+        "Deze zin komt echt niet letterlijk voor in de brontekst maar is lang genoeg."
+    )
+    return ti
+
+
+@pytest.mark.asyncio
+async def test_synthesizer_regens_on_quote_failure_then_succeeds():
+    script_1 = StreamScript(
+        text_deltas=["denk 1"],
+        tool_input=_invalid_tool_input_quote_not_in_source(),
+    )
+    script_2 = StreamScript(
+        text_deltas=["denk 2"],
+        tool_input=_valid_tool_input(),
+    )
+    client = MockStreamingClient([script_1, script_2])
+    ctx = _ctx(client)
+
+    events = []
+    async for ev in synthesizer.run(
+        SynthesizerIn(
+            question="Mag 15%?",
+            cited_articles=_articles(),
+            cited_cases=_cases(),
+        ),
+        ctx=ctx,
+    ):
+        events.append(ev)
+
+    assert events[-1].type == "agent_finished"
+    assert len(client.calls) == 2
+    # Advisory appears in second call's user message
+    second_user = client.calls[1]["messages"][0]["content"]
+    assert "ongeldige citaten" in second_user.lower()
+    assert "not_in_source" in second_user
+
+
+@pytest.mark.asyncio
+async def test_synthesizer_hard_fails_after_two_quote_failures():
+    bad = _invalid_tool_input_quote_not_in_source()
+    client = MockStreamingClient([
+        StreamScript(text_deltas=["."], tool_input=bad),
+        StreamScript(text_deltas=["."], tool_input=bad),
+    ])
+    ctx = _ctx(client)
+
+    with pytest.raises(CitationGroundingFailedError, match="after retry"):
+        async for _ in synthesizer.run(
+            SynthesizerIn(
+                question="q",
+                cited_articles=_articles(),
+                cited_cases=_cases(),
+            ),
+            ctx=ctx,
+        ):
+            pass
+    assert len(client.calls) == 2
+
+
+@pytest.mark.asyncio
+async def test_synthesizer_regens_on_missing_tool_use_then_succeeds():
+    # First script has no tool_input → tool_use block missing from final message.
+    client = MockStreamingClient([
+        StreamScript(text_deltas=["I forgot the tool."], tool_input=None),
+        StreamScript(text_deltas=["ok now"], tool_input=_valid_tool_input()),
+    ])
+    ctx = _ctx(client)
+
+    events = []
+    async for ev in synthesizer.run(
+        SynthesizerIn(
+            question="q",
+            cited_articles=_articles(),
+            cited_cases=_cases(),
+        ),
+        ctx=ctx,
+    ):
+        events.append(ev)
+
+    assert events[-1].type == "agent_finished"
+    assert len(client.calls) == 2
+    # Generic advisory (not the specific failure list)
+    second_user = client.calls[1]["messages"][0]["content"]
+    assert "emit_answer" in second_user
