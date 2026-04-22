@@ -72,7 +72,10 @@ async def run(
 
     yield TraceEvent(
         type="reranked",
-        data={"kept": [p.ecli for p in picks]},
+        data={
+            "picks": [{"ecli": p.ecli, "reason": p.reason} for p in picks],
+            "kept": [p.ecli for p in picks],  # back-compat; old consumers read only the ECLI list
+        },
     )
 
     by_ecli = {c.ecli: c for c in candidates}

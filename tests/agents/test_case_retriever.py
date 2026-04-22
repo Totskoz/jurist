@@ -112,9 +112,18 @@ async def test_happy_path_emits_expected_events(tmp_path) -> None:
 
     reranked = [e for e in events if e.type == "reranked"]
     assert len(reranked) == 1
+    # kept stays around for back-compat.
     assert reranked[0].data["kept"] == [
         "ECLI:NL:A:1", "ECLI:NL:B:2", "ECLI:NL:C:3",
     ]
+    picks = reranked[0].data["picks"]
+    assert [p["ecli"] for p in picks] == [
+        "ECLI:NL:A:1", "ECLI:NL:B:2", "ECLI:NL:C:3",
+    ]
+    # Reasons flow from the Haiku mock's tool input (≥20 Dutch chars each).
+    assert picks[0]["reason"] == "Feitelijk zeer vergelijkbaar met de vraag."
+    assert picks[1]["reason"].startswith("Relevant voor juridische context")
+    assert picks[2]["reason"].startswith("Toepassing van Boek 7")
 
     assert types[-1] == "agent_finished"
     final_data = events[-1].data
