@@ -2,5 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root { height: 100%; }
-body { margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; }
+:root {
+  /* Background */
+  --bg-gradient-top: #0a0b0f;
+  --bg-gradient-bot: #14161c;
+
+  /* Panel */
+  --panel-surface: rgba(20, 22, 28, 0.72);
+  --panel-border: rgba(255, 255, 255, 0.08);
+
+  /* Text */
+  --text-primary: #e7eaf0;
+  --text-secondary: #9098a8;
+  --text-tertiary: #5d6370;
+
+  /* Accent + error */
+  --accent: #f5c24a;
+  --error: #f07178;
+
+  /* Edge */
+  --edge-default: rgba(255, 255, 255, 0.08);
+
+  /* Cluster palette */
+  --cluster-verplichtingen: #7fa3e0;
+  --cluster-algemeen: #7bcdc4;
+  --cluster-bedrijfsruimte: #dece7b;
+  --cluster-huurcommissie: #b397db;
+  --cluster-eindigen: #e48fa8;
+  --cluster-huurprijzen: #86cf9a;
+  --cluster-overig: #6b7280;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  background: linear-gradient(to bottom, var(--bg-gradient-top), var(--bg-gradient-bot));
+  color: var(--text-primary);
+}
