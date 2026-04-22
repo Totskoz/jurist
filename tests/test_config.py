@@ -12,7 +12,7 @@ def test_settings_exposes_m2_fields():
     s = Settings()
     assert s.model_retriever == "claude-sonnet-4-6"
     assert s.max_retriever_iters == 15
-    assert s.retriever_wall_clock_cap_s == 90.0
+    assert s.retriever_wall_clock_cap_s == 180.0
     assert s.statute_catalog_snippet_chars == 200
 
 

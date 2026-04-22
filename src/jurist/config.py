@@ -28,7 +28,7 @@ class Settings:
     model_retriever: str = os.getenv("JURIST_MODEL_RETRIEVER", "claude-sonnet-4-6")
     max_retriever_iters: int = int(os.getenv("JURIST_MAX_RETRIEVER_ITERS", "15"))
     retriever_wall_clock_cap_s: float = float(
-        os.getenv("JURIST_RETRIEVER_WALL_CLOCK_CAP_S", "90")
+        os.getenv("JURIST_RETRIEVER_WALL_CLOCK_CAP_S", "180")
     )
     statute_catalog_snippet_chars: int = int(
         os.getenv("JURIST_STATUTE_CATALOG_SNIPPET_CHARS", "200")
