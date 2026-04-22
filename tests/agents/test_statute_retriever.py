@@ -132,3 +132,86 @@ async def test_agent_node_visited_on_get_article_but_not_on_list_neighbors(small
     # Hit ids / neighbor ids surface in tool_call_completed.data
     tcc = next(e for e in events if e.type == "tool_call_completed")
     assert "neighbor_ids" in tcc.data
+
+
+# ---------------------------------------------------------------------------
+# M5 low_confidence tests
+# ---------------------------------------------------------------------------
+
+def _three_node_kg() -> "NetworkXKG":
+    """Minimal KG with three article nodes (A, B, C) for low_confidence tests."""
+    nodes = [
+        ArticleNode(
+            article_id="A", bwb_id="BWBX", label="Art A", title="T",
+            body_text="a body", outgoing_refs=[],
+        ),
+        ArticleNode(
+            article_id="B", bwb_id="BWBX", label="Art B", title="T",
+            body_text="b body", outgoing_refs=[],
+        ),
+        ArticleNode(
+            article_id="C", bwb_id="BWBX", label="Art C", title="T",
+            body_text="c body", outgoing_refs=[],
+        ),
+    ]
+    snap = KGSnapshot(generated_at="t", source_versions={}, nodes=nodes, edges=[])
+    return NetworkXKG.from_snapshot(snap)
+
+
+@pytest.mark.asyncio
+async def test_statute_retriever_low_confidence_true_when_selected_lt_3():
+    """When the tool loop selects only 2 articles, low_confidence must be True."""
+    script = [
+        ScriptedTurn(tool_uses=[ScriptedToolUse(name="done", args={"selected": [
+            {"article_id": "A", "reason": "first"},
+            {"article_id": "B", "reason": "second"},
+        ]})]),
+    ]
+    mock = MockAnthropicClient(script)
+    ctx = RunContext(
+        kg=_three_node_kg(), llm=mock,
+        case_store=_minimal_case_store(), embedder=_NoOpEmbedder(),
+    )
+
+    out_events = []
+    async for ev in statute_retriever.run(
+        StatuteRetrieverIn(sub_questions=["q?"], concepts=["huur"], intent="check"),
+        ctx=ctx,
+    ):
+        out_events.append(ev)
+
+    final = out_events[-1]
+    assert final.type == "agent_finished"
+    out = StatuteRetrieverOut.model_validate(final.data)
+    assert len(out.cited_articles) == 2
+    assert out.low_confidence is True
+
+
+@pytest.mark.asyncio
+async def test_statute_retriever_low_confidence_false_when_selected_ge_3():
+    """When the tool loop selects 3 articles, low_confidence must be False."""
+    script = [
+        ScriptedTurn(tool_uses=[ScriptedToolUse(name="done", args={"selected": [
+            {"article_id": "A", "reason": "first"},
+            {"article_id": "B", "reason": "second"},
+            {"article_id": "C", "reason": "third"},
+        ]})]),
+    ]
+    mock = MockAnthropicClient(script)
+    ctx = RunContext(
+        kg=_three_node_kg(), llm=mock,
+        case_store=_minimal_case_store(), embedder=_NoOpEmbedder(),
+    )
+
+    out_events = []
+    async for ev in statute_retriever.run(
+        StatuteRetrieverIn(sub_questions=["q?"], concepts=["huur"], intent="check"),
+        ctx=ctx,
+    ):
+        out_events.append(ev)
+
+    final = out_events[-1]
+    assert final.type == "agent_finished"
+    out = StatuteRetrieverOut.model_validate(final.data)
+    assert len(out.cited_articles) == 3
+    assert out.low_confidence is False

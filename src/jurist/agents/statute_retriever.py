@@ -150,7 +150,8 @@ async def run(
             body_text=node.body_text,
             reason=entry["reason"],
         ))
-    out = StatuteRetrieverOut(cited_articles=cited)
+    low_confidence = len(cited) < 3
+    out = StatuteRetrieverOut(cited_articles=cited, low_confidence=low_confidence)
     logger.info(
         "statute_retriever loop end: cited=%d iters=%d elapsed_s=%.2f",
         len(cited), iter_count, time.monotonic() - started,
