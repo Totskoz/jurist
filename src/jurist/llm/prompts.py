@@ -49,6 +49,14 @@ Je decomposeert huurrecht-vragen in 1–5 sub-vragen, 1–10 juridische concepte
 (Nederlandse termen, niet vertaald), en een intentie uit {legality_check,
 calculation, procedure, other}.
 Roep uitsluitend het hulpmiddel `emit_decomposition` aan. Geen vrije tekst.
+
+Classificeer huurtype_hypothese op basis van signaalwoorden in de vraag:
+- "sociale" / "sociale huurwoning" / "gereguleerde huur" / "corporatiewoning" → "sociale"
+- "middeldure huur" / "middenhuur" / "middensegment" → "middeldure"
+- "vrije sector" / "geliberaliseerde huur" / "particuliere huurmarkt" → "vrije"
+- Geen expliciet signaal → "onbekend"
+Bij twijfel: "onbekend". Classificeer niet op basis van impliciete
+aannames over huurprijs.
 """
 
 

@@ -26,12 +26,12 @@ class DecomposerFailedError(Exception):
     """Propagates to the orchestrator as run_failed{reason:"decomposition"}."""
 
 
-def _build_tool_schema() -> dict[str, Any]:
+def _build_decomposer_tool_schema() -> dict[str, Any]:
     return {
         "name": "emit_decomposition",
         "description": (
             "Decomposeer een Nederlandse huurrecht-vraag in sub-vragen, "
-            "concepten, en intentie."
+            "concepten, intentie, en huurtype-hypothese."
         ),
         "input_schema": {
             "type": "object",
@@ -48,10 +48,18 @@ def _build_tool_schema() -> dict[str, Any]:
                     "type": "string",
                     "enum": ["legality_check", "calculation", "procedure", "other"],
                 },
+                "huurtype_hypothese": {
+                    "type": "string",
+                    "enum": ["sociale", "middeldure", "vrije", "onbekend"],
+                },
             },
-            "required": ["sub_questions", "concepts", "intent"],
+            "required": ["sub_questions", "concepts", "intent", "huurtype_hypothese"],
         },
     }
+
+
+# Backward-compatible alias used internally.
+_build_tool_schema = _build_decomposer_tool_schema
 
 
 def _extract_tool_use(response: Any, expected_name: str):
@@ -127,4 +135,9 @@ async def run(
     yield TraceEvent(type="agent_finished", data=out.model_dump())
 
 
-__all__ = ["run", "DecomposerFailedError", "InvalidDecomposerOutput"]
+__all__ = [
+    "run",
+    "_build_decomposer_tool_schema",
+    "DecomposerFailedError",
+    "InvalidDecomposerOutput",
+]
