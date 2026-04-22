@@ -2,10 +2,19 @@
 from __future__ import annotations
 
 from jurist.agents.synthesizer_tools import (
+    FailedCitation,  # noqa: F401  — re-exported helper; tests assert on returned instances
+    _normalize,
     build_synthesis_tool_schema,
     build_synthesis_user_message,
+    verify_citations,
 )
-from jurist.schemas import CitedArticle, CitedCase
+from jurist.schemas import (
+    CitedArticle,
+    CitedCase,
+    StructuredAnswer,
+    UitspraakCitation,
+    WetArtikelCitation,
+)
 
 _ARTICLE_IDS = ["BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248",
                 "BWBR0014315/HoofdstukIII/Paragraaf1/Artikel10"]
@@ -101,3 +110,152 @@ def test_user_message_includes_article_ids_and_eclis_literally():
     # Instruction band about verbatim + length bounds
     assert "verbatim" in msg.lower() or "letterlijk" in msg.lower()
     assert "40" in msg and "500" in msg
+
+
+_ARTICLE_BODY = (
+    "Een voorstel tot huurverhoging binnen de wettelijke kaders is toegestaan."
+)
+_CASE_CHUNK = (
+    "De rechtbank oordeelt dat een verhoging van 15% buitensporig is."
+)
+
+
+def _answer_with(article_id, bwb_id, article_body_quote, ecli, case_chunk_quote):
+    return StructuredAnswer(
+        korte_conclusie="conclusie " * 5,
+        relevante_wetsartikelen=[
+            WetArtikelCitation(
+                article_id=article_id, bwb_id=bwb_id,
+                article_label="Art", quote=article_body_quote,
+                explanation="uitleg " * 8,
+            ),
+        ],
+        vergelijkbare_uitspraken=[
+            UitspraakCitation(
+                ecli=ecli, quote=case_chunk_quote,
+                explanation="uitleg " * 8,
+            ),
+        ],
+        aanbeveling="aanbeveling " * 5,
+    )
+
+
+def _articles():
+    return [CitedArticle(
+        bwb_id="BWB1",
+        article_id="A1",
+        article_label="Art 1",
+        body_text=_ARTICLE_BODY,
+        reason="r",
+    )]
+
+
+def _cases():
+    return [CitedCase(
+        ecli="ECLI:NL:TEST:1",
+        court="Rb", date="2024-01-01",
+        snippet="s", similarity=0.9,
+        reason="r",
+        chunk_text=_CASE_CHUNK,
+        url="https://uitspraken.rechtspraak.nl/details?id=ECLI:NL:TEST:1",
+    )]
+
+
+def test_normalize_is_idempotent():
+    s = "Hallo  wereld\n\nmet\tspaties"
+    assert _normalize(s) == _normalize(_normalize(s))
+
+
+def test_normalize_collapses_whitespace_runs():
+    assert _normalize("a\n\n b\t\tc") == "a b c"
+
+
+def test_normalize_applies_nfc():
+    import unicodedata
+    nfd = unicodedata.normalize("NFD", "café")
+    nfc = unicodedata.normalize("NFC", "café")
+    assert _normalize(nfd) == _normalize(nfc)
+
+
+def test_verify_happy_path_returns_empty():
+    answer = _answer_with(
+        article_id="A1", bwb_id="BWB1",
+        article_body_quote=_ARTICLE_BODY,
+        ecli="ECLI:NL:TEST:1",
+        case_chunk_quote=_CASE_CHUNK,
+    )
+    assert verify_citations(answer, _articles(), _cases()) == []
+
+
+def test_verify_quote_not_in_source():
+    answer = _answer_with(
+        article_id="A1", bwb_id="BWB1",
+        article_body_quote=(
+            "Deze zin komt niet letterlijk voor in de brontekst "
+            "maar is wel lang genoeg."
+        ),
+        ecli="ECLI:NL:TEST:1",
+        case_chunk_quote=_CASE_CHUNK,
+    )
+    failures = verify_citations(answer, _articles(), _cases())
+    assert len(failures) == 1
+    assert failures[0].kind == "wetsartikel"
+    assert failures[0].reason == "not_in_source"
+
+
+def test_verify_quote_passes_with_different_whitespace():
+    # Source has single spaces; quote has doubled spaces — normalization rescues it.
+    answer = _answer_with(
+        article_id="A1", bwb_id="BWB1",
+        article_body_quote=(
+            "Een voorstel  tot\thuurverhoging binnen de wettelijke "
+            "kaders is toegestaan."
+        ),
+        ecli="ECLI:NL:TEST:1",
+        case_chunk_quote=_CASE_CHUNK,
+    )
+    assert verify_citations(answer, _articles(), _cases()) == []
+
+
+def test_verify_unknown_article_id():
+    answer = _answer_with(
+        article_id="IMAGINED/XYZ", bwb_id="BWB1",
+        article_body_quote=_ARTICLE_BODY,
+        ecli="ECLI:NL:TEST:1",
+        case_chunk_quote=_CASE_CHUNK,
+    )
+    failures = verify_citations(answer, _articles(), _cases())
+    assert any(f.reason == "unknown_id" and f.kind == "wetsartikel" for f in failures)
+
+
+def test_verify_unknown_ecli():
+    answer = _answer_with(
+        article_id="A1", bwb_id="BWB1",
+        article_body_quote=_ARTICLE_BODY,
+        ecli="ECLI:NL:GHOST:99",
+        case_chunk_quote=_CASE_CHUNK,
+    )
+    failures = verify_citations(answer, _articles(), _cases())
+    assert any(f.reason == "unknown_id" and f.kind == "uitspraak" for f in failures)
+
+
+def test_verify_quote_too_short():
+    answer = _answer_with(
+        article_id="A1", bwb_id="BWB1",
+        article_body_quote="kort",
+        ecli="ECLI:NL:TEST:1",
+        case_chunk_quote=_CASE_CHUNK,
+    )
+    failures = verify_citations(answer, _articles(), _cases())
+    assert any(f.reason == "too_short" for f in failures)
+
+
+def test_verify_quote_too_long():
+    answer = _answer_with(
+        article_id="A1", bwb_id="BWB1",
+        article_body_quote="x" * 501,
+        ecli="ECLI:NL:TEST:1",
+        case_chunk_quote=_CASE_CHUNK,
+    )
+    failures = verify_citations(answer, _articles(), _cases())
+    assert any(f.reason == "too_long" for f in failures)
