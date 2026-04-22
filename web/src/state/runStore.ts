@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { StructuredAnswer, TraceEvent } from '../types/events';
+import type { HistoryEntry } from './historyApi';
 
 export type NodeState = 'default' | 'current' | 'visited' | 'cited';
 export type EdgeState = 'default' | 'traversed';
@@ -34,6 +35,9 @@ interface RunState {
   inspectedNode: string | null;
   panelCollapsed: boolean;
   citedSet: Set<string>;
+  history: HistoryEntry[];
+  viewingHistoryId: string | null;
+  historyDrawerOpen: boolean;
 
   start: (runId: string, question: string) => void;
   apply: (ev: TraceEvent) => void;
@@ -41,6 +45,9 @@ interface RunState {
   inspectNode: (articleId: string) => void;
   closeInspector: () => void;
   toggleCollapse: () => void;
+  toggleHistoryDrawer: () => void;
+  viewHistory: (id: string) => void;
+  exitHistory: () => void;
 }
 
 const edgeKey = (from: string, to: string): string => `${from}::${to}`;
@@ -60,6 +67,9 @@ export const useRunStore = create<RunState>((set, get) => ({
   inspectedNode: null,
   panelCollapsed: false,
   citedSet: new Set(),
+  history: [],
+  viewingHistoryId: null,
+  historyDrawerOpen: false,
 
   start: (runId, question) =>
     set({
@@ -75,6 +85,7 @@ export const useRunStore = create<RunState>((set, get) => ({
       cases: [],
       resolutions: [],
       inspectedNode: null,
+      viewingHistoryId: null,
       citedSet: new Set(),
       // panelCollapsed intentionally NOT reset — user's collapse preference persists.
     }),
@@ -94,12 +105,16 @@ export const useRunStore = create<RunState>((set, get) => ({
       resolutions: [],
       inspectedNode: null,
       panelCollapsed: false,
+      viewingHistoryId: null,
       citedSet: new Set(),
     }),
 
   inspectNode: (articleId) => set({ inspectedNode: articleId }),
   closeInspector: () => set({ inspectedNode: null }),
   toggleCollapse: () => set((s) => ({ panelCollapsed: !s.panelCollapsed })),
+  toggleHistoryDrawer: () => set((s) => ({ historyDrawerOpen: !s.historyDrawerOpen })),
+  viewHistory: (id) => set({ viewingHistoryId: id, historyDrawerOpen: false }),
+  exitHistory: () => set({ viewingHistoryId: null }),
 
   apply: (ev) => {
     const s = get();

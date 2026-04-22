@@ -93,3 +93,61 @@ describe('runStore — run_finished populates citedSet', () => {
     expect(useRunStore.getState().kgState.get('X')).toBe('visited');
   });
 });
+
+import type { HistoryEntry } from './historyApi';
+
+describe('runStore — history slice (Task 7)', () => {
+  beforeEach(() => {
+    useRunStore.getState().reset();
+  });
+
+  it('initializes history=[], viewingHistoryId=null, drawer closed', () => {
+    const s = useRunStore.getState();
+    expect(s.history).toEqual([]);
+    expect(s.viewingHistoryId).toBeNull();
+    expect(s.historyDrawerOpen).toBe(false);
+  });
+
+  it('toggleHistoryDrawer flips open state', () => {
+    useRunStore.getState().toggleHistoryDrawer();
+    expect(useRunStore.getState().historyDrawerOpen).toBe(true);
+    useRunStore.getState().toggleHistoryDrawer();
+    expect(useRunStore.getState().historyDrawerOpen).toBe(false);
+  });
+
+  it('viewHistory sets id and closes drawer', () => {
+    useRunStore.getState().toggleHistoryDrawer();
+    useRunStore.getState().viewHistory('run_1');
+    const s = useRunStore.getState();
+    expect(s.viewingHistoryId).toBe('run_1');
+    expect(s.historyDrawerOpen).toBe(false);
+  });
+
+  it('exitHistory clears viewingHistoryId', () => {
+    useRunStore.getState().viewHistory('run_1');
+    useRunStore.getState().exitHistory();
+    expect(useRunStore.getState().viewingHistoryId).toBeNull();
+  });
+
+  it('start() clears viewingHistoryId', () => {
+    useRunStore.getState().viewHistory('run_1');
+    useRunStore.getState().start('run_2', 'q2');
+    expect(useRunStore.getState().viewingHistoryId).toBeNull();
+  });
+
+  it('reset() clears viewingHistoryId but preserves history array', () => {
+    // Manually seed history (no public setter yet — direct setState).
+    const entry: HistoryEntry = {
+      id: 'run_1', question: 'q', timestamp: 0, status: 'finished',
+      snapshot: {
+        kgState: [], edgeState: [], traceLog: [], thinkingByAgent: {},
+        answerText: '', finalAnswer: null, cases: [], resolutions: [], citedSet: [],
+      },
+    };
+    useRunStore.setState({ history: [entry], viewingHistoryId: 'run_1' });
+    useRunStore.getState().reset();
+    const s = useRunStore.getState();
+    expect(s.viewingHistoryId).toBeNull();
+    expect(s.history).toEqual([entry]);  // preserved
+  });
+});
