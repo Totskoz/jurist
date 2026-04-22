@@ -34,7 +34,7 @@ Current state: **M3b landed on master** — the `case_retriever` agent runs a re
 - `uv` lives at `C:\Users\totti\.local\bin` and isn't always on `PATH`. Prepend it in bash with `export PATH="/c/Users/totti/.local/bin:$PATH"` if `uv` is not found.
 - Git's LF→CRLF warnings on Windows commits are benign; don't try to suppress them.
 - API port is **8766**, not 8000 (Django project on this host) and not 8765 (previous zombie-socket incident). If you change the backend port, also change the Vite proxy target in `web/vite.config.ts`.
-- Full run emits ~200+ events post-M2 (most are `answer_delta` tokens from the synthesizer's word-level streaming; M2 adds a variable count of `tool_call_started` / `tool_call_completed` / `node_visited` / `edge_traversed` / `agent_thinking` events depending on how many tools the retriever calls). `EventBuffer.max_history` defaults to 500; `settings.max_history_per_run` matches. If you shrink these, verify the orchestrator tests still pass.
+- Full run emits ~200+ events post-M3b (most are `answer_delta` tokens from the synthesizer's word-level streaming; M2 adds a variable count of `tool_call_started` / `tool_call_completed` / `node_visited` / `edge_traversed` / `agent_thinking` events depending on how many tools the statute retriever calls; M3b adds `search_started` + one `case_found` per unique ECLI (up to `caselaw_candidate_eclis`, default 20) + `reranked`). `EventBuffer.max_history` defaults to 500; `settings.max_history_per_run` matches. If you shrink these, verify the orchestrator tests still pass.
 - Env vars: copy `.env.example` → `.env` and set `ANTHROPIC_API_KEY`. All other settings have sensible defaults. `python-dotenv` loads `.env` at `jurist.config` import time.
 
 ## Architecture
@@ -66,7 +66,7 @@ run_started
 run_finished (carries final_answer)
 ```
 
-All 5 run on one asyncio task. Parallelization is explicitly out of scope for v1 (spec §15 decision log). The orchestrator wraps **only** the `statute_retriever` pump in try/except so Anthropic errors surface as `run_failed{reason: "llm_error", detail}` instead of crashing the task; fakes are assumed not to fail (spec §5).
+All 5 run on one asyncio task. Parallelization is explicitly out of scope for v1 (spec §15 decision log). The orchestrator wraps the `statute_retriever` and `case_retriever` pumps in try/except: statute errors and generic case-retriever errors surface as `run_failed{reason: "llm_error", detail}`; `RerankFailedError` from the case retriever surfaces as `run_failed{reason: "case_rerank", detail}`. Fakes are assumed not to fail (spec §5).
 
 ### SSE transport
 
