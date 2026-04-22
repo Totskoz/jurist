@@ -55,3 +55,9 @@ Roep uitsluitend het hulpmiddel `emit_decomposition` aan. Geen vrije tekst.
 def render_decomposer_system() -> str:
     """Static Dutch system prompt for the M4 decomposer Haiku call."""
     return _DECOMPOSER_SYSTEM
+
+
+def render_synthesizer_system() -> str:
+    """Static Dutch system prompt for the M4 synthesizer Sonnet call.
+    Marked cacheable by the agent via `cache_control: ephemeral`."""
+    return (_PROMPTS_DIR / "synthesizer.system.md").read_text(encoding="utf-8")
