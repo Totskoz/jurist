@@ -223,11 +223,14 @@ async def run_question(
         return
     case_out = CaseRetrieverOut.model_validate(case_final.data)
 
-    # 4. Synthesizer — real in M4
+    # 4. Synthesizer — real in M4; M5 extends with decomposer_out + low-confidence flags.
     synth_in = SynthesizerIn(
         question=question,
         cited_articles=stat_out.cited_articles,
         cited_cases=case_out.cited_cases,
+        decomposer_out=decomposer_out,
+        statute_low_confidence=stat_out.low_confidence,
+        case_low_confidence=case_out.low_confidence,
     )
     try:
         synth_final = await _pump(

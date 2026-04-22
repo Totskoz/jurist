@@ -120,14 +120,22 @@ def build_synthesis_corpus_block(
     question: str,
     cited_articles: list[CitedArticle],
     cited_cases: list[CitedCase],
+    *,
+    huurtype_hypothese: str = "onbekend",
 ) -> str:
     """Render the large, slow-changing section of the synthesizer user message:
-    question + full article bodies + full case chunks. Identical on attempt 1
-    and on regen (the advisory is appended to the instructions block instead),
-    so this block can be sent as a separate content item with
-    `cache_control: ephemeral` to avoid re-processing ~30 KB on regen."""
+    question + huurtype-hypothese + full article bodies + full case chunks.
+    Identical on attempt 1 and on regen (the advisory is appended to the
+    instructions block instead), so this block can be sent as a separate
+    content item with `cache_control: ephemeral` to avoid re-processing
+    ~30 KB on regen.
+
+    M5: `huurtype_hypothese` (AQ1) is surfaced in the corpus block so the
+    synthesizer can route `aanbeveling` to the correct procedural track.
+    Defaults to ``"onbekend"`` so M4 callers remain green."""
     lines: list[str] = []
     lines.append(f"Vraag: {question}")
+    lines.append(f"Huurtype-hypothese (van decomposer): {huurtype_hypothese}")
     lines.append("")
     lines.append("Relevante wetsartikelen (gebruik uitsluitend deze article_id's):")
     for i, art in enumerate(cited_articles, start=1):

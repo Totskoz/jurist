@@ -170,6 +170,10 @@ class SynthesizerIn(BaseModel):
     question: str
     cited_articles: list[CitedArticle]
     cited_cases: list[CitedCase]
+    # M5 additions — optional with safe defaults so M4 tests keep passing.
+    decomposer_out: DecomposerOut | None = None
+    statute_low_confidence: bool = False
+    case_low_confidence: bool = False
 
 
 class SynthesizerOut(BaseModel):
