@@ -6,6 +6,7 @@ via existing (ecli, chunk_idx) dedupe.
 """
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -17,6 +18,7 @@ from jurist.ingest.splitter import split
 from jurist.schemas import CaseChunkRow
 from jurist.vectorstore import CaseStore
 
+_log = logging.getLogger(__name__)
 _ECLI_RE = re.compile(r"^ECLI:NL:[A-Z]+:\d{4}:\d+$")
 
 
@@ -69,12 +71,14 @@ def run_priority_ingest(
         try:
             xml_path = fetch_content(ecli, cache_dir=cache_dir)
         except Exception:
+            _log.warning("fetch failed for %s", ecli, exc_info=True)
             continue
         fetched += 1
 
         try:
             meta = parse_case(xml_path.read_bytes())
         except ParseError:
+            _log.warning("parse failed for %s", ecli, exc_info=True)
             continue
         parsed += 1
 

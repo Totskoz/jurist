@@ -31,7 +31,7 @@ from jurist.embedding import Embedder
 from jurist.ingest import caselaw_fetch
 from jurist.ingest.caselaw_filter import passes as filter_passes
 from jurist.ingest.caselaw_parser import ParseError, parse_case
-from jurist.ingest.caselaw_profiles import resolve_profile
+from jurist.ingest.caselaw_profiles import CaselawProfile, resolve_profile
 from jurist.ingest.splitter import split
 from jurist.schemas import CaseChunkRow
 from jurist.vectorstore import CaseStore
@@ -209,6 +209,70 @@ def run_ingest(
     return result
 
 
+def run_refilter_cache(
+    *,
+    cache_dir: Path,
+    lance_path: Path,
+    profile: CaselawProfile,
+    embedder: Embedder,
+    target_words: int = 500,
+    overlap_words: int = 50,
+) -> dict:
+    """M5 — re-run fence/chunk/embed/write over already-cached XMLs.
+
+    Skips list + fetch entirely. Emits stats dict. Expected runtime:
+    ~2-4h on a 16 GB host depending on delta size.
+    """
+    store = CaseStore(lance_path)
+    store.open_or_create()
+    counts = {
+        "scanned": 0, "parsed": 0, "passed_fence": 0,
+        "chunked": 0, "embedded": 0, "written": 0,
+    }
+    for xml_path in sorted(cache_dir.glob("*.xml")):
+        counts["scanned"] += 1
+        ecli = xml_path.stem.replace("_", ":")
+        if store.contains_ecli(ecli):
+            continue
+        try:
+            meta = parse_case(xml_path.read_bytes())
+        except ParseError:
+            log.warning("parse failed for %s", ecli, exc_info=True)
+            continue
+        counts["parsed"] += 1
+
+        if not filter_passes(meta.body_text, terms=profile.keyword_terms):
+            continue
+        counts["passed_fence"] += 1
+
+        chunks = split(meta.body_text, target_words=target_words, overlap_words=overlap_words)
+        counts["chunked"] += len(chunks)
+        if not chunks:
+            continue
+
+        vectors = embedder.encode(chunks)
+        counts["embedded"] += len(vectors)
+
+        rows = [
+            CaseChunkRow(
+                ecli=ecli,
+                chunk_idx=i,
+                court=meta.court,
+                date=meta.date,
+                zaaknummer=meta.zaaknummer,
+                subject_uri=meta.subject_uri,
+                modified=meta.modified,
+                text=chunk,
+                embedding=list(vec),
+                url=meta.url,
+            )
+            for i, (chunk, vec) in enumerate(zip(chunks, vectors, strict=True))
+        ]
+        store.add_rows(rows)
+        counts["written"] += len(rows)
+    return counts
+
+
 def _fetch_one(ecli: str, cases_dir: Path) -> tuple[Path, bool]:
     """Fetch content; report whether it was a cache hit."""
     target = cases_dir / f"{ecli.replace(':', '_')}.xml"
@@ -252,10 +316,46 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--refresh", action="store_true",
                         help="Wipe cache + LanceDB; re-ingest from scratch")
     parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument(
+        "--priority-eclis",
+        type=Path,
+        default=None,
+        help="Path to a text file of ECLIs to fetch + ingest bypassing list/fence stages. "
+             "Idempotent. Reuses the fetch cache.",
+    )
+    parser.add_argument(
+        "--refilter-cache",
+        action="store_true",
+        help="Skip list + fetch; re-run fence/chunk/embed/write over "
+             "previously-parsed XMLs in data/cases/. Adds only delta chunks.",
+    )
     args = parser.parse_args(argv)
 
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
+
+    if args.priority_eclis is not None:
+        if not args.priority_eclis.exists():
+            parser.error(f"--priority-eclis path does not exist: {args.priority_eclis}")
+        from jurist.ingest.priority_eclis import run_priority_ingest
+        result = run_priority_ingest(
+            args.priority_eclis,
+            lance_path=settings.lance_path,
+            cache_dir=settings.cases_dir,
+            embedder=Embedder(model_name=settings.embed_model),
+        )
+        log.info("priority ingest complete: %s", result)
+        return 0
+
+    if args.refilter_cache:
+        result = run_refilter_cache(
+            cache_dir=settings.cases_dir,
+            lance_path=settings.lance_path,
+            profile=resolve_profile(args.profile),
+            embedder=Embedder(model_name=settings.embed_model),
+        )
+        log.info("refilter-cache complete: %s", result)
+        return 0
 
     try:
         run_ingest(
