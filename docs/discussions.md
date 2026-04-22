@@ -184,3 +184,178 @@ Three generalisable signals beyond the specific findings:
 
 - M5 spec: `docs/superpowers/specs/2026-04-22-m5-answer-quality-design.md`
 - M5 plan: `docs/superpowers/plans/2026-04-22-m5-answer-quality.md`
+
+---
+
+## M5 post-eval — suite results (2026-04-22)
+
+After M5 landed (segment-aware routing, EU-directive escalation, graceful
+refusal, expanded huur fence + priority-ECLI top-up), `scripts/eval_suite.py`
+ran a 5-question manifest against live Sonnet 4.6 + Haiku 4.5. Outcome:
+**3/5 pass** (`docs/evaluations/2026-04-22-m5-suite-post.md`). Three wins,
+two failures — discussed in turn, then generalised.
+
+### What worked
+
+**Q2 — sociale routing (3/3, AQ1).**
+"Mijn sociale huurwoning kreeg per 1 juli een verhoging van 10%, kan dat?"
+The decomposer hit `huurtype_hypothese == "sociale"` from the explicit
+"sociale huurwoning" signal. The synth held the single-route prompt rule:
+gave only the sociale procedure (huurcommissie / art. 7:253), did not
+mention vrije sector. With a decisive hypothesis the AQ1 prompt rule has
+no competing signal and lands clean.
+
+**Q5 — EU-directive escalation (2/2, AQ2).**
+"Kan ik een huurverhoging aanvechten als het beding in mijn contract vaag
+is geformuleerd?" The case retriever surfaced chunks with explicit
+"Richtlijn 93/13" and "oneerlijk beding" language; the synth's AQ2 rule
+extracted that into `korte_conclusie`. AQ2 is a soft prompt rule (not a
+retriever-emitted flag); the eval confirms the soft version is sufficient
+when the retrieved chunks carry the EU language in plain Dutch.
+
+**Q4 — hard out-of-scope refusal (2/2, AQ8).**
+"Mijn auto is stuk, moet de autoverzekering de reparatie dekken?" Both
+retrievers tripped `low_confidence` (no statute hits in BW Boek 7 titel 4;
+case cosines well below the 0.55 floor). The early-branch refusal fired
+and skipped the normal synth call entirely. The refusal honestly named
+huurrecht as the search scope and recommended verzekeringsrecht /
+consumentenrecht as the right channel. AQ8 working exactly as designed.
+
+**Closed-set grounding survives prompt evolution.**
+Across all five runs, no `verify_citations` failure or grounding regen
+fired. M4's grounding defence — JSON-Schema enum → pydantic →
+strict-substring — held under M5's three new prompt rules and the
+tool-schema variant. This is a useful design property to inherit forward:
+per-request enums + post-hoc verification scale with prompt evolution
+without becoming a maintenance tax.
+
+### What didn't work
+
+**Q1 — locked question still names both 7:248 lid 4 and 7:253 (2/3, AQ1).**
+The huurtype is correctly classified `onbekend` (no signal in the
+question). The synth opens with branching ("Als ..." × ≥ 2; assertion 2
+passed). But within the answer it still names *both* art. 7:248 lid 4
+and art. 7:253 — assertion 3 caught it.
+
+Mechanism: under `onbekend` the model has no decisive signal to commit
+to one route, so it reverts to listing every procedure it knows about
+for completeness — the exact behaviour the prompt rule was meant to
+suppress. A prompt-only ban competes with the model's prior that "more
+detail = more useful answer", and loses. Increasing pressure via prompt
+engineering has diminishing returns; structural enforcement
+(validator-driven regen on detected stacking) is the next escalation.
+
+A measurement caveat: the assertion regex
+`not (contains "7:248 lid 4" AND contains "7:253")` would also fail
+if the synth correctly presented both procedures as branched
+*alternatives* ("Als sociaal: 7:253. Als middeldure: 7:248 lid 4."),
+which would not be stacking. Eyeball confirmation of the rendered
+answer is needed to distinguish "real stacking inside one branch" from
+"clean branching that mentions both routes." The CLAUDE.md note
+attributes the failure to the former; tightening the assertion to a
+proximity-window regex (e.g. both terms within the same paragraph) is
+a cheap improvement to the eval, separate from the underlying
+prompt-rule weakness.
+
+**Q3 — burenrecht question gets answered, not refused (0/2, AQ8).**
+"Ik heb een conflict met mijn buurman over geluidsoverlast, wat zijn
+mijn opties?" Expected refusal; actual was `kind="answer"` with real
+huurrecht articles cited.
+
+Mechanism: huurrecht and burenrecht overlap heavily on tenant-side
+nuisance complaints. The statute retriever finds 7:204 (gebrek)
+plausible; the case retriever finds chunks that talk about geluidshinder
+in tenancy contexts at cosine ≥ 0.55. Neither `low_confidence` flag
+trips, so the early-branch refusal cannot fire by construction. The
+synth's self-judgment fallback is theoretically able to refuse, but with
+non-empty retrieved material in front of it, it judges the material
+adequate and answers.
+
+This is the deeper limit AQ8 didn't fully anticipate: **soft
+out-of-scope is harder than hard out-of-scope.** Q4 (autoverzekering)
+is taxonomically distant from huurrecht; cosine is unambiguous. Q3
+(burenrecht) is taxonomically adjacent — a tenant with a noisy
+neighbour does have huurrechtelijke remedies (gebrek op het gehuurde,
+art. 7:204 BW), but the better-fitting answer is in burenrecht
+(art. 5:37 BW). The retriever can't tell the difference on cosine
+alone, and the synth, given material, uses it. A real fix likely needs
+a routing classifier upstream of the retrievers asking "is this a
+huurrecht question at all?" — essentially a multi-rechtsgebied gate.
+Out of scope for a one-rechtsgebied demo.
+
+### Why what works works, why what doesn't doesn't
+
+| Case | Works because | Or fails because |
+|---|---|---|
+| Q2 (sociale routing) | Decisive decomposer signal → single-route prompt rule has no competing pressure | — |
+| Q5 (EU escalation) | Signal is textually loud in retrieved chunks → soft prompt rule extracts it | — |
+| Q4 (hard refusal) | Cosine unambiguous on taxonomically distant question → conjunctive `low_confidence` trips → early-branch fires | — |
+| Q1 (no-stacking under `onbekend`) | — | Prompt rule = statistical pressure, not constraint; loses against the model's "more detail = better" prior |
+| Q3 (soft refusal on adjacent domain) | — | Cosine ≠ jurisdictional fit; conjunctive low-confidence cannot trip on adjacent-domain matches; synth uses what it sees |
+
+### Broader limitations the suite illustrates
+
+- **Prompt-only routing is brittle near borderlines.** AQ1 worked under
+  decisive hypotheses (Q2: `sociale`) and failed under indecisive ones
+  (Q1: `onbekend`). Future answer-quality rules of the same shape
+  should expect partial compliance under indecisive cases and design
+  for it — i.e. assume a validator + regen step.
+- **Cosine ≠ relevance ≠ in-scope.** Case-retriever confidence
+  measures embedding neighbourhood, not jurisdictional fit. A
+  per-domain classifier (or a multi-rechtsgebied router) is the right
+  long-term mechanism for soft refusal.
+- **One rechtsgebied caps refusal quality.** A burenrecht-aware
+  sibling system could say "this is burenrecht, here's the right BW
+  article" rather than refuse. The demo's scope cap forces refusals to
+  "redirect, don't answer" even when redirect-with-answer would be
+  better UX.
+- **The validator stub is now load-bearing.** M5 added two cases where
+  a real validator would help: AQ1 procedure-stacking detection and
+  AQ8 domain-fit second opinion. Combined with the M4-era
+  citation-shape sanity check, the validator backlog is non-trivial
+  and worth a dedicated milestone in v2.
+- **Hard cases are easier than borderline cases.** The clean wins
+  (Q2, Q4) sit at the extremes of the design space. The failures
+  (Q1, Q3) sit at borderlines — a known huurrecht question with no
+  huurtype signal, and a question adjacent to huurrecht without being
+  in it. Borderline behaviour is where prompt-only systems show their
+  seams.
+- **Eval-DSL strictness is a measurement risk.** Assertion 3 on Q1 is
+  a contains-AND check that conflates real stacking with legitimate
+  branching. Cheap fix (proximity window) is worth doing before the
+  next eval round so post-fix wins aren't false-negative'd by a stale
+  assertion.
+
+### What this pass tells us about the system
+
+Three signals that generalise beyond the specific failures:
+
+1. **Closed-set grounding composes.** M5 stacked three new prompt rules
+   plus a tool-schema variant on top of M4's grounding stack; nothing
+   broke. Per-request enums + post-hoc verification are a stable
+   foundation to keep building on.
+2. **Retriever-to-synth seam is the most fragile interface.** AQ2
+   worked because the EU signal was textually loud in the retrieved
+   chunks. Q3 failed because the in-scope/out-of-scope judgment was
+   textually quiet. When the signal is in-corpus, prompt rules can
+   extract it. When the judgment requires not-in-corpus reasoning
+   ("this material exists but is the wrong material for this
+   question"), prompt rules alone aren't enough — the system needs an
+   upstream router or a downstream validator to express that
+   judgment.
+3. **Honest narrowness > overreaching breadth.** AQ8's hard-refusal
+   path (Q4) is the most structurally satisfying behaviour the system
+   does. Even where it misses (Q3), the failure mode is "answer the
+   wrong question confidently" — the same failure mode the M4-era
+   pipeline had on every out-of-scope question. M5 reduced the
+   surface where this happens; v2 closes it further.
+
+### Informs
+
+- v2 / M6 backlog: AQ1 validator-driven anti-stacking; AQ8
+  multi-rechtsgebied / domain-fit classifier; AQ4–AQ7 from the M4
+  review (still deferred); proximity-window tightening on Q1
+  assertion 3.
+- M5 design spec: `docs/superpowers/specs/2026-04-22-m5-answer-quality-design.md`
+- M5 eval (post): `docs/evaluations/2026-04-22-m5-suite-post.md`
+- M5 eval (pre marker): `docs/evaluations/2026-04-22-m5-suite-pre.md`
