@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRunStore } from '../../state/runStore';
 import { usePhase } from '../../hooks/usePhase';
@@ -13,6 +14,17 @@ const COLLAPSE_OFFSET = PANEL_WIDTH + 48;
 export default function Panel() {
   const phase = usePhase();
   const collapsed = useRunStore((s) => s.panelCollapsed);
+  const inspectedNode = useRunStore((s) => s.inspectedNode);
+  const closeInspector = useRunStore((s) => s.closeInspector);
+
+  useEffect(() => {
+    if (!inspectedNode) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeInspector();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [inspectedNode, closeInspector]);
 
   return (
     <motion.aside
