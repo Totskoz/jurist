@@ -120,6 +120,7 @@ async def run(
         [a.article_id for a in input.cited_articles],
         [a.bwb_id for a in input.cited_articles],
         [c.ecli for c in input.cited_cases],
+        allow_refusal=False,  # M5 bridge: Task 12 switches to should_refuse(stat, case)
     )
 
     # ---------- Attempt 1 ----------

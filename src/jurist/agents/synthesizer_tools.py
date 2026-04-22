@@ -19,70 +19,100 @@ def build_synthesis_tool_schema(
     candidate_article_ids: list[str],
     candidate_bwb_ids: list[str],
     candidate_eclis: list[str],
+    *,
+    allow_refusal: bool = True,
 ) -> dict[str, Any]:
-    """Anthropic tool JSON-schema for the M4 synthesizer `emit_answer` call.
+    """Anthropic tool JSON-schema for the synthesizer `emit_answer` call.
 
     Per-request `enum` on `article_id`, `bwb_id`, and `ecli` applies the
     closed-set constraint at schema-validation time — the JSON-Schema form
     of Pydantic's `Literal[...]` pattern (parent spec §15 decision #9 + M4
     spec §9 decision #20). Length bounds 40–500 for `quote` back up the
     post-hoc verification.
+
+    When ``allow_refusal=True`` (default, M5+), the schema adds a ``kind``
+    discriminator and uses JSON-Schema ``if/then/else`` to conditionally
+    require citation lists (``kind="answer"``) or a reason string
+    (``kind="insufficient_context"``).  When ``allow_refusal=False`` (M4
+    shape), all four fields are unconditionally required and both arrays
+    carry ``minItems: 1``.
     """
+    wet_item = {
+        "type": "object",
+        "properties": {
+            "article_id":    {"type": "string", "enum": list(candidate_article_ids)},
+            "bwb_id":        {"type": "string", "enum": list(candidate_bwb_ids)},
+            "article_label": {"type": "string", "minLength": 5},
+            "quote":         {"type": "string", "minLength": 40, "maxLength": 500},
+            "explanation":   {"type": "string", "minLength": 40, "maxLength": 2000},
+        },
+        "required": ["article_id", "bwb_id", "article_label", "quote", "explanation"],
+    }
+    uit_item = {
+        "type": "object",
+        "properties": {
+            "ecli":        {"type": "string", "enum": list(candidate_eclis)},
+            "quote":       {"type": "string", "minLength": 40, "maxLength": 500},
+            "explanation": {"type": "string", "minLength": 40, "maxLength": 2000},
+        },
+        "required": ["ecli", "quote", "explanation"],
+    }
+
+    body: dict[str, Any] = {
+        "type": "object",
+        "properties": {
+            "korte_conclusie": {
+                "type": "string", "minLength": 40, "maxLength": 2000,
+            },
+            "relevante_wetsartikelen": {
+                "type": "array",
+                "items": wet_item,
+            },
+            "vergelijkbare_uitspraken": {
+                "type": "array",
+                "items": uit_item,
+            },
+            "aanbeveling": {
+                "type": "string", "minLength": 40, "maxLength": 2000,
+            },
+        },
+    }
+
+    if allow_refusal:
+        body["properties"]["kind"] = {
+            "type": "string",
+            "enum": ["answer", "insufficient_context"],
+        }
+        body["properties"]["insufficient_context_reason"] = {
+            "type": "string",
+            "minLength": 40,
+            "maxLength": 1000,
+        }
+        body["required"] = ["kind", "korte_conclusie", "aanbeveling"]
+        body["if"] = {"properties": {"kind": {"const": "answer"}}}
+        body["then"] = {
+            "required": ["relevante_wetsartikelen", "vergelijkbare_uitspraken"],
+            "properties": {
+                "relevante_wetsartikelen": {"minItems": 1},
+                "vergelijkbare_uitspraken": {"minItems": 1},
+            },
+        }
+        body["else"] = {"required": ["insufficient_context_reason"]}
+    else:
+        body["properties"]["relevante_wetsartikelen"]["minItems"] = 1
+        body["properties"]["vergelijkbare_uitspraken"]["minItems"] = 1
+        body["required"] = [
+            "korte_conclusie", "relevante_wetsartikelen",
+            "vergelijkbare_uitspraken", "aanbeveling",
+        ]
+
     return {
         "name": "emit_answer",
         "description": (
             "Genereer het gestructureerde Nederlandse antwoord met "
-            "gegrondveste citaten."
+            "gegrondveste citaten, of weiger met kind='insufficient_context'."
         ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "korte_conclusie": {
-                    "type": "string", "minLength": 40, "maxLength": 2000,
-                },
-                "relevante_wetsartikelen": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "article_id":    {"type": "string",
-                                              "enum": list(candidate_article_ids)},
-                            "bwb_id":        {"type": "string",
-                                              "enum": list(candidate_bwb_ids)},
-                            "article_label": {"type": "string", "minLength": 5},
-                            "quote":         {"type": "string",
-                                              "minLength": 40, "maxLength": 500},
-                            "explanation":   {"type": "string",
-                                              "minLength": 40, "maxLength": 2000},
-                        },
-                        "required": ["article_id", "bwb_id", "article_label",
-                                     "quote", "explanation"],
-                    },
-                },
-                "vergelijkbare_uitspraken": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "ecli":        {"type": "string",
-                                            "enum": list(candidate_eclis)},
-                            "quote":       {"type": "string",
-                                            "minLength": 40, "maxLength": 500},
-                            "explanation": {"type": "string",
-                                            "minLength": 40, "maxLength": 2000},
-                        },
-                        "required": ["ecli", "quote", "explanation"],
-                    },
-                },
-                "aanbeveling": {
-                    "type": "string", "minLength": 40, "maxLength": 2000,
-                },
-            },
-            "required": ["korte_conclusie", "relevante_wetsartikelen",
-                         "vergelijkbare_uitspraken", "aanbeveling"],
-        },
+        "input_schema": body,
     }
 
 

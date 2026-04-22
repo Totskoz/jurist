@@ -25,7 +25,7 @@ _ECLIS      = ["ECLI:NL:HR:2020:1234", "ECLI:NL:RBAMS:2022:5678"]
 
 
 def test_tool_schema_top_level_shape():
-    schema = build_synthesis_tool_schema(_ARTICLE_IDS, _BWB_IDS, _ECLIS)
+    schema = build_synthesis_tool_schema(_ARTICLE_IDS, _BWB_IDS, _ECLIS, allow_refusal=False)
     assert schema["name"] == "emit_answer"
     top = schema["input_schema"]
     assert top["type"] == "object"
@@ -57,7 +57,7 @@ def test_tool_schema_uitspraak_enum_equals_candidate_set():
 
 
 def test_tool_schema_both_arrays_have_minitems_1():
-    schema = build_synthesis_tool_schema(_ARTICLE_IDS, _BWB_IDS, _ECLIS)
+    schema = build_synthesis_tool_schema(_ARTICLE_IDS, _BWB_IDS, _ECLIS, allow_refusal=False)
     props = schema["input_schema"]["properties"]
     assert props["relevante_wetsartikelen"]["minItems"] == 1
     assert props["vergelijkbare_uitspraken"]["minItems"] == 1
@@ -336,3 +336,39 @@ def test_validate_attempt_happy():
     failures, schema_ok = _validate_attempt(tool_input, _articles(), _cases())
     assert failures == []
     assert schema_ok is True
+
+
+def test_build_synthesis_tool_schema_has_kind_enum_when_allow_refusal():
+    schema = build_synthesis_tool_schema(
+        candidate_article_ids=["art/1"], candidate_bwb_ids=["BWB/1"], candidate_eclis=["ECLI:E:1"],
+        allow_refusal=True,
+    )
+    props = schema["input_schema"]["properties"]
+    assert "kind" in props
+    assert set(props["kind"]["enum"]) == {"answer", "insufficient_context"}
+    assert "insufficient_context_reason" in props
+
+
+def test_build_synthesis_tool_schema_uses_if_then_else_for_conditional_required():
+    schema = build_synthesis_tool_schema(
+        candidate_article_ids=["art/1"], candidate_bwb_ids=["BWB/1"], candidate_eclis=["ECLI:E:1"],
+        allow_refusal=True,
+    )
+    body = schema["input_schema"]
+    assert "if" in body
+    assert body["if"] == {"properties": {"kind": {"const": "answer"}}}
+    assert set(body["then"]["required"]) >= {"relevante_wetsartikelen", "vergelijkbare_uitspraken"}
+    assert "insufficient_context_reason" in body["else"]["required"]
+    # Top-level required (unconditional):
+    assert set(body["required"]) == {"kind", "korte_conclusie", "aanbeveling"}
+
+
+def test_build_synthesis_tool_schema_backcompat_without_allow_refusal():
+    """allow_refusal=False preserves the M4 shape."""
+    schema = build_synthesis_tool_schema(
+        candidate_article_ids=["art/1"], candidate_bwb_ids=["BWB/1"], candidate_eclis=["ECLI:E:1"],
+        allow_refusal=False,
+    )
+    props = schema["input_schema"]["properties"]
+    assert "kind" not in props
+    assert "if" not in schema["input_schema"]
