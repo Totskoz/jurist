@@ -31,9 +31,16 @@ interface RunState {
   cases: CaseHit[];
   resolutions: CitationResolution[];
 
+  inspectedNode: string | null;
+  panelCollapsed: boolean;
+  citedSet: Set<string>;
+
   start: (runId: string, question: string) => void;
   apply: (ev: TraceEvent) => void;
   reset: () => void;
+  inspectNode: (articleId: string) => void;
+  closeInspector: () => void;
+  toggleCollapse: () => void;
 }
 
 const edgeKey = (from: string, to: string): string => `${from}::${to}`;
@@ -50,6 +57,9 @@ export const useRunStore = create<RunState>((set, get) => ({
   finalAnswer: null,
   cases: [],
   resolutions: [],
+  inspectedNode: null,
+  panelCollapsed: false,
+  citedSet: new Set(),
 
   start: (runId, question) =>
     set({
@@ -64,6 +74,9 @@ export const useRunStore = create<RunState>((set, get) => ({
       finalAnswer: null,
       cases: [],
       resolutions: [],
+      inspectedNode: null,
+      citedSet: new Set(),
+      // panelCollapsed intentionally NOT reset — user's collapse preference persists.
     }),
 
   reset: () =>
@@ -79,7 +92,14 @@ export const useRunStore = create<RunState>((set, get) => ({
       finalAnswer: null,
       cases: [],
       resolutions: [],
+      inspectedNode: null,
+      panelCollapsed: false,
+      citedSet: new Set(),
     }),
+
+  inspectNode: (articleId) => set({ inspectedNode: articleId }),
+  closeInspector: () => set({ inspectedNode: null }),
+  toggleCollapse: () => set((s) => ({ panelCollapsed: !s.panelCollapsed })),
 
   apply: (ev) => {
     const s = get();
@@ -149,13 +169,23 @@ export const useRunStore = create<RunState>((set, get) => ({
         return;
       }
       case 'run_finished': {
-        // Demote any "current" to "cited" on the retriever's selected set.
-        const next = new Map(s.kgState);
-        for (const [k, v] of next) {
-          if (v === 'current' || v === 'visited') next.set(k, 'cited');
-        }
         const finalAnswer = (ev.data.final_answer as StructuredAnswer) ?? null;
-        set({ traceLog, kgState: next, status: 'finished', finalAnswer });
+        const citedSet = new Set<string>();
+        if (finalAnswer && finalAnswer.kind === 'answer') {
+          for (const art of finalAnswer.relevante_wetsartikelen ?? []) {
+            if (art.bwb_id) citedSet.add(art.bwb_id);
+          }
+        }
+        const next = new Map(s.kgState);
+        // Demote any still-current to visited first.
+        for (const [k, v] of next) {
+          if (v === 'current') next.set(k, 'visited');
+        }
+        // Only promote cited articles to `cited`.
+        for (const aid of citedSet) {
+          next.set(aid, 'cited');
+        }
+        set({ traceLog, kgState: next, status: 'finished', finalAnswer, citedSet });
         return;
       }
       case 'run_failed': {
