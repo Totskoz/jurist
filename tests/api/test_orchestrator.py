@@ -236,3 +236,53 @@ async def test_orchestrator_emits_run_failed_on_generic_case_exception(monkeypat
     assert final.data["reason"] == "llm_error"
     assert "429" in final.data["detail"]
     assert not any(e.type == "run_finished" for e in events)
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_decomposer_failed_surfaces_as_run_failed(monkeypatch):
+    """When decomposer.run raises DecomposerFailedError, orchestrator emits
+    run_failed{reason:"decomposition", detail}."""
+    from jurist.agents import decomposer
+    from jurist.agents.decomposer import DecomposerFailedError
+    from jurist.schemas import TraceEvent
+
+    async def _boom(_input, *, ctx):
+        yield TraceEvent(type="agent_started")
+        raise DecomposerFailedError("two strikes")
+
+    monkeypatch.setattr(decomposer, "run", _boom)
+
+    buf = EventBuffer()
+    await run_question("q", run_id="run_t", buffer=buf, ctx=_orch_ctx())
+
+    events = []
+    async for ev in buf.subscribe():
+        events.append(ev)
+
+    types = [e.type for e in events]
+    assert types[-1] == "run_failed"
+    assert events[-1].data["reason"] == "decomposition"
+    assert "two strikes" in events[-1].data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_decomposer_generic_error_surfaces_as_llm_error(monkeypatch):
+    from jurist.agents import decomposer
+    from jurist.schemas import TraceEvent
+
+    async def _boom(_input, *, ctx):
+        yield TraceEvent(type="agent_started")
+        raise RuntimeError("network down")
+
+    monkeypatch.setattr(decomposer, "run", _boom)
+
+    buf = EventBuffer()
+    await run_question("q", run_id="run_t2", buffer=buf, ctx=_orch_ctx())
+
+    events = []
+    async for ev in buf.subscribe():
+        events.append(ev)
+
+    assert events[-1].type == "run_failed"
+    assert events[-1].data["reason"] == "llm_error"
+    assert "RuntimeError" in events[-1].data["detail"]

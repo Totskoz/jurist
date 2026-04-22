@@ -14,6 +14,7 @@ from jurist.agents import (
     validator_stub,
 )
 from jurist.agents.case_retriever import RerankFailedError
+from jurist.agents.decomposer import DecomposerFailedError
 from jurist.api.sse import EventBuffer
 from jurist.config import RunContext
 from jurist.schemas import (
@@ -84,12 +85,34 @@ async def run_question(
         )
 
     # 1. Decomposer — real in M4
-    dec_final = await _pump(
-        "decomposer",
-        decomposer.run(DecomposerIn(question=question), ctx=ctx),
-        run_id,
-        buffer,
-    )
+    try:
+        dec_final = await _pump(
+            "decomposer",
+            decomposer.run(DecomposerIn(question=question), ctx=ctx),
+            run_id,
+            buffer,
+        )
+    except DecomposerFailedError as exc:
+        logger.warning("run_failed id=%s reason=decomposition: %s", run_id, exc)
+        await buffer.put(
+            TraceEvent(
+                type="run_failed", run_id=run_id, ts=_now_iso(),
+                data={"reason": "decomposition", "detail": str(exc)},
+            )
+        )
+        return
+    except Exception as exc:  # noqa: BLE001 — surface LLM/network errors
+        logger.exception(
+            "run_failed id=%s reason=llm_error detail=%s: %s",
+            run_id, type(exc).__name__, exc,
+        )
+        await buffer.put(
+            TraceEvent(
+                type="run_failed", run_id=run_id, ts=_now_iso(),
+                data={"reason": "llm_error", "detail": f"{type(exc).__name__}: {exc}"},
+            )
+        )
+        return
     decomposer_out = DecomposerOut.model_validate(dec_final.data)
 
     # 2. Statute retriever — real in M2
