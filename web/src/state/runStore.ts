@@ -270,10 +270,12 @@ export const useRunStore = create<RunState>((set, get) => ({
           next.set(aid, 'cited');
         }
         set({ traceLog, kgState: next, status: 'finished', finalAnswer, citedSet });
+        get().archiveCurrent('finished');
         return;
       }
       case 'run_failed': {
         set({ traceLog, status: 'failed' });
+        get().archiveCurrent('failed');
         return;
       }
       default: {

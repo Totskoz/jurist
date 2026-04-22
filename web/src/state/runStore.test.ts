@@ -40,6 +40,7 @@ describe('runStore — new UI fields', () => {
 describe('runStore — run_finished populates citedSet', () => {
   beforeEach(() => {
     useRunStore.getState().reset();
+    useRunStore.setState({ history: [] });  // isolation — reset() preserves history by design
   });
 
   it('populates citedSet from final_answer.relevante_wetsartikelen', () => {
@@ -100,6 +101,7 @@ import { vi } from 'vitest';
 describe('runStore — history slice (Task 7)', () => {
   beforeEach(() => {
     useRunStore.getState().reset();
+    useRunStore.setState({ history: [] });  // isolation — reset() preserves history by design
   });
 
   it('initializes history=[], viewingHistoryId=null, drawer closed', () => {
@@ -271,5 +273,42 @@ describe('runStore — archive/hydrate/delete/clear (Task 8)', () => {
     useRunStore.setState({ history: [/* junk */] as HistoryEntry[] });
     await useRunStore.getState().hydrateHistory();
     expect(useRunStore.getState().history).toEqual([]);
+  });
+});
+
+describe('runStore — apply() archives on terminal events (Task 9)', () => {
+  beforeEach(() => {
+    useRunStore.getState().reset();
+    useRunStore.setState({ history: [] });  // isolation
+  });
+
+  it('run_finished triggers archiveCurrent with status=finished', () => {
+    mockFetchOk();
+    const store = useRunStore.getState();
+    store.start('run_x', 'question');
+    store.apply(ev('run_finished', {
+      final_answer: {
+        kind: 'answer',
+        korte_conclusie: '',
+        relevante_wetsartikelen: [],
+        vergelijkbare_uitspraken: [],
+        aanbeveling: '',
+      },
+    }));
+    const s = useRunStore.getState();
+    expect(s.history).toHaveLength(1);
+    expect(s.history[0].id).toBe('run_x');
+    expect(s.history[0].status).toBe('finished');
+  });
+
+  it('run_failed triggers archiveCurrent with status=failed', () => {
+    mockFetchOk();
+    const store = useRunStore.getState();
+    store.start('run_y', 'bad question');
+    store.apply(ev('run_failed', { reason: 'rate_limit' }));
+    const s = useRunStore.getState();
+    expect(s.history).toHaveLength(1);
+    expect(s.history[0].id).toBe('run_y');
+    expect(s.history[0].status).toBe('failed');
   });
 });
