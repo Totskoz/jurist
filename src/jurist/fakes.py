@@ -7,8 +7,10 @@ from __future__ import annotations
 from jurist.schemas import (
     ArticleEdge,
     ArticleNode,
+    CitedArticle,
     CitedCase,
     DecomposerOut,
+    StatuteRetrieverOut,
     StructuredAnswer,
     UitspraakCitation,
     WetArtikelCitation,
@@ -116,6 +118,28 @@ FAKE_DECOMPOSER_OUT = DecomposerOut(
     ],
     intent="legality_check",
     huurtype_hypothese="onbekend",  # M5
+)
+
+FAKE_CITED_ARTICLES: list[CitedArticle] = [
+    CitedArticle(
+        bwb_id=BWB_BW7,
+        article_id=_A248,
+        article_label="Boek 7, Artikel 248",
+        body_text="De verhuurder kan tot aan het tijdstip dat ... (fake body text)",
+        reason="Kernbepaling huurverhoging — bevoegdheid verhuurder.",
+    ),
+    CitedArticle(
+        bwb_id=BWB_UHW,
+        article_id=_UHW3,
+        article_label="Uhw, Artikel 3",
+        body_text="Het maximale huurverhogingspercentage ... (fake body text)",
+        reason="Stelt het maximale verhogingspercentage vast.",
+    ),
+]
+
+FAKE_STATUTE_OUT = StatuteRetrieverOut(
+    cited_articles=FAKE_CITED_ARTICLES,
+    low_confidence=False,
 )
 
 FAKE_CASES: list[CitedCase] = [
