@@ -111,7 +111,7 @@ class DecomposerOut(BaseModel):
     intent: Literal["legality_check", "calculation", "procedure", "other"]
 ```
 
-**Implementation.** Single Anthropic call with a forced tool `emit_decomposition` used as a structured-output schema. Haiku. System prompt marked cacheable.
+**Implementation.** Single Anthropic call with a forced tool `emit_decomposition` used as a structured-output schema. Haiku. System prompt marked cacheable. One regen with a Dutch advisory appended to the user message on first failure, then hard-fail to `DecomposerFailedError` → `run_failed{reason:"decomposition"}`. Consistent with M3b rerank and M4 synthesizer.
 
 **Events.**
 - `agent_started { agent: "decomposer" }`
@@ -188,9 +188,10 @@ class CitedCase(BaseModel):
     ecli: str
     court: str
     date: str                    # ISO 8601
-    snippet: str
+    snippet: str                 # 400-char excerpt; rerank-prompt context
     similarity: float
     reason: str                  # from the Haiku rerank pass
+    chunk_text: str              # M4: full best-chunk text (~500 words); synthesizer quote-verification surface
     url: str                     # uitspraken.rechtspraak.nl/...
 
 class CaseRetrieverOut(BaseModel):
@@ -221,9 +222,10 @@ class SynthesizerIn(BaseModel):
 **Output.**
 ```python
 class WetArtikelCitation(BaseModel):
-    bwb_id: str                  # per-request Literal over cited_articles
+    article_id: str              # M4: per-request Literal over cited_articles — unambiguous post-hoc resolver
+    bwb_id: str                  # per-request Literal over cited_articles — belt-and-braces
     article_label: str
-    quote: str                   # verbatim excerpt from the article text
+    quote: str                   # verbatim excerpt (NFC + whitespace-normalized substring of article body_text); 40–500 chars
     explanation: str
 
 class UitspraakCitation(BaseModel):
@@ -242,8 +244,8 @@ class SynthesizerOut(BaseModel):
 ```
 
 **Grounding mechanism.**
-- The Anthropic tool schema for synthesis is built per-request with `bwb_id` typed as `Literal[<exact retrieved ids>]` and `ecli` typed as `Literal[<exact retrieved eclis>]`. Tool-schema validation rejects generations that do not match.
-- After generation, every citation is resolved against the KG / vector store to confirm both the ID exists and the `quote` appears in the source text.
+- The Anthropic tool schema for synthesis is built per-request with `article_id` and `bwb_id` typed as `Literal[<exact retrieved ids>]` (over the candidate article paths and their parent BWBs respectively) and `ecli` typed as `Literal[<exact retrieved eclis>]`. Tool-schema validation rejects generations that do not match.
+- After generation, `verify_citations()` (a) confirms each `article_id`/`ecli` is in the candidate set (catches schema-bypass), and (b) confirms each `quote` appears in the source text — NFC-normalize both sides, collapse whitespace runs to single spaces, strict case-sensitive substring. Quote length bounds 40–500 characters, enforced in the tool schema and re-checked post-hoc. Quotes for uitspraken verify against `CitedCase.chunk_text` (the full best-chunk text, not the 400-char `snippet`).
 - On resolution failure: **one** regeneration attempt is made, with an added instruction listing the valid IDs and any quotes that failed lookup. If still failing, the run emits `run_failed { reason: "citation_grounding" }` and the UI renders a visible error. No silent fallback path.
 
 **Events.** `agent_started`, `answer_delta { text }`, `citation_resolved { kind, id, resolved_url }` (one per citation once resolved), `agent_finished`.
@@ -312,7 +314,7 @@ One SSE stream per question.
 | `citation_resolved` | synthesizer | `{ kind, id, resolved_url }` |
 | `agent_finished` | any agent | `{ payload }` — the agent's typed output |
 | `run_finished` | orchestrator | `{ final_answer: StructuredAnswer }` |
-| `run_failed` | orchestrator | `{ reason, detail }` |
+| `run_failed` | orchestrator | `{ reason, detail }` — `reason ∈ {"llm_error", "case_rerank", "decomposition", "citation_grounding"}` |
 
 ## 7. Data model
 
@@ -583,7 +585,7 @@ Separate design + plan to follow M3a.
 Done when:
 - Full chain runs on real LLMs for the locked question end-to-end without developer intervention.
 - The structured Dutch answer renders. Every citation resolves. Clicking each citation navigates to the correct source.
-- Grounding guard test (unit-level on the synthesizer): given `cited_articles = [A, B, C]` and a prompt that attempts to steer toward an imagined citation `D`, the per-request `Literal` enum blocks it at schema-validation time; the synthesizer produces a valid output or, after one regeneration still failing, the run emits `run_failed { reason: "citation_grounding" }` and the UI shows the error. No silent hallucination in either path.
+- Grounding guard test (`tests/agents/test_synthesizer_grounding.py`) asserts three layers: (a) `build_synthesis_tool_schema(...)`'s `article_id.enum` and `ecli.enum` equal exactly the candidate set; (b) `verify_citations()` fed a tampered `StructuredAnswer` whose IDs are out of set returns `FailedCitation(reason="unknown_id")`, not `KeyError`; (c) agent end-to-end with a mock that produces imagined-ID tool_inputs twice in a row raises `CitationGroundingFailedError` (→ `run_failed{reason:"citation_grounding"}` at the orchestrator level). No silent success.
 
 ### M5 — Validator stub + polish + README
 
@@ -608,7 +610,6 @@ Environment variables (`.env`):
 
 - `ANTHROPIC_API_KEY` — required.
 - `JURIST_DATA_DIR` — default `./data`.
-- `JURIST_MODEL_DECOMPOSER` — default `claude-haiku-4-5-20251001`.
 - `JURIST_MODEL_RETRIEVER` — default `claude-sonnet-4-6`.
 - `JURIST_MODEL_RERANK` — default `claude-haiku-4-5-20251001`.
 - `JURIST_MODEL_SYNTH` — default `claude-sonnet-4-6`.
@@ -617,6 +618,9 @@ Environment variables (`.env`):
 - `JURIST_CASELAW_CANDIDATE_CHUNKS` — default `150`. Cosine over-fetch pool size before ECLI-dedupe (M3b).
 - `JURIST_CASELAW_CANDIDATE_ECLIS` — default `20`. Cap on unique ECLIs reaching the Haiku rerank (M3b).
 - `JURIST_CASELAW_RERANK_SNIPPET_CHARS` — default `400`. Chunk-text excerpt length per rerank candidate (M3b).
+- `JURIST_MODEL_DECOMPOSER` — default `claude-haiku-4-5-20251001`. Forced-tool structured output; small task, small model.
+- `JURIST_MODEL_SYNTHESIZER` — default `claude-sonnet-4-6`. Dutch structured generation with closed-set citations.
+- `JURIST_SYNTHESIZER_MAX_TOKENS` — default `8192`. Budget for reasoning prose + structured output combined.
 
 `.env.example` is committed. No secrets are committed.
 
@@ -654,6 +658,11 @@ Environment variables (`.env`):
 | 16 | Case retriever over-fetches ~150 chunks → ECLI-dedupe → 20 unique → rerank 3 | Top-20 chunks literally (original §5.3) | M3a corpus stats: avg ~7.8 chunks/case ⇒ top-20 chunks collapses to ~2–3 unique ECLIs, starving the rerank. |
 | 17 | Closed-set grounding on case rerank via JSON-Schema `enum` on `ecli` | Post-hoc validation only | Applies the same schema-level hallucination block at the rerank-output boundary that decision #9 applies at the synthesis boundary. |
 | 18 | Case rerank hard-fails (one regen → `RerankFailedError` → `run_failed{case_rerank}`) on malformed output | Soft-degrade to cosine-only top-3 with generic reasons | Consistent with synthesizer's grounding philosophy; loud demo failure beats silent degradation. |
+| 19 | Synthesizer UX = streaming `messages.stream()` for live `agent_thinking` + synthetic `answer_delta` replay after tool-call returns | Non-streaming + replay only; real-tool-JSON streaming; no replay (empty AnswerPanel during synth) | Only hybrid keeps both panels behaving naturally. Real tool-input JSON isn't user-presentable; replay mirrors M0 UX contract. |
+| 20 | `WetArtikelCitation` carries both `article_id` and `bwb_id`; both closed-set enums | Keep `bwb_id` only (spec-faithful); replace `bwb_id` with `article_id` | `article_id` gives unambiguous post-hoc resolution — quote must appear in the specific article, not any article in the BWB. Additive keeps frontend `CitationLink` unchanged. |
+| 21 | Quote verification = NFC + whitespace-normalized + case-sensitive strict substring; 40–500 char bounds | Fuzzy (Levenshtein); strict byte match; case-insensitive | Preserves "verbatim" claim while tolerating LLM reformatting. Bounds keep citations substantive without "quote the whole article." |
+| 22 | Decomposer mirrors synthesizer/rerank regen policy (one regen then hard-fail) | Zero regen (trust schema); deterministic fallback | Consistent across the three forced-tool agents. Silent fallback contradicts decision #18 philosophy. |
+| 23 | `verify_citations()` returns `FailedCitation(reason="unknown_id")` on out-of-set IDs, not `KeyError` | Raise KeyError; assert IDs pre-verify | Makes the helper robust to schema-bypass (grounding guard test); turns an invariant into a regen-compatible signal. |
 
 ---
 
