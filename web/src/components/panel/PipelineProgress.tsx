@@ -24,7 +24,7 @@ export default function PipelineProgress() {
   }
 
   return (
-    <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+    <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
       {AGENTS.map((agent) => {
         const st = statusByAgent[agent];
         const bg =
@@ -42,11 +42,12 @@ export default function PipelineProgress() {
             key={agent}
             style={{
               flex: 1,
-              padding: '6px 4px',
-              borderRadius: 6,
+              padding: '9px 6px',
+              borderRadius: 8,
               background: bg,
               border: `1px solid ${border}`,
-              fontSize: 10,
+              fontSize: 12,
+              fontWeight: 600,
               textAlign: 'center',
               color: text,
             }}

@@ -11,10 +11,10 @@
   --panel-surface: rgba(20, 22, 28, 0.72);
   --panel-border: rgba(255, 255, 255, 0.08);
 
-  /* Text */
+  /* Text — all non-muted per user preference; hierarchy via weight/size/letter-spacing */
   --text-primary: #e7eaf0;
-  --text-secondary: #9098a8;
-  --text-tertiary: #5d6370;
+  --text-secondary: #e7eaf0;
+  --text-tertiary: #e7eaf0;
 
   /* Accent + error */
   --accent: #f5c24a;

@@ -1,5 +1,5 @@
 export function radiusFromDegree(degree: number): number {
-  return 4 + 1.8 * Math.sqrt(Math.max(0, degree));
+  return 6 + 3 * Math.sqrt(Math.max(0, degree));
 }
 
 const DEFAULT_LABEL_FRACTION = 0.15;
@@ -27,8 +27,11 @@ export interface RenderableNode {
   x?: number;
   y?: number;
   isInspected: boolean;
+  isBookRoot?: boolean;
   totalNodes: number;
 }
+
+const BOOK_ROOT_RADIUS = 32;
 
 export function drawNode(
   node: RenderableNode,
@@ -37,6 +40,32 @@ export function drawNode(
   pulseT: number
 ): void {
   if (node.x === undefined || node.y === undefined) return;
+
+  // Book root: distinct large neutral disc with a persistent big label.
+  if (node.isBookRoot) {
+    const r = BOOK_ROOT_RADIUS;
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(24, 27, 35, 0.92)';
+    ctx.arc(node.x, node.y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.lineWidth = 2 / globalScale;
+    ctx.arc(node.x, node.y, r, 0, Math.PI * 2);
+    ctx.stroke();
+
+    const fontSize = 17 / globalScale;
+    ctx.font = `700 ${fontSize}px ui-sans-serif, system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = 5 / globalScale;
+    ctx.strokeStyle = 'rgba(10, 11, 15, 0.95)';
+    ctx.strokeText(node.label, node.x, node.y);
+    ctx.fillStyle = color.textPrimary;
+    ctx.fillText(node.label, node.x, node.y);
+    return;
+  }
+
   const r = radiusFromDegree(node.degree);
   const fill = clusterColor[node.cluster];
 
@@ -66,14 +95,14 @@ export function drawNode(
   let strokeColor: string | null = null;
   let strokeWidth = 0;
   if (node.isInspected) {
-    strokeColor = 'rgba(255,255,255,0.7)';
-    strokeWidth = 1.5;
+    strokeColor = 'rgba(255,255,255,0.85)';
+    strokeWidth = 2;
   } else if (node.state === 'current') {
     strokeColor = color.accent;
-    strokeWidth = 2;
+    strokeWidth = 2.5;
   } else if (node.state === 'visited') {
-    strokeColor = fill;
-    strokeWidth = 1;
+    strokeColor = color.error;
+    strokeWidth = 2.5;
   }
   if (strokeColor) {
     ctx.beginPath();
@@ -85,15 +114,15 @@ export function drawNode(
 
   // Label for top ~15%.
   if (shouldShowLabel(node.rank, node.totalNodes)) {
-    const fontSize = 10 / globalScale;
-    ctx.font = `${fontSize}px ui-sans-serif, system-ui, sans-serif`;
+    const fontSize = 13 / globalScale;
+    ctx.font = `600 ${fontSize}px ui-sans-serif, system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.lineWidth = 3 / globalScale;
-    ctx.strokeStyle = 'rgba(10, 11, 15, 0.9)';
-    ctx.strokeText(node.label, node.x, node.y + r + 2);
+    ctx.lineWidth = 4 / globalScale;
+    ctx.strokeStyle = 'rgba(10, 11, 15, 0.92)';
+    ctx.strokeText(node.label, node.x, node.y + r + 3);
     ctx.fillStyle = color.textPrimary;
-    ctx.fillText(node.label, node.x, node.y + r + 2);
+    ctx.fillText(node.label, node.x, node.y + r + 3);
   }
 }
 

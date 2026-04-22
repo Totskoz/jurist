@@ -4,7 +4,7 @@
  */
 export const FORCE_CONFIG = {
   // How many ticks of simulation run before we freeze the layout.
-  cooldownTicks: 150,
+  cooldownTicks: 350,
   // How warm the simulation starts (0..1). 0.3 = moderate shake-out.
   warmupTicks: 0,
   // Link distance (between linked nodes).

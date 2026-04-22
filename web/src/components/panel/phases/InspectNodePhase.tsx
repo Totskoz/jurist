@@ -1,7 +1,10 @@
 import { useRunStore } from '../../../state/runStore';
 import { useKgData } from '../../../hooks/useKgData';
-import CitationLink from '../../CitationLink';
 import { shortLabelFor } from '../../graph/clusters';
+
+function sourceUrlFor(bwbId: string): string {
+  return `https://wetten.overheid.nl/${bwbId}`;
+}
 
 export default function InspectNodePhase() {
   const inspectedNode = useRunStore((s) => s.inspectedNode);
@@ -16,7 +19,7 @@ export default function InspectNodePhase() {
     return (
       <div>
         <BackButton onBack={closeInspector} />
-        <p style={{ color: 'var(--text-secondary)' }}>Artikel niet gevonden.</p>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginTop: 12 }}>Artikel niet gevonden.</p>
       </div>
     );
   }
@@ -27,26 +30,38 @@ export default function InspectNodePhase() {
     <div>
       <BackButton onBack={closeInspector} />
 
-      <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>{shortLabelFor(node)}</h3>
-        <CitationLink kind="artikel" id={node.article_id}>
+      <div style={{ marginTop: 16, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
+        <h3 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>{shortLabelFor(node)}</h3>
+        <a
+          href={sourceUrlFor(node.bwb_id)}
+          target="_blank"
+          rel="noreferrer"
+          style={{
+            fontSize: 14,
+            color: 'var(--accent)',
+            textDecoration: 'none',
+            borderBottom: '1px dashed rgba(245, 194, 74, 0.45)',
+            whiteSpace: 'nowrap',
+          }}
+        >
           Bron ↗
-        </CitationLink>
+        </a>
       </div>
 
-      <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+      <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>
         {node.title}
       </div>
 
       {isCited && (
         <div style={{
           display: 'inline-block',
-          marginTop: 10,
-          padding: '3px 8px',
+          marginTop: 12,
+          padding: '5px 12px',
           background: 'rgba(134, 207, 154, 0.15)',
           border: '1px solid rgba(134, 207, 154, 0.4)',
           borderRadius: 12,
-          fontSize: 11,
+          fontSize: 12,
+          fontWeight: 600,
           color: '#86cf9a',
         }}>
           Geciteerd in dit antwoord
@@ -54,9 +69,9 @@ export default function InspectNodePhase() {
       )}
 
       <div style={{
-        marginTop: 16,
-        fontSize: 13,
-        lineHeight: 1.6,
+        marginTop: 20,
+        fontSize: 15,
+        lineHeight: 1.65,
         color: 'var(--text-primary)',
         whiteSpace: 'pre-wrap',
       }}>
@@ -64,11 +79,11 @@ export default function InspectNodePhase() {
       </div>
 
       {node.outgoing_refs.length > 0 && (
-        <div style={{ marginTop: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+        <div style={{ marginTop: 24 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 10 }}>
             Verwijst naar
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {node.outgoing_refs
               .filter((ref) => data.nodes.some((n) => n.article_id === ref))
               .map((ref) => {
@@ -78,11 +93,11 @@ export default function InspectNodePhase() {
                     key={ref}
                     onClick={() => inspectNode(ref)}
                     style={{
-                      padding: '4px 10px',
+                      padding: '6px 14px',
                       background: 'rgba(255,255,255,0.05)',
                       border: '1px solid var(--panel-border)',
-                      borderRadius: 12,
-                      fontSize: 11,
+                      borderRadius: 14,
+                      fontSize: 13,
                       color: 'var(--text-primary)',
                       cursor: 'pointer',
                     }}
@@ -106,7 +121,7 @@ function BackButton({ onBack }: { onBack: () => void }) {
         background: 'none',
         border: 'none',
         color: 'var(--text-secondary)',
-        fontSize: 13,
+        fontSize: 14,
         cursor: 'pointer',
         padding: 0,
       }}

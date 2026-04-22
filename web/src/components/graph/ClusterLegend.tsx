@@ -5,27 +5,27 @@ export default function ClusterLegend() {
     <div
       style={{
         position: 'fixed',
-        bottom: 16,
-        left: 16,
-        padding: '12px 14px',
+        bottom: 20,
+        left: 20,
+        padding: '16px 18px',
         background: 'var(--panel-surface)',
         backdropFilter: 'blur(12px)',
         border: '1px solid var(--panel-border)',
-        borderRadius: 10,
-        fontSize: 12,
+        borderRadius: 12,
+        fontSize: 14,
         color: 'var(--text-secondary)',
         zIndex: 10,
       }}
     >
-      <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>Clusters</div>
+      <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.6 }}>Clusters</div>
       {CLUSTER_KEYS.map((key) => (
-        <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0' }}>
+        <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '3px 0' }}>
           <span
             style={{
               display: 'inline-block',
-              width: 10,
-              height: 10,
-              borderRadius: 2,
+              width: 13,
+              height: 13,
+              borderRadius: 3,
               background: clusterColor[key],
             }}
           />

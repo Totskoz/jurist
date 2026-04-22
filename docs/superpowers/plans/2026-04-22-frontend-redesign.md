@@ -1867,7 +1867,7 @@ export default function IdlePhase() {
         Jurist
       </h2>
       <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>
-        Dutch huurrecht — multi-agent demo
+        Dutch huurrecht | multi-agent demo
       </p>
 
       <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.5 }}>

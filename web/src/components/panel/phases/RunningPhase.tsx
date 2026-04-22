@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useRunStore } from '../../../state/runStore';
 import PipelineProgress from '../PipelineProgress';
 import AgentThinking from '../AgentThinking';
@@ -31,15 +32,22 @@ export default function RunningPhase() {
     if (ev.agent) (byAgent[ev.agent] ??= []).push(ev);
   }
 
+  // Autoscroll to bottom as new events / answer tokens arrive.
+  const bottomRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [traceLog.length, answerText]);
+
   return (
     <div>
       <div style={{
-        fontSize: 12,
+        fontSize: 14,
+        lineHeight: 1.5,
         color: 'var(--text-secondary)',
-        padding: '6px 10px',
+        padding: '10px 14px',
         background: 'rgba(255,255,255,0.03)',
-        borderRadius: 6,
-        marginBottom: 16,
+        borderRadius: 8,
+        marginBottom: 20,
       }}>
         {question}
       </div>
@@ -50,8 +58,8 @@ export default function RunningPhase() {
         if (!byAgent[agent]) return null;
         const isActive = active === agent;
         return (
-          <div key={agent} style={{ marginBottom: isActive ? 16 : 8 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: isActive ? 'var(--accent)' : 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          <div key={agent} style={{ marginBottom: isActive ? 20 : 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: isActive ? 'var(--accent)' : 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.6 }}>
               {agent}
             </div>
             {isActive && thinkingByAgent[agent] && (
@@ -64,19 +72,21 @@ export default function RunningPhase() {
 
       {answerText && (
         <div style={{
-          marginTop: 16,
-          padding: 12,
+          marginTop: 20,
+          padding: 16,
           background: 'rgba(134, 207, 154, 0.08)',
           border: '1px solid rgba(134, 207, 154, 0.3)',
-          borderRadius: 8,
-          fontSize: 13,
+          borderRadius: 10,
+          fontSize: 15,
           color: 'var(--text-primary)',
           whiteSpace: 'pre-wrap',
-          lineHeight: 1.5,
+          lineHeight: 1.6,
         }}>
           {answerText}
         </div>
       )}
+
+      <div ref={bottomRef} />
     </div>
   );
 }

@@ -8,15 +8,16 @@ export default function AgentThinking({ agent, text }: Props) {
   return (
     <div
       style={{
-        marginTop: 12,
-        paddingLeft: 12,
-        borderLeft: '2px solid var(--accent)',
+        marginTop: 14,
+        paddingLeft: 14,
+        borderLeft: '3px solid var(--accent)',
         color: 'var(--text-secondary)',
-        fontSize: 12,
+        fontSize: 14,
+        lineHeight: 1.55,
         whiteSpace: 'pre-wrap',
       }}
     >
-      <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6 }}>
         {agent} — gedachten
       </div>
       {text}

@@ -2,16 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { radiusFromDegree, shouldShowLabel } from './nodeRender';
 
 describe('radiusFromDegree', () => {
-  it('degree 0 → 4 px', () => {
-    expect(radiusFromDegree(0)).toBe(4);
+  it('degree 0 → 6 px', () => {
+    expect(radiusFromDegree(0)).toBe(6);
   });
 
-  it('degree 1 → 5.8 px', () => {
-    expect(radiusFromDegree(1)).toBeCloseTo(5.8, 2);
+  it('degree 1 → 9 px', () => {
+    expect(radiusFromDegree(1)).toBeCloseTo(9, 2);
   });
 
-  it('degree 16 → ~11.2 px', () => {
-    expect(radiusFromDegree(16)).toBeCloseTo(11.2, 2);
+  it('degree 16 → 18 px', () => {
+    expect(radiusFromDegree(16)).toBeCloseTo(18, 2);
   });
 
   it('is monotonic in degree', () => {

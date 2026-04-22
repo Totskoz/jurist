@@ -8,7 +8,7 @@ import RunningPhase from './phases/RunningPhase';
 import AnswerReadyPhase from './phases/AnswerReadyPhase';
 import InspectNodePhase from './phases/InspectNodePhase';
 
-const PANEL_WIDTH = 440;
+const PANEL_WIDTH = 560;
 const COLLAPSE_OFFSET = PANEL_WIDTH + 48;
 
 export default function Panel() {
@@ -48,7 +48,7 @@ export default function Panel() {
       }}
     >
       <CollapseHandle />
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: 20 }}>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: 28 }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={phase}

@@ -36,11 +36,11 @@ export default function TraceLines({ events }: { events: TraceEvent[] }) {
     <ul style={{
       listStyle: 'none',
       padding: 0,
-      margin: '8px 0 0',
+      margin: '10px 0 0',
       fontFamily: 'ui-monospace, monospace',
-      fontSize: 11,
+      fontSize: 13,
       color: 'var(--text-tertiary)',
-      lineHeight: 1.5,
+      lineHeight: 1.65,
     }}>
       {lines.map((l, i) => <li key={i}>{l}</li>)}
     </ul>

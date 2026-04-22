@@ -32,8 +32,9 @@ export const clusterLabel: Record<ClusterKey, string> = {
 
 export const color = {
   textPrimary: '#e7eaf0',
-  textSecondary: '#9098a8',
-  textTertiary: '#5d6370',
+  // textSecondary/Tertiary collapsed to primary — no muted text per user preference.
+  textSecondary: '#e7eaf0',
+  textTertiary: '#e7eaf0',
   accent: '#f5c24a',
   error: '#f07178',
   edgeDefault: 'rgba(255, 255, 255, 0.08)',
