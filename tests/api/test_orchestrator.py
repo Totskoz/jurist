@@ -26,10 +26,12 @@ class _NoOpEmbedder:
 
 
 _VALID_SYNTH_INPUT = {
+    "kind": "insufficient_context",   # empty lists valid only for refusals (M5)
     "korte_conclusie": "Stub synth conclusie voor orchestrator test " * 2,
     "relevante_wetsartikelen": [],    # empty — test stub uses a tiny KG fixture
     "vergelijkbare_uitspraken": [],
     "aanbeveling": "Stub synth aanbeveling voor orchestrator test " * 2,
+    "insufficient_context_reason": "Test stub — geen echte corpus beschikbaar.",
 }
 
 

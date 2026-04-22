@@ -28,10 +28,12 @@ def _minimal_kg():
 
 
 _VALID_SYNTH_INPUT = {
+    "kind": "insufficient_context",   # empty lists valid only for refusals (M5)
     "korte_conclusie": "Stub synth conclusie voor endpoints test " * 2,
     "relevante_wetsartikelen": [],
     "vergelijkbare_uitspraken": [],
     "aanbeveling": "Stub synth aanbeveling voor endpoints test " * 2,
+    "insufficient_context_reason": "Test stub — geen echte corpus beschikbaar.",
 }
 
 

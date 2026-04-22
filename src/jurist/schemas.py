@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 # ---------------- Trace events ----------------
 
@@ -133,10 +133,34 @@ class UitspraakCitation(BaseModel):
 
 
 class StructuredAnswer(BaseModel):
-    korte_conclusie: str
-    relevante_wetsartikelen: list[WetArtikelCitation]
-    vergelijkbare_uitspraken: list[UitspraakCitation]
-    aanbeveling: str
+    kind: Literal["answer", "insufficient_context"] = "answer"
+    korte_conclusie: str = Field(..., min_length=40, max_length=2000)
+    relevante_wetsartikelen: list[WetArtikelCitation] = Field(default_factory=list)
+    vergelijkbare_uitspraken: list[UitspraakCitation] = Field(default_factory=list)
+    aanbeveling: str = Field(..., min_length=40, max_length=2000)
+    insufficient_context_reason: str | None = Field(default=None, min_length=40, max_length=1000)
+
+    @model_validator(mode="after")
+    def _kind_matches_shape(self) -> StructuredAnswer:
+        if self.kind == "answer":
+            if self.insufficient_context_reason is not None:
+                raise ValueError(
+                    "insufficient_context_reason must be None when kind='answer'"
+                )
+            if not self.relevante_wetsartikelen:
+                raise ValueError(
+                    "relevante_wetsartikelen must be non-empty when kind='answer'"
+                )
+            if not self.vergelijkbare_uitspraken:
+                raise ValueError(
+                    "vergelijkbare_uitspraken must be non-empty when kind='answer'"
+                )
+        else:  # kind == "insufficient_context"
+            if not self.insufficient_context_reason:
+                raise ValueError(
+                    "insufficient_context_reason required when kind='insufficient_context'"
+                )
+        return self
 
 
 class SynthesizerIn(BaseModel):

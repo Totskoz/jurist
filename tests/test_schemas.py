@@ -1,6 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
+from jurist.fakes import FAKE_ANSWER
 from jurist.schemas import (
     ArticleEdge,
     ArticleNode,
@@ -83,11 +84,14 @@ def test_article_edge_kind_literal():
 
 
 def test_structured_answer_can_be_empty_lists():
+    # kind="insufficient_context" allows empty lists (no statutes/cases found).
     ans = StructuredAnswer(
-        korte_conclusie="Dat mag niet zomaar.",
+        kind="insufficient_context",
+        korte_conclusie="Dat valt buiten het huurrecht-corpus." * 2,
         relevante_wetsartikelen=[],
         vergelijkbare_uitspraken=[],
-        aanbeveling="Raadpleeg de Huurcommissie.",
+        aanbeveling="Raadpleeg de Huurcommissie." * 2,
+        insufficient_context_reason="Vraag valt buiten huurrecht-corpus; verwijs naar burenrecht.",
     )
     assert ans.aanbeveling.startswith("Raadpleeg")
 
@@ -242,3 +246,74 @@ def test_cited_case_accepts_chunk_text():
         url="https://uitspraken.rechtspraak.nl/details?id=ECLI:NL:HR:2020:1234",
     )
     assert len(case.chunk_text) > 400
+
+
+# ---------------- M5 schema additions ----------------
+
+def test_structured_answer_kind_answer_requires_citations():
+    with pytest.raises(ValidationError, match="relevante_wetsartikelen must be non-empty"):
+        StructuredAnswer(
+            kind="answer",
+            korte_conclusie="x" * 50,
+            relevante_wetsartikelen=[],
+            vergelijkbare_uitspraken=[FAKE_ANSWER.vergelijkbare_uitspraken[0]],
+            aanbeveling="y" * 50,
+        )
+
+def test_structured_answer_kind_answer_requires_uitspraken():
+    with pytest.raises(ValidationError, match="vergelijkbare_uitspraken must be non-empty"):
+        StructuredAnswer(
+            kind="answer",
+            korte_conclusie="x" * 50,
+            relevante_wetsartikelen=FAKE_ANSWER.relevante_wetsartikelen,
+            vergelijkbare_uitspraken=[],
+            aanbeveling="y" * 50,
+        )
+
+def test_structured_answer_kind_answer_rejects_reason():
+    with pytest.raises(ValidationError, match="insufficient_context_reason must be None"):
+        StructuredAnswer(
+            kind="answer",
+            korte_conclusie="x" * 50,
+            relevante_wetsartikelen=FAKE_ANSWER.relevante_wetsartikelen,
+            vergelijkbare_uitspraken=FAKE_ANSWER.vergelijkbare_uitspraken,
+            aanbeveling="y" * 50,
+            insufficient_context_reason="n" * 50,
+        )
+
+def test_structured_answer_kind_insufficient_requires_reason():
+    with pytest.raises(ValidationError, match="insufficient_context_reason required"):
+        StructuredAnswer(
+            kind="insufficient_context",
+            korte_conclusie="x" * 50,
+            relevante_wetsartikelen=[],
+            vergelijkbare_uitspraken=[],
+            aanbeveling="y" * 50,
+        )
+
+def test_structured_answer_kind_insufficient_allows_empty_lists():
+    a = StructuredAnswer(
+        kind="insufficient_context",
+        korte_conclusie="x" * 50,
+        relevante_wetsartikelen=[],
+        vergelijkbare_uitspraken=[],
+        aanbeveling="y" * 50,
+        insufficient_context_reason="Vraag valt buiten huurrecht-corpus; verwijs naar burenrecht.",
+    )
+    assert a.kind == "insufficient_context"
+    assert a.relevante_wetsartikelen == []
+    assert a.insufficient_context_reason.startswith("Vraag valt")
+
+def test_structured_answer_roundtrip_both_kinds():
+    answer = FAKE_ANSWER.model_copy(update={"kind": "answer", "insufficient_context_reason": None})
+    assert StructuredAnswer.model_validate(answer.model_dump()) == answer
+
+    refusal = StructuredAnswer(
+        kind="insufficient_context",
+        korte_conclusie="x" * 50,
+        relevante_wetsartikelen=[],
+        vergelijkbare_uitspraken=[],
+        aanbeveling="y" * 50,
+        insufficient_context_reason="r" * 50,
+    )
+    assert StructuredAnswer.model_validate(refusal.model_dump()) == refusal
