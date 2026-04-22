@@ -105,6 +105,7 @@ class StatuteRetrieverIn(BaseModel):
 
 class StatuteRetrieverOut(BaseModel):
     cited_articles: list[CitedArticle]
+    low_confidence: bool = False  # M5 — True when selected < 3
 
 
 class CaseRetrieverIn(BaseModel):
@@ -115,6 +116,7 @@ class CaseRetrieverIn(BaseModel):
 
 class CaseRetrieverOut(BaseModel):
     cited_cases: list[CitedCase]
+    low_confidence: bool = False  # M5 — True when top-3 similarity all < case_similarity_floor
 
 
 # ---------------- Structured answer ----------------

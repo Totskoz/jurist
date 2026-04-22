@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from jurist.fakes import FAKE_ANSWER
+from jurist.fakes import FAKE_ANSWER, FAKE_CASES
 from jurist.schemas import (
     ArticleEdge,
     ArticleNode,
@@ -345,3 +345,36 @@ def test_decomposer_out_huurtype_rejects_invalid():
             intent="legality_check",
             huurtype_hypothese="commercieel",  # not in enum
         )
+
+
+# ---------------- M5 low_confidence flags (Task 3) ----------------
+
+_FAKE_CITED_ARTICLES = [
+    CitedArticle(
+        bwb_id="BWBR0005290",
+        article_id="BWBR0005290/Boek7/Titeldeel4/Afdeling5/ParagraafOnderafdeling2/Sub-paragraaf1/Artikel248",
+        article_label="Boek 7, Artikel 248",
+        body_text="De verhuurder kan tot aan het tijdstip dat ...",
+        reason="Primary statute on huurverhoging.",
+    )
+]
+
+
+def test_statute_out_low_confidence_default_false():
+    out = StatuteRetrieverOut(cited_articles=_FAKE_CITED_ARTICLES)
+    assert out.low_confidence is False
+
+
+def test_statute_out_low_confidence_explicit_true():
+    out = StatuteRetrieverOut(cited_articles=_FAKE_CITED_ARTICLES, low_confidence=True)
+    assert out.low_confidence is True
+
+
+def test_case_retriever_out_low_confidence_default_false():
+    out = CaseRetrieverOut(cited_cases=FAKE_CASES)
+    assert out.low_confidence is False
+
+
+def test_case_retriever_out_low_confidence_explicit_true():
+    out = CaseRetrieverOut(cited_cases=FAKE_CASES, low_confidence=True)
+    assert out.low_confidence is True
