@@ -9,14 +9,26 @@ interface Props {
 export default function CitationLink({ kind, id, children }: Props) {
   const resolved = useRunStore((s) => s.resolutions.find((r) => r.kind === kind && r.id === id));
   if (!resolved) {
-    return <span className="text-gray-500 italic">{children}</span>;
+    return (
+      <span style={{
+        color: 'var(--text-tertiary)',
+        fontStyle: 'italic',
+        opacity: 0.7,
+      }}>
+        {children}
+      </span>
+    );
   }
   return (
     <a
       href={resolved.resolved_url}
       target="_blank"
       rel="noreferrer"
-      className="text-blue-700 underline hover:text-blue-900"
+      style={{
+        color: 'var(--accent)',
+        textDecoration: 'none',
+        borderBottom: '1px dashed rgba(245, 194, 74, 0.4)',
+      }}
     >
       {children}
     </a>
