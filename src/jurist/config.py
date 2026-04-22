@@ -62,6 +62,17 @@ class Settings:
         os.getenv("JURIST_CASELAW_RERANK_SNIPPET_CHARS", "400")
     )
 
+    # M4 — decomposer + synthesizer
+    model_decomposer: str = os.getenv(
+        "JURIST_MODEL_DECOMPOSER", "claude-haiku-4-5-20251001"
+    )
+    model_synthesizer: str = os.getenv(
+        "JURIST_MODEL_SYNTHESIZER", "claude-sonnet-4-6"
+    )
+    synthesizer_max_tokens: int = int(
+        os.getenv("JURIST_SYNTHESIZER_MAX_TOKENS", "8192")
+    )
+
     @property
     def kg_path(self) -> Path:
         return self.data_dir / "kg" / "huurrecht.json"

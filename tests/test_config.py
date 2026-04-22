@@ -110,3 +110,11 @@ def test_settings_m3b_env_overrides(monkeypatch) -> None:
     assert reloaded.caselaw_rerank_snippet_chars == 500
     # Reset for other tests
     importlib.reload(jurist.config)
+
+
+def test_m4_settings_defaults():
+    from jurist.config import settings
+
+    assert settings.model_decomposer == "claude-haiku-4-5-20251001"
+    assert settings.model_synthesizer == "claude-sonnet-4-6"
+    assert settings.synthesizer_max_tokens == 8192
