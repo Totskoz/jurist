@@ -1,4 +1,4 @@
-"""Chains the four fake agents + validator stub; stamps events; emits to a buffer."""
+"""Chains the four real agents + validator stub; stamps events; emits to a buffer."""
 from __future__ import annotations
 
 import logging

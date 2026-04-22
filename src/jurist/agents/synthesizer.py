@@ -29,8 +29,8 @@ _TOKEN_SLEEP_S = 0.02
 
 
 class CitationGroundingFailedError(Exception):
-    """Rerank produced invalid output twice. Orchestrator wraps this into
-    run_failed { reason: 'citation_grounding', detail: str(exc) }."""
+    """Citation verification failed on both attempt 1 and the regen. Orchestrator
+    wraps this into run_failed { reason: 'citation_grounding', detail: str(exc) }."""
 
 
 def _tokenize(text: str) -> list[str]:
