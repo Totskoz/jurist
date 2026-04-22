@@ -473,8 +473,8 @@ describe('runStore — run_finished populates citedSet', () => {
         kind: 'answer',
         korte_conclusie: '',
         relevante_wetsartikelen: [
-          { bwb_id: 'A', article_label: '', quote: '', explanation: '' },
-          { bwb_id: 'C', article_label: '', quote: '', explanation: '' },
+          { article_id: 'A', bwb_id: 'BWB-A', article_label: '', quote: '', explanation: '' },
+          { article_id: 'C', bwb_id: 'BWB-C', article_label: '', quote: '', explanation: '' },
         ],
         vergelijkbare_uitspraken: [],
         aanbeveling: '',
@@ -576,7 +576,7 @@ case 'run_finished': {
   const citedSet = new Set<string>();
   if (finalAnswer && finalAnswer.kind === 'answer') {
     for (const art of finalAnswer.relevante_wetsartikelen ?? []) {
-      if (art.bwb_id) citedSet.add(art.bwb_id);
+      if (art.article_id) citedSet.add(art.article_id);
     }
   }
   const next = new Map(s.kgState);

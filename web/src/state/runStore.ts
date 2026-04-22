@@ -173,7 +173,7 @@ export const useRunStore = create<RunState>((set, get) => ({
         const citedSet = new Set<string>();
         if (finalAnswer && finalAnswer.kind === 'answer') {
           for (const art of finalAnswer.relevante_wetsartikelen ?? []) {
-            if (art.bwb_id) citedSet.add(art.bwb_id);
+            if (art.article_id) citedSet.add(art.article_id);
           }
         }
         const next = new Map(s.kgState);

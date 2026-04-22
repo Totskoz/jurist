@@ -4,6 +4,7 @@
 export type Intent = 'legality_check' | 'calculation' | 'procedure' | 'other';
 
 export interface WetArtikelCitation {
+  article_id: string;
   bwb_id: string;
   article_label: string;
   quote: string;
