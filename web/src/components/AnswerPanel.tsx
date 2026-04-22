@@ -1,5 +1,6 @@
 import { useRunStore } from '../state/runStore';
 import CitationLink from './CitationLink';
+import { InsufficientContextBanner } from './InsufficientContextBanner';
 
 export default function AnswerPanel() {
   const finalAnswer = useRunStore((s) => s.finalAnswer);
@@ -21,6 +22,10 @@ export default function AnswerPanel() {
         <p className="whitespace-pre-wrap">{streaming}</p>
       </div>
     );
+  }
+
+  if (finalAnswer.kind === 'insufficient_context') {
+    return <InsufficientContextBanner {...finalAnswer} />;
   }
 
   return (

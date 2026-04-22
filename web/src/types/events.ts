@@ -16,12 +16,16 @@ export interface UitspraakCitation {
   explanation: string;
 }
 
-export interface StructuredAnswer {
+export type StructuredAnswerBase = {
   korte_conclusie: string;
   relevante_wetsartikelen: WetArtikelCitation[];
   vergelijkbare_uitspraken: UitspraakCitation[];
   aanbeveling: string;
-}
+};
+
+export type StructuredAnswer =
+  | (StructuredAnswerBase & { kind: 'answer'; insufficient_context_reason: null })
+  | (StructuredAnswerBase & { kind: 'insufficient_context'; insufficient_context_reason: string });
 
 export type AgentName =
   | 'decomposer'
