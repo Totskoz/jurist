@@ -10,6 +10,8 @@ import unicodedata
 from dataclasses import dataclass
 from typing import Any, Literal
 
+from pydantic import ValidationError
+
 from jurist.schemas import CitedArticle, CitedCase, StructuredAnswer
 
 
@@ -201,9 +203,49 @@ def verify_citations(
     return failures
 
 
+def _format_regen_advisory(failures: list[FailedCitation]) -> str:
+    """Render a Dutch advisory listing every failing citation. Appended to the
+    user message on the regen attempt."""
+    lines = [
+        "Je vorige antwoord bevatte ongeldige citaten. De volgende `quote`-"
+        "velden pasten niet bij de meegeleverde brontekst:",
+    ]
+    for f in failures:
+        short = (f.quote[:80] + "…") if len(f.quote) > 80 else f.quote
+        lines.append(f"- [{f.kind} {f.id}] ({f.reason}): {short!r}")
+    lines.append("")
+    lines.append(
+        "Kies uitsluitend verbatim passages uit de meegeleverde brontekst. "
+        "Lengte per quote tussen 40 en 500 tekens. Roep `emit_answer` opnieuw aan."
+    )
+    return "\n".join(lines)
+
+
+def _validate_attempt(
+    tool_input: dict[str, Any] | None,
+    cited_articles: list[CitedArticle],
+    cited_cases: list[CitedCase],
+) -> tuple[list[FailedCitation], bool]:
+    """Schema-check + post-hoc verify. Returns (failures, schema_ok).
+
+    - tool_input is None (no tool_use block) → ([], False).
+    - Pydantic StructuredAnswer.model_validate fails → ([], False).
+    - Otherwise → (verify_citations(...), True).
+    """
+    if tool_input is None:
+        return [], False
+    try:
+        answer = StructuredAnswer.model_validate(tool_input)
+    except ValidationError:
+        return [], False
+    return verify_citations(answer, cited_articles, cited_cases), True
+
+
 __all__ = [
     "FailedCitation",
+    "_format_regen_advisory",
     "_normalize",
+    "_validate_attempt",
     "build_synthesis_tool_schema",
     "build_synthesis_user_message",
     "verify_citations",

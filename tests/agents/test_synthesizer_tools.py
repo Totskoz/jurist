@@ -3,7 +3,9 @@ from __future__ import annotations
 
 from jurist.agents.synthesizer_tools import (
     FailedCitation,  # noqa: F401  — re-exported helper; tests assert on returned instances
+    _format_regen_advisory,
     _normalize,
+    _validate_attempt,
     build_synthesis_tool_schema,
     build_synthesis_user_message,
     verify_citations,
@@ -259,3 +261,78 @@ def test_verify_quote_too_long():
     )
     failures = verify_citations(answer, _articles(), _cases())
     assert any(f.reason == "too_long" for f in failures)
+
+
+def test_format_regen_advisory_lists_every_failure():
+    failures = [
+        FailedCitation("wetsartikel", "A1", "q1 quote", "not_in_source"),
+        FailedCitation("uitspraak", "ECLI:NL:X:1", "q2 quote", "too_short"),
+    ]
+    msg = _format_regen_advisory(failures)
+    assert "ongeldige citaten" in msg.lower()
+    assert "A1" in msg and "ECLI:NL:X:1" in msg
+    assert "not_in_source" in msg
+    assert "too_short" in msg
+    assert "40" in msg and "500" in msg
+    assert "emit_answer" in msg
+
+
+def test_validate_attempt_none_tool_input():
+    # No tool_use block → (empty failures, schema_ok=False).
+    failures, schema_ok = _validate_attempt(None, _articles(), _cases())
+    assert failures == []
+    assert schema_ok is False
+
+
+def test_validate_attempt_pydantic_invalid():
+    # Missing required field (aanbeveling) → schema_ok=False.
+    bad = {
+        "korte_conclusie": "c" * 40,
+        "relevante_wetsartikelen": [],
+        "vergelijkbare_uitspraken": [],
+        # no aanbeveling
+    }
+    failures, schema_ok = _validate_attempt(bad, _articles(), _cases())
+    assert schema_ok is False
+
+
+def test_validate_attempt_verification_failures():
+    tool_input = {
+        "korte_conclusie": "c " * 25,
+        "relevante_wetsartikelen": [{
+            "article_id": "A1", "bwb_id": "BWB1",
+            "article_label": "Art 1",
+            "quote": "Deze zin komt niet letterlijk voor in de brontekst maar is wel lang genoeg.",
+            "explanation": "uitleg " * 8,
+        }],
+        "vergelijkbare_uitspraken": [{
+            "ecli": "ECLI:NL:TEST:1",
+            "quote": "De rechtbank oordeelt dat een verhoging van 15% buitensporig is.",
+            "explanation": "uitleg " * 8,
+        }],
+        "aanbeveling": "a " * 25,
+    }
+    failures, schema_ok = _validate_attempt(tool_input, _articles(), _cases())
+    assert schema_ok is True
+    assert any(f.reason == "not_in_source" for f in failures)
+
+
+def test_validate_attempt_happy():
+    tool_input = {
+        "korte_conclusie": "c " * 25,
+        "relevante_wetsartikelen": [{
+            "article_id": "A1", "bwb_id": "BWB1",
+            "article_label": "Art 1",
+            "quote": "Een voorstel tot huurverhoging binnen de wettelijke kaders is toegestaan.",
+            "explanation": "uitleg " * 8,
+        }],
+        "vergelijkbare_uitspraken": [{
+            "ecli": "ECLI:NL:TEST:1",
+            "quote": "De rechtbank oordeelt dat een verhoging van 15% buitensporig is.",
+            "explanation": "uitleg " * 8,
+        }],
+        "aanbeveling": "a " * 25,
+    }
+    failures, schema_ok = _validate_attempt(tool_input, _articles(), _cases())
+    assert failures == []
+    assert schema_ok is True
