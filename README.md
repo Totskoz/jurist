@@ -2,6 +2,8 @@
 
 Grounded Dutch **huurrecht** (tenancy-law) Q&A — a small multi-agent demo built as interview prep for an AI-engineer role at DAS (Dutch legal insurance). Every citation is a real BWB article or ECLI, every answer goes through a post-hoc grounding check, and the whole pipeline streams over SSE so the UI can narrate each step.
 
+![Jurist frontend — two-cluster force-directed KG of huurrecht (Boek 7 BW + Uhw) alongside a docked answer panel](docs/images/kg-hero.png)
+
 **Locked demo question:** *"Mijn verhuurder wil de huur met 15% verhogen per volgend jaar, mag dat?"*
 
 ## Status
@@ -31,7 +33,7 @@ run_finished
 
 Grounding is enforced at three layers in the synthesizer: per-request JSON-Schema `enum` on `article_id` / `bwb_id` / `ecli`, Pydantic validation, and a strict-substring check against article bodies and case chunks. Failures regenerate once with a Dutch advisory, then hard-fail to `run_failed{reason:"citation_grounding"}`. Retrievers also emit `low_confidence`; when both flag it, the synthesizer takes an early-branch refusal without a normal-path LLM call.
 
-The frontend (React + Zustand + Cytoscape) subscribes to the SSE stream and animates KG nodes through `default → current → visited → cited`, shows per-agent thinking, streams the answer tokens live, then swaps to the validated `StructuredAnswer` on `run_finished`.
+The frontend (React + Zustand + `react-force-graph-2d` + `framer-motion`) subscribes to the SSE stream and animates KG nodes through `default → current → visited → cited`, shows per-agent thinking, streams the answer tokens live, then swaps to the validated `StructuredAnswer` on `run_finished`. The graph groups the two ingested laws (BW Boek 7 and Uhw) into side-by-side clusters anchored by synthetic book-root nodes.
 
 ## Corpus
 
