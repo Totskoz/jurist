@@ -122,3 +122,49 @@ def test_put_rejects_payload_over_5mb(client: TestClient):
         entries.append(e)
     resp = client.put("/api/history", json={"version": 1, "entries": entries})
     assert resp.status_code == 413
+
+
+def test_history_mounted_on_full_app(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """The full app (with KG + Lance lifespan) also exposes /api/history."""
+    import numpy as np
+
+    from jurist.schemas import CaseChunkRow
+    from jurist.vectorstore import CaseStore
+
+    # Isolate KG + lance + history under tmp_path.
+    new_settings = Settings(data_dir=tmp_path)
+    monkeypatch.setattr("jurist.config.settings", new_settings)
+    monkeypatch.setattr("jurist.api.app.settings", new_settings)
+    monkeypatch.setattr("jurist.api.history.settings", new_settings)
+
+    # Seed KG.
+    kg_path = tmp_path / "kg" / "huurrecht.json"
+    kg_path.parent.mkdir(parents=True, exist_ok=True)
+    kg_path.write_text(json.dumps({
+        "generated_at": "2026-01-01T00:00:00Z",
+        "source_versions": {"BWB": "x"},
+        "nodes": [], "edges": [],
+    }), encoding="utf-8")
+
+    # Seed a non-empty LanceDB.
+    store = CaseStore(tmp_path / "lancedb" / "cases.lance")
+    store.open_or_create()
+    store.add_rows([CaseChunkRow(
+        ecli="ECLI:NL:STUB:1", chunk_idx=0, court="Rb", date="2025-01-01",
+        zaaknummer="z", subject_uri="u", modified="2025-01-01",
+        text="t", embedding=np.zeros(1024, dtype=np.float32).tolist(), url="u",
+    )])
+
+    from jurist.api import app as app_module
+
+    class _NoOpEmbedder:
+        def __init__(self, model_name): pass
+        def encode(self, texts, *, batch_size=32):
+            return np.zeros((len(texts), 1024), dtype=np.float32)
+
+    monkeypatch.setattr(app_module, "Embedder", _NoOpEmbedder)
+
+    with TestClient(app_module.app) as client:
+        r = client.get("/api/history")
+        assert r.status_code == 200
+        assert r.json() == {"version": 1, "entries": []}

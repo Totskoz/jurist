@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ValidationError
 from sse_starlette.sse import EventSourceResponse
 
+from jurist.api.history import router as history_router
 from jurist.api.orchestrator import run_question
 from jurist.api.sse import EventBuffer
 from jurist.config import RunContext, settings
@@ -110,6 +111,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(history_router, prefix="/api")
 
 
 class AskRequest(BaseModel):
