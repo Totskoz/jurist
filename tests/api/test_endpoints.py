@@ -6,7 +6,14 @@ from httpx import ASGITransport, AsyncClient
 from jurist.api.app import app
 from jurist.kg.networkx_kg import NetworkXKG
 from jurist.schemas import ArticleNode, KGSnapshot
-from tests.fixtures.mock_llm import MockAnthropicClient, ScriptedToolUse, ScriptedTurn
+from tests.fixtures.mock_llm import (
+    MockAnthropicClient,
+    MockAnthropicForRerank,
+    MockStreamingClient,
+    ScriptedToolUse,
+    ScriptedTurn,
+    StreamScript,
+)
 
 
 def _minimal_kg():
@@ -20,14 +27,55 @@ def _minimal_kg():
     return NetworkXKG.from_snapshot(snap)
 
 
+_VALID_SYNTH_INPUT = {
+    "korte_conclusie": "Stub synth conclusie voor endpoints test " * 2,
+    "relevante_wetsartikelen": [],
+    "vergelijkbare_uitspraken": [],
+    "aanbeveling": "Stub synth aanbeveling voor endpoints test " * 2,
+}
+
+
+class _EndpointsMock:
+    """Endpoints-test dual mock: statute_retriever tool-loop + decomposer
+    messages.create + synthesizer messages.stream."""
+
+    def __init__(self) -> None:
+        self._stream = MockAnthropicClient([
+            ScriptedTurn(tool_uses=[ScriptedToolUse(
+                name="done",
+                args={"selected": [{"article_id": "A", "reason": "ok"}]},
+            )]),
+        ])
+        self._msg = MockAnthropicForRerank([
+            {
+                "sub_questions": ["q1"],
+                "concepts": ["c1"],
+                "intent": "legality_check",
+            },
+        ])
+        self._synth_stream = MockStreamingClient([
+            StreamScript(text_deltas=["stub."], tool_input=_VALID_SYNTH_INPUT),
+        ])
+
+    def next_turn(self, history):
+        return self._stream.next_turn(history)
+
+    @property
+    def messages(self):
+        outer = self
+
+        class _Router:
+            async def create(self, **kwargs):
+                return await outer._msg.messages.create(**kwargs)
+
+            def stream(self, **kwargs):
+                return outer._synth_stream.messages.stream(**kwargs)
+
+        return _Router()
+
+
 def _mock_llm():
-    script = [
-        ScriptedTurn(tool_uses=[ScriptedToolUse(
-            name="done",
-            args={"selected": [{"article_id": "A", "reason": "ok"}]},
-        )]),
-    ]
-    return MockAnthropicClient(script)
+    return _EndpointsMock()
 
 
 @pytest.fixture(autouse=True)

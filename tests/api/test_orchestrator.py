@@ -13,8 +13,10 @@ from jurist.vectorstore import CaseStore
 from tests.fixtures.mock_llm import (
     MockAnthropicClient,
     MockAnthropicForRerank,
+    MockStreamingClient,
     ScriptedToolUse,
     ScriptedTurn,
+    StreamScript,
 )
 
 
@@ -23,11 +25,20 @@ class _NoOpEmbedder:
         return np.zeros((len(texts), 1024), dtype=np.float32)
 
 
-class _DualMock:
-    """Supports both statute_retriever's .next_turn(history) (streaming
-    tool-loop mock) and decomposer's .messages.create (forced-tool mock).
+_VALID_SYNTH_INPUT = {
+    "korte_conclusie": "Stub synth conclusie voor orchestrator test " * 2,
+    "relevante_wetsartikelen": [],    # empty — test stub uses a tiny KG fixture
+    "vergelijkbare_uitspraken": [],
+    "aanbeveling": "Stub synth aanbeveling voor orchestrator test " * 2,
+}
 
-    Shape-duck-types AsyncAnthropic enough for both M2 and M4 agents."""
+
+class _DualMock:
+    """Supports statute_retriever's .next_turn(history) (streaming tool-loop
+    mock), decomposer's .messages.create (forced-tool mock), and the M4
+    synthesizer's .messages.stream (streaming forced-tool mock).
+
+    Shape-duck-types AsyncAnthropic enough for M2 + M4 agents."""
 
     def __init__(self, script: list[ScriptedTurn]) -> None:
         self._stream = MockAnthropicClient(script)
@@ -38,13 +49,27 @@ class _DualMock:
                 "intent": "legality_check",
             },
         ])
+        self._synth_stream = MockStreamingClient([
+            StreamScript(text_deltas=["stub."], tool_input=_VALID_SYNTH_INPUT),
+        ])
 
     def next_turn(self, history):
         return self._stream.next_turn(history)
 
     @property
     def messages(self):
-        return self._msg.messages
+        # Decomposer uses .messages.create; synthesizer uses .messages.stream.
+        # Route by call site.
+        outer = self
+
+        class _Router:
+            async def create(self, **kwargs):
+                return await outer._msg.messages.create(**kwargs)
+
+            def stream(self, **kwargs):
+                return outer._synth_stream.messages.stream(**kwargs)
+
+        return _Router()
 
 
 def _orch_ctx() -> RunContext:

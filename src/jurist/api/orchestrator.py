@@ -190,7 +190,7 @@ async def run_question(
     )
     synth_final = await _pump(
         "synthesizer",
-        synthesizer.run(synth_in),
+        synthesizer.run(synth_in, ctx=ctx),
         run_id,
         buffer,
     )
