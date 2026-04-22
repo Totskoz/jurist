@@ -210,6 +210,11 @@ def verify_citations(
       3. Normalized substring match → `not_in_source` if quote isn't in the
          body/chunk after NFC + whitespace collapse.
     """
+    # M5 — refusal-kind answers have empty citation lists by construction;
+    # nothing to verify. Keeps the synthesizer's control flow uniform.
+    if answer.kind == "insufficient_context":
+        return []
+
     failures: list[FailedCitation] = []
     by_article = {a.article_id: a for a in cited_articles}
     by_case = {c.ecli: c for c in cited_cases}

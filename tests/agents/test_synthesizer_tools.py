@@ -372,3 +372,17 @@ def test_build_synthesis_tool_schema_backcompat_without_allow_refusal():
     props = schema["input_schema"]["properties"]
     assert "kind" not in props
     assert "if" not in schema["input_schema"]
+
+
+def test_verify_citations_noop_on_insufficient_context():
+    answer = StructuredAnswer(
+        kind="insufficient_context",
+        korte_conclusie="Deze vraag valt buiten het huurrecht-corpus. " * 2,
+        relevante_wetsartikelen=[],
+        vergelijkbare_uitspraken=[],
+        aanbeveling="Raadpleeg een specialist arbeidsrecht. " * 2,
+        insufficient_context_reason="Gezocht in huurrecht-corpus; niets relevants gevonden.",
+    )
+    # Even with empty cited_articles/cited_cases, no failures should surface.
+    result = verify_citations(answer, cited_articles=[], cited_cases=[])
+    assert result == []
