@@ -108,4 +108,66 @@ describe('toSnapshot → fromSnapshot round-trip', () => {
     expect(view2.cases).toEqual(view1.cases);
     expect(view2.resolutions).toEqual(view1.resolutions);
   });
+
+  it('preserves decomposition_done, reranked picks, and citation_resolved enrichment fields', () => {
+    const view1 = {
+      question: 'Mag de huur met 15% omhoog?',
+      kgState: new Map<string, 'default' | 'current' | 'visited' | 'cited'>(),
+      edgeState: new Map<string, 'default' | 'traversed'>(),
+      traceLog: [
+        ev('decomposition_done', {
+          sub_questions: ['Is 15% toegestaan?', 'Wat is het maximum?'],
+          concepts: ['huurverhoging', 'sociale huur'],
+          intent: 'legality_check',
+          huurtype_hypothese: 'onbekend',
+        }, 'decomposer'),
+        ev('reranked', {
+          picks: [
+            { ecli: 'ECLI:NL:A:1', reason: 'Feitelijk vergelijkbaar met de vraag.' },
+            { ecli: 'ECLI:NL:B:2', reason: 'Relevante juridische context.' },
+            { ecli: 'ECLI:NL:C:3', reason: 'Toepassing van art. 7:248 BW.' },
+          ],
+          kept: ['ECLI:NL:A:1', 'ECLI:NL:B:2', 'ECLI:NL:C:3'],
+        }, 'case_retriever'),
+        ev('citation_resolved', {
+          kind: 'artikel',
+          id: 'BWBR0005290',
+          resolved_url: 'https://wetten.overheid.nl/BWBR0005290',
+          label: 'Boek 7, Artikel 248',
+          quote: 'De verhuurder kan tot aan het tijdstip waarop drie jaren zijn verstreken',
+          explanation: 'Regelt de bevoegdheid tot huurverhoging.',
+        }, 'synthesizer'),
+        ev('citation_resolved', {
+          kind: 'uitspraak',
+          id: 'ECLI:NL:RBAMS:2022:5678',
+          resolved_url: 'https://uitspraken.rechtspraak.nl/details?id=ECLI:NL:RBAMS:2022:5678',
+          quote: 'Huurverhoging van 15% acht de rechtbank in dit geval buitensporig.',
+          explanation: 'Rechtbank wijst 15% af.',
+        }, 'synthesizer'),
+      ],
+      thinkingByAgent: {},
+      answerText: '',
+      finalAnswer: null,
+      cases: [],
+      resolutions: [],
+      citedSet: new Set<string>(),
+    };
+
+    const view2 = fromSnapshot(toSnapshot(view1), view1.question);
+
+    expect(view2.traceLog).toEqual(view1.traceLog);
+    // Spot-check the enrichment fields survive as-is.
+    const done = view2.traceLog[0];
+    expect(done.data.sub_questions).toEqual(['Is 15% toegestaan?', 'Wat is het maximum?']);
+    expect(done.data.huurtype_hypothese).toBe('onbekend');
+    const reranked = view2.traceLog[1];
+    expect((reranked.data.picks as Array<{ reason: string }>)[0].reason)
+      .toBe('Feitelijk vergelijkbaar met de vraag.');
+    const artikel = view2.traceLog[2];
+    expect(artikel.data.label).toBe('Boek 7, Artikel 248');
+    expect(artikel.data.quote).toContain('drie jaren');
+    const uitspraak = view2.traceLog[3];
+    expect(uitspraak.data.label).toBeUndefined();
+    expect(uitspraak.data.explanation).toBe('Rechtbank wijst 15% af.');
+  });
 });
