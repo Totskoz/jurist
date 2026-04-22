@@ -39,7 +39,17 @@ async def test_decomposer_happy_path():
     async for ev in decomposer.run(DecomposerIn(question="Mag 15%?"), ctx=ctx):
         events.append(ev)
 
-    assert [ev.type for ev in events] == ["agent_started", "agent_finished"]
+    assert [ev.type for ev in events] == [
+        "agent_started", "decomposition_done", "agent_finished",
+    ]
+    done = events[1]
+    assert done.data["sub_questions"] == [
+        "Is de woning gereguleerd?", "Wat is het maximum?",
+    ]
+    assert done.data["concepts"] == ["huurverhoging", "gereguleerd"]
+    assert done.data["intent"] == "legality_check"
+    assert done.data["huurtype_hypothese"] == "onbekend"
+
     out = DecomposerOut.model_validate(events[-1].data)
     assert out.intent == "legality_check"
     assert len(out.sub_questions) == 2
@@ -181,3 +191,46 @@ async def test_decomposer_regens_on_bad_intent():
 
     assert events[-1].type == "agent_finished"
     assert len(mock.calls) == 2
+
+
+@pytest.mark.asyncio
+async def test_decomposer_emits_decomposition_done_exactly_once_after_regen():
+    """Even when attempt 1 fails and attempt 2 succeeds, decomposition_done
+    fires exactly once — we only emit for the final accepted output, not per
+    attempt."""
+    import jurist.agents.decomposer as dec_mod
+
+    class _TwoShotClient:
+        class _Messages:
+            def __init__(self, outer):
+                self._outer = outer
+
+            async def create(self, **kwargs):
+                self._outer.calls.append(kwargs)
+                self._outer._n += 1
+                if self._outer._n == 1:
+                    return SimpleNamespace(content=[
+                        SimpleNamespace(type="text", text="oh no"),
+                    ])
+                return SimpleNamespace(content=[
+                    SimpleNamespace(
+                        type="tool_use", name="emit_decomposition",
+                        input={
+                            "sub_questions": ["q1"], "concepts": ["c1"],
+                            "intent": "procedure",
+                            "huurtype_hypothese": "onbekend",
+                        },
+                    ),
+                ])
+
+        def __init__(self):
+            self.calls: list[dict] = []
+            self._n = 0
+            self.messages = _TwoShotClient._Messages(self)
+
+    mock = _TwoShotClient()
+    ctx = RunContext(kg=None, llm=mock, case_store=None, embedder=None)  # type: ignore[arg-type]
+    events = [ev async for ev in dec_mod.run(DecomposerIn(question="q"), ctx=ctx)]
+    types = [e.type for e in events]
+    assert types.count("decomposition_done") == 1
+    assert types == ["agent_started", "decomposition_done", "agent_finished"]

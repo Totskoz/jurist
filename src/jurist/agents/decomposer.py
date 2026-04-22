@@ -129,6 +129,12 @@ async def run(
     schema = _build_decomposer_tool_schema()
 
     out = await _decompose_with_retry(ctx.llm, system, user, schema)
+    yield TraceEvent(type="decomposition_done", data={
+        "sub_questions": list(out.sub_questions),
+        "concepts": list(out.concepts),
+        "intent": out.intent,
+        "huurtype_hypothese": out.huurtype_hypothese,
+    })
     yield TraceEvent(type="agent_finished", data=out.model_dump())
 
 
