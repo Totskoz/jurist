@@ -114,7 +114,7 @@ export const useRunStore = create<RunState>((set, get) => ({
       panelCollapsed: false,
       viewingHistoryId: null,
       citedSet: new Set(),
-      history: [],
+      // history intentionally NOT reset — survives "Nieuwe vraag"; hydrateHistory() repopulates on mount.
     }),
 
   inspectNode: (articleId) => set({ inspectedNode: articleId }),
@@ -148,7 +148,7 @@ export const useRunStore = create<RunState>((set, get) => ({
       snapshot,
     };
 
-    const next = [entry, ...s.history.slice(-(HISTORY_CAP - 1))];
+    const next = [entry, ...s.history].slice(0, HISTORY_CAP);
     set({ history: next });
 
     // Fire-and-forget PUT; errors are logged, local state is authoritative.

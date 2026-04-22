@@ -136,8 +136,8 @@ describe('runStore — history slice (Task 7)', () => {
     expect(useRunStore.getState().viewingHistoryId).toBeNull();
   });
 
-  it('reset() clears viewingHistoryId and history array', () => {
-    // Manually seed history via direct setState.
+  it('reset() clears viewingHistoryId but preserves history array', () => {
+    // Manually seed history (no public setter yet — direct setState).
     const entry: HistoryEntry = {
       id: 'run_1', question: 'q', timestamp: 0, status: 'finished',
       snapshot: {
@@ -149,7 +149,7 @@ describe('runStore — history slice (Task 7)', () => {
     useRunStore.getState().reset();
     const s = useRunStore.getState();
     expect(s.viewingHistoryId).toBeNull();
-    expect(s.history).toEqual([]);  // cleared; hydrateHistory() repopulates on mount
+    expect(s.history).toEqual([entry]);  // preserved
   });
 });
 
@@ -165,6 +165,7 @@ function mockFetchOk(): ReturnType<typeof vi.fn> {
 describe('runStore — archive/hydrate/delete/clear (Task 8)', () => {
   beforeEach(() => {
     useRunStore.getState().reset();
+    useRunStore.setState({ history: [] });  // explicit isolation — reset() preserves history by design
   });
 
   it('archiveCurrent prepends entry, caps at 15, strips answer_delta', async () => {
@@ -203,8 +204,8 @@ describe('runStore — archive/hydrate/delete/clear (Task 8)', () => {
         answerText: '', finalAnswer: null, cases: [], resolutions: [], citedSet: [],
       },
     });
-    // Seed 15 existing entries.
-    useRunStore.setState({ history: Array.from({ length: 15 }, (_, i) => mkEntry(`old_${i}`)) });
+    // Seed 15 existing entries, newest-first (index 0 = newest = old_14, index 14 = oldest = old_0).
+    useRunStore.setState({ history: Array.from({ length: 15 }, (_, i) => mkEntry(`old_${14 - i}`)) });
 
     const store = useRunStore.getState();
     store.start('run_new', 'q');
