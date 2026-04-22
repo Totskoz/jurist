@@ -58,9 +58,6 @@ def _build_decomposer_tool_schema() -> dict[str, Any]:
     }
 
 
-# Backward-compatible alias used internally.
-_build_tool_schema = _build_decomposer_tool_schema
-
 
 def _extract_tool_use(response: Any, expected_name: str):
     for block in getattr(response, "content", []):
@@ -129,7 +126,7 @@ async def run(
         f"Vraag: {input.question}\n\n"
         "Decomposeer deze vraag via `emit_decomposition`."
     )
-    schema = _build_tool_schema()
+    schema = _build_decomposer_tool_schema()
 
     out = await _decompose_with_retry(ctx.llm, system, user, schema)
     yield TraceEvent(type="agent_finished", data=out.model_dump())
