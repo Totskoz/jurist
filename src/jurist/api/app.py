@@ -86,9 +86,19 @@ async def lifespan(app: FastAPI):
     app.state.embedder = Embedder(model_name=settings.embed_model)
     logger.info("Embedder ready")
 
-    app.state.anthropic = AsyncAnthropic(api_key=settings.anthropic_api_key)
-    logger.info("Anthropic client ready (model_retriever=%s model_rerank=%s)",
-                settings.model_retriever, settings.model_rerank)
+    # max_retries=8: SDK does exponential backoff on 429/5xx. Default is 2,
+    # which is thin for an interview demo where a single Sonnet rate-limit
+    # burst would otherwise surface as run_failed{rate_limit}. 8 retries
+    # roughly cover a ~1-minute 429 storm before we give up.
+    app.state.anthropic = AsyncAnthropic(
+        api_key=settings.anthropic_api_key,
+        max_retries=settings.anthropic_max_retries,
+    )
+    logger.info(
+        "Anthropic client ready (model_retriever=%s model_rerank=%s max_retries=%d)",
+        settings.model_retriever, settings.model_rerank,
+        settings.anthropic_max_retries,
+    )
     yield
 
 

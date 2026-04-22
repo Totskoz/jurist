@@ -18,12 +18,13 @@ load_dotenv()
 
 @dataclass(frozen=True)
 class Settings:
-    max_history_per_run: int = int(os.getenv("JURIST_MAX_HISTORY_PER_RUN", "500"))
+    max_history_per_run: int = int(os.getenv("JURIST_MAX_HISTORY_PER_RUN", "2000"))
     cors_allow_origin: str = os.getenv("JURIST_CORS_ORIGIN", "http://localhost:5173")
     data_dir: Path = Path(os.getenv("JURIST_DATA_DIR", "./data"))
 
     # M2 — statute retriever
     anthropic_api_key: str | None = os.getenv("ANTHROPIC_API_KEY")
+    anthropic_max_retries: int = int(os.getenv("JURIST_ANTHROPIC_MAX_RETRIES", "8"))
     model_retriever: str = os.getenv("JURIST_MODEL_RETRIEVER", "claude-sonnet-4-6")
     max_retriever_iters: int = int(os.getenv("JURIST_MAX_RETRIEVER_ITERS", "15"))
     retriever_wall_clock_cap_s: float = float(

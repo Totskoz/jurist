@@ -86,13 +86,16 @@ def build_synthesis_tool_schema(
     }
 
 
-def build_synthesis_user_message(
+def build_synthesis_corpus_block(
     question: str,
     cited_articles: list[CitedArticle],
     cited_cases: list[CitedCase],
 ) -> str:
-    """Render the Dutch user message for the synthesizer call. Includes full
-    article bodies and case chunk_text — the quote-verification surface."""
+    """Render the large, slow-changing section of the synthesizer user message:
+    question + full article bodies + full case chunks. Identical on attempt 1
+    and on regen (the advisory is appended to the instructions block instead),
+    so this block can be sent as a separate content item with
+    `cache_control: ephemeral` to avoid re-processing ~30 KB on regen."""
     lines: list[str] = []
     lines.append(f"Vraag: {question}")
     lines.append("")
@@ -117,17 +120,34 @@ def build_synthesis_user_message(
         lines.append("    chunk:")
         lines.append(f"    {case.chunk_text}")
         lines.append("")
-
-    lines.append("Instructies:")
-    lines.append("1. Denk kort hardop in het Nederlands over welke bronnen je zult citeren.")
-    lines.append(
-        "2. Roep daarna `emit_answer` aan. Citeer uitsluitend uit de "
-        "meegeleverde brontekst, verbatim (40–500 tekens per quote)."
-    )
-    lines.append(
-        "3. Elk citaat moet letterlijk voorkomen in de bijbehorende brontekst."
-    )
     return "\n".join(lines)
+
+
+def build_synthesis_instructions_block() -> str:
+    """Render the short, attempt-specific tail of the synthesizer user
+    message. Kept uncached so the regen can append a Dutch advisory without
+    invalidating the corpus cache block."""
+    return (
+        "Instructies:\n"
+        "1. Roep `emit_answer` aan. Citeer uitsluitend uit de meegeleverde "
+        "brontekst, verbatim (40–500 tekens per quote).\n"
+        "2. Elk citaat moet letterlijk voorkomen in de bijbehorende brontekst."
+    )
+
+
+def build_synthesis_user_message(
+    question: str,
+    cited_articles: list[CitedArticle],
+    cited_cases: list[CitedCase],
+) -> str:
+    """Single-string synthesizer user message — concatenation of corpus +
+    instructions. Kept for backward compat with existing tests; the agent
+    uses the two halves separately so the corpus can be cached on regen."""
+    return (
+        build_synthesis_corpus_block(question, cited_articles, cited_cases)
+        + "\n"
+        + build_synthesis_instructions_block()
+    )
 
 
 @dataclass(frozen=True)
@@ -246,6 +266,8 @@ __all__ = [
     "_format_regen_advisory",
     "_normalize",
     "_validate_attempt",
+    "build_synthesis_corpus_block",
+    "build_synthesis_instructions_block",
     "build_synthesis_tool_schema",
     "build_synthesis_user_message",
     "verify_citations",

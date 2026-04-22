@@ -314,7 +314,7 @@ One SSE stream per question.
 | `citation_resolved` | synthesizer | `{ kind, id, resolved_url }` |
 | `agent_finished` | any agent | `{ payload }` — the agent's typed output |
 | `run_finished` | orchestrator | `{ final_answer: StructuredAnswer }` |
-| `run_failed` | orchestrator | `{ reason, detail }` — `reason ∈ {"llm_error", "case_rerank", "decomposition", "citation_grounding"}` |
+| `run_failed` | orchestrator | `{ reason, detail }` — `reason ∈ {"llm_error", "rate_limit", "case_rerank", "decomposition", "citation_grounding"}`. `rate_limit` is raised by the orchestrator when `anthropic.RateLimitError` escapes the SDK's built-in retry budget (`AsyncAnthropic(max_retries=8)`); it is distinct from `llm_error` so the UI can show a "service is busy, try again" message rather than a generic failure. |
 
 ## 7. Data model
 

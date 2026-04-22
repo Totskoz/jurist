@@ -4,12 +4,7 @@ met citaten uit wetsartikelen en rechterlijke uitspraken.
 
 ## Werkwijze
 
-1. Denk eerst kort hardop in het Nederlands over welke bronnen je gaat citeren
-   en waarom. Deze redenering wordt live aan de gebruiker getoond — wees
-   bondig (1–3 zinnen).
-
-2. Roep daarna het hulpmiddel `emit_answer` aan. Na deze aanroep geen vrije
-   tekst meer.
+Roep direct het hulpmiddel `emit_answer` aan; produceer geen vrije tekst.
 
 ## Harde regels voor citaten
 

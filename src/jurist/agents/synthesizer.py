@@ -9,8 +9,9 @@ from typing import Any
 from jurist.agents.synthesizer_tools import (
     _format_regen_advisory,
     _validate_attempt,
+    build_synthesis_corpus_block,
+    build_synthesis_instructions_block,
     build_synthesis_tool_schema,
-    build_synthesis_user_message,
 )
 from jurist.config import RunContext, settings
 from jurist.llm.prompts import render_synthesizer_system
@@ -51,13 +52,19 @@ def _assemble_display_text(answer: StructuredAnswer) -> str:
 async def _stream_once(
     client: Any,
     system: str,
-    user: str,
+    corpus: str,
+    instructions: str,
     schema: dict[str, Any],
 ) -> AsyncIterator[tuple[str, Any]]:
     """Drive one streaming Sonnet call. Yields:
       ("thinking", str) for each pre-tool text delta,
       ("tool", dict) exactly once with the extracted tool_use.input,
-        or ("tool", None) if no tool_use block was present."""
+        or ("tool", None) if no tool_use block was present.
+
+    The user message is split across two text content blocks: the slow-changing
+    corpus (question + article bodies + case chunks) is marked
+    `cache_control: ephemeral` so the regen attempt hits cache, while the
+    short instructions/advisory block is left uncached."""
     async with client.messages.stream(
         model=settings.model_synthesizer,
         system=[{
@@ -66,7 +73,16 @@ async def _stream_once(
         }],
         tools=[schema],
         tool_choice={"type": "tool", "name": "emit_answer"},
-        messages=[{"role": "user", "content": user}],
+        messages=[{
+            "role": "user",
+            "content": [
+                {
+                    "type": "text", "text": corpus,
+                    "cache_control": {"type": "ephemeral"},
+                },
+                {"type": "text", "text": instructions},
+            ],
+        }],
         max_tokens=settings.synthesizer_max_tokens,
     ) as stream:
         async for event in stream:
@@ -96,9 +112,10 @@ async def run(
     yield TraceEvent(type="agent_started")
 
     system = render_synthesizer_system()
-    user = build_synthesis_user_message(
+    corpus = build_synthesis_corpus_block(
         input.question, input.cited_articles, input.cited_cases,
     )
+    instructions = build_synthesis_instructions_block()
     schema = build_synthesis_tool_schema(
         [a.article_id for a in input.cited_articles],
         [a.bwb_id for a in input.cited_articles],
@@ -107,7 +124,9 @@ async def run(
 
     # ---------- Attempt 1 ----------
     tool_input_1: dict[str, Any] | None = None
-    async for kind, payload in _stream_once(ctx.llm, system, user, schema):
+    async for kind, payload in _stream_once(
+        ctx.llm, system, corpus, instructions, schema,
+    ):
         if kind == "thinking":
             yield TraceEvent(type="agent_thinking", data={"text": payload})
         else:  # "tool"
@@ -131,11 +150,15 @@ async def run(
             "synthesizer attempt 1 invalid (schema_ok=%s, failures=%d) — retrying once",
             schema_ok_1, len(failures_1),
         )
-        user_retry = user + "\n\n" + advisory
+        # Corpus stays identical so cache hits; advisory appends to the
+        # uncached instructions block.
+        instructions_retry = instructions + "\n\n" + advisory
 
         # ---------- Attempt 2 ----------
         tool_input_2: dict[str, Any] | None = None
-        async for kind, payload in _stream_once(ctx.llm, system, user_retry, schema):
+        async for kind, payload in _stream_once(
+            ctx.llm, system, corpus, instructions_retry, schema,
+        ):
             if kind == "thinking":
                 yield TraceEvent(type="agent_thinking", data={"text": payload})
             else:

@@ -6,6 +6,8 @@ import time
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 
+from anthropic import RateLimitError
+
 from jurist.agents import (
     case_retriever,
     decomposer,
@@ -102,6 +104,18 @@ async def run_question(
             )
         )
         return
+    except RateLimitError as exc:
+        logger.warning(
+            "run_failed id=%s reason=rate_limit stage=decomposer: %s", run_id, exc,
+        )
+        await buffer.put(
+            TraceEvent(
+                type="run_failed", run_id=run_id, ts=_now_iso(),
+                data={"reason": "rate_limit",
+                      "detail": f"{type(exc).__name__}: {exc}"},
+            )
+        )
+        return
     except Exception as exc:  # noqa: BLE001 — surface LLM/network errors
         logger.exception(
             "run_failed id=%s reason=llm_error detail=%s: %s",
@@ -129,6 +143,19 @@ async def run_question(
             run_id,
             buffer,
         )
+    except RateLimitError as exc:
+        logger.warning(
+            "run_failed id=%s reason=rate_limit stage=statute_retriever: %s",
+            run_id, exc,
+        )
+        await buffer.put(
+            TraceEvent(
+                type="run_failed", run_id=run_id, ts=_now_iso(),
+                data={"reason": "rate_limit",
+                      "detail": f"{type(exc).__name__}: {exc}"},
+            )
+        )
+        return
     except Exception as exc:  # noqa: BLE001 — surface all LLM/network errors
         logger.exception(
             "run_failed id=%s reason=llm_error detail=%s: %s",
@@ -169,6 +196,19 @@ async def run_question(
             )
         )
         return
+    except RateLimitError as exc:
+        logger.warning(
+            "run_failed id=%s reason=rate_limit stage=case_retriever: %s",
+            run_id, exc,
+        )
+        await buffer.put(
+            TraceEvent(
+                type="run_failed", run_id=run_id, ts=_now_iso(),
+                data={"reason": "rate_limit",
+                      "detail": f"{type(exc).__name__}: {exc}"},
+            )
+        )
+        return
     except Exception as exc:  # noqa: BLE001 — surface LLM/network errors
         logger.exception(
             "run_failed id=%s reason=llm_error detail=%s: %s",
@@ -204,6 +244,18 @@ async def run_question(
             TraceEvent(
                 type="run_failed", run_id=run_id, ts=_now_iso(),
                 data={"reason": "citation_grounding", "detail": str(exc)},
+            )
+        )
+        return
+    except RateLimitError as exc:
+        logger.warning(
+            "run_failed id=%s reason=rate_limit stage=synthesizer: %s", run_id, exc,
+        )
+        await buffer.put(
+            TraceEvent(
+                type="run_failed", run_id=run_id, ts=_now_iso(),
+                data={"reason": "rate_limit",
+                      "detail": f"{type(exc).__name__}: {exc}"},
             )
         )
         return

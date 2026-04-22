@@ -358,3 +358,89 @@ async def test_orchestrator_synthesizer_generic_error_is_llm_error(monkeypatch):
 
     assert events[-1].type == "run_failed"
     assert events[-1].data["reason"] == "llm_error"
+
+
+def _make_rate_limit_error(msg: str):
+    """Construct a real anthropic.RateLimitError without hitting the network.
+    Subclass that bypasses __init__ (which needs an httpx Response) so
+    isinstance(exc, RateLimitError) still holds inside the orchestrator."""
+    import anthropic
+
+    class _FakeRateLimit(anthropic.RateLimitError):
+        def __init__(self, message: str) -> None:
+            Exception.__init__(self, message)
+            self.message = message
+            self.status_code = 429
+
+    return _FakeRateLimit(msg)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "agent_attr,run_id",
+    [
+        ("decomposer",        "run_rl_dec"),
+        ("case_retriever",    "run_rl_case"),
+        ("synthesizer",       "run_rl_synth"),
+    ],
+)
+async def test_orchestrator_rate_limit_error_surfaces_as_rate_limit(
+    monkeypatch, agent_attr, run_id,
+):
+    """anthropic.RateLimitError from any wrapped agent → run_failed{rate_limit}."""
+    from jurist.agents import (
+        case_retriever as _case,
+    )
+    from jurist.agents import (
+        decomposer as _dec,
+    )
+    from jurist.agents import (
+        synthesizer as _synth,
+    )
+    from jurist.schemas import TraceEvent
+
+    mod = {
+        "decomposer": _dec,
+        "case_retriever": _case,
+        "synthesizer": _synth,
+    }[agent_attr]
+
+    async def _rl(_input, *, ctx):
+        yield TraceEvent(type="agent_started")
+        raise _make_rate_limit_error("429 rate_limit_error")
+
+    monkeypatch.setattr(mod, "run", _rl)
+
+    buf = EventBuffer()
+    await run_question("q", run_id=run_id, buffer=buf, ctx=_orch_ctx())
+
+    events = [ev async for ev in buf.subscribe()]
+    assert events[-1].type == "run_failed"
+    assert events[-1].data["reason"] == "rate_limit"
+    assert "429" in events[-1].data["detail"]
+    assert not any(e.type == "run_finished" for e in events)
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_statute_retriever_rate_limit_surfaces_as_rate_limit(
+    monkeypatch,
+):
+    """Separate from the parametrized test because statute_retriever.run is
+    import-shadowed via `from jurist.agents import statute_retriever` at the
+    top of orchestrator.py — monkeypatching the module-level run function
+    works the same way, just a distinct test for readability."""
+    from jurist.agents import statute_retriever
+    from jurist.schemas import TraceEvent
+
+    async def _rl(_input, *, ctx):
+        yield TraceEvent(type="agent_started")
+        raise _make_rate_limit_error("429 rate_limit_error")
+
+    monkeypatch.setattr(statute_retriever, "run", _rl)
+
+    buf = EventBuffer()
+    await run_question("q", run_id="run_rl_stat", buffer=buf, ctx=_orch_ctx())
+
+    events = [ev async for ev in buf.subscribe()]
+    assert events[-1].type == "run_failed"
+    assert events[-1].data["reason"] == "rate_limit"

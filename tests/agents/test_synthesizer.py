@@ -163,10 +163,14 @@ async def test_synthesizer_regens_on_quote_failure_then_succeeds():
 
     assert events[-1].type == "agent_finished"
     assert len(client.calls) == 2
-    # Advisory appears in second call's user message
-    second_user = client.calls[1]["messages"][0]["content"]
-    assert "ongeldige citaten" in second_user.lower()
-    assert "not_in_source" in second_user
+    # Advisory appears in second call's user message (second content block —
+    # the uncached instructions block that carries the regen advisory).
+    second_content = client.calls[1]["messages"][0]["content"]
+    assert isinstance(second_content, list) and len(second_content) == 2
+    corpus_block, instr_block = second_content
+    assert corpus_block["cache_control"] == {"type": "ephemeral"}
+    assert "ongeldige citaten" in instr_block["text"].lower()
+    assert "not_in_source" in instr_block["text"]
 
 
 @pytest.mark.asyncio
@@ -213,6 +217,8 @@ async def test_synthesizer_regens_on_missing_tool_use_then_succeeds():
 
     assert events[-1].type == "agent_finished"
     assert len(client.calls) == 2
-    # Generic advisory (not the specific failure list)
-    second_user = client.calls[1]["messages"][0]["content"]
-    assert "emit_answer" in second_user
+    # Generic advisory (not the specific failure list) lives in the second
+    # content block (uncached instructions + advisory).
+    second_content = client.calls[1]["messages"][0]["content"]
+    assert isinstance(second_content, list) and len(second_content) == 2
+    assert "emit_answer" in second_content[1]["text"]

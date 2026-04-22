@@ -24,7 +24,7 @@ class EventBuffer:
 
     _TERMINAL = {"run_finished", "run_failed"}
 
-    def __init__(self, max_history: int = 500) -> None:
+    def __init__(self, max_history: int = 2000) -> None:
         self._history: deque[TraceEvent] = deque(maxlen=max_history)
         self._total_put = 0
         self._new_event = asyncio.Event()

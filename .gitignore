@@ -37,3 +37,6 @@ Thumbs.db
 
 # Worktrees
 .worktrees/
+
+# Real-API eval run artefacts (trace.jsonl + summary.json + answer.md)
+out/
