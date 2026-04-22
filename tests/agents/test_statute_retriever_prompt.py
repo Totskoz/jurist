@@ -23,8 +23,16 @@ def tiny_kg() -> NetworkXKG:
 
 def test_render_contains_policies_and_catalog(tiny_kg):
     rendered = render_statute_retriever_system(tiny_kg, snippet_chars=200)
-    assert "Dutch tenancy-law" in rendered
-    assert "Target 3–6 cited articles" in rendered
+    # Dutch-first persona line (prevents the English opening "I'll analyze..."
+    # that leaked into agent_thinking before M4-post-eval).
+    assert "Nederlandse huurrecht-onderzoeker" in rendered
+    assert "uitsluitend in het Nederlands" in rendered
+    # Key policy lines
+    assert "3–6 geciteerde artikelen" in rendered
+    assert "15 iteraties" in rendered
+    # Tool-name mentions (code identifiers stay in English)
+    assert "search_articles" in rendered
+    assert "done" in rendered
     assert "{{ARTICLE_CATALOG}}" not in rendered  # substituted
     # Catalog line present
     assert '[X1] "Art X1" — Titel X1: Over huurverhoging.' in rendered
