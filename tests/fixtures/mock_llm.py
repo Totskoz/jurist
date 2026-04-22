@@ -6,6 +6,7 @@ models one assistant reply. When the script is exhausted, the mock
 returns an empty turn so the loop under test coerces on its own."""
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from types import SimpleNamespace
 from typing import Any
 
@@ -76,10 +77,104 @@ class MockAnthropicForRerank:
         self.messages = MockMessagesClient(tool_inputs)
 
 
+# ----- M4 streaming mock (synthesizer) -----
+
+
+@dataclass
+class StreamScript:
+    """One scripted `.stream()` call. Emits text_deltas as content_block_delta
+    events during iteration, then `get_final_message()` returns a message with
+    a single tool_use block whose .input is `tool_input`.
+
+    If `tool_input` is an Exception *instance*, it is raised from within
+    iteration (simulates mid-stream failure). An Exception *class* raises
+    TypeError at queue-pop time (convention match with MockMessagesClient)."""
+    text_deltas: list[str] = field(default_factory=list)
+    tool_input: dict | Exception | None = None
+    tool_name: str = "emit_answer"
+
+
+class _StreamContextManager:
+    def __init__(self, script: StreamScript) -> None:
+        self._script = script
+
+    async def __aenter__(self):
+        return _StreamObject(self._script)
+
+    async def __aexit__(self, exc_type, exc, tb) -> None:
+        pass
+
+
+class _StreamObject:
+    def __init__(self, script: StreamScript) -> None:
+        self._script = script
+        self._consumed = False
+
+    def __aiter__(self):
+        return self._iter()
+
+    async def _iter(self):
+        # Yield content_block_delta events for each text_delta.
+        for delta_text in self._script.text_deltas:
+            yield SimpleNamespace(
+                type="content_block_delta",
+                delta=SimpleNamespace(type="text_delta", text=delta_text),
+            )
+        # If tool_input is an exception instance, raise here.
+        if isinstance(self._script.tool_input, Exception):
+            raise self._script.tool_input
+        self._consumed = True
+
+    async def get_final_message(self):
+        ti = self._script.tool_input
+        content: list = []
+        if isinstance(ti, dict):
+            content.append(SimpleNamespace(
+                type="tool_use",
+                name=self._script.tool_name,
+                input=ti,
+            ))
+        return SimpleNamespace(content=content)
+
+
+class _StreamingMessagesNamespace:
+    def __init__(self, outer: MockStreamingClient) -> None:
+        self._outer = outer
+
+    def stream(self, **kwargs):
+        self._outer.calls.append(kwargs)
+        if not self._outer._queue:
+            raise RuntimeError("MockStreamingClient: scripts queue exhausted")
+        item = self._outer._queue.pop(0)
+        if isinstance(item, type) and issubclass(item, BaseException):
+            raise TypeError(
+                f"MockStreamingClient: queue item {item!r} is an exception class, "
+                "not a StreamScript — did you forget the parentheses?"
+            )
+        assert isinstance(item, StreamScript), (
+            f"MockStreamingClient: queue item must be StreamScript, got {type(item)!r}"
+        )
+        return _StreamContextManager(item)
+
+
+class MockStreamingClient:
+    """Mirrors AsyncAnthropic's `.messages` namespace for `.stream()` calls.
+
+    Each `.stream(**kwargs)` pops one StreamScript. See StreamScript docstring
+    for per-script behavior."""
+
+    def __init__(self, scripts: list[StreamScript]) -> None:
+        self._queue: list[StreamScript] = list(scripts)
+        self.calls: list[dict[str, Any]] = []
+        self.messages = _StreamingMessagesNamespace(self)
+
+
 __all__ = [  # alphabetical
     "MockAnthropicClient",
     "MockAnthropicForRerank",
     "MockMessagesClient",
+    "MockStreamingClient",
     "ScriptedToolUse",
     "ScriptedTurn",
+    "StreamScript",
 ]
