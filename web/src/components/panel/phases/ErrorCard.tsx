@@ -1,3 +1,4 @@
+import { useActiveRun } from '../../../hooks/useActiveRun';
 import { useRunStore } from '../../../state/runStore';
 
 const REASON_COPY: Record<string, string> = {
@@ -15,7 +16,7 @@ function copyFor(reason: string | undefined): string {
 }
 
 export default function ErrorCard() {
-  const traceLog = useRunStore((s) => s.traceLog);
+  const { traceLog } = useActiveRun();
   const reset = useRunStore((s) => s.reset);
 
   // Find the run_failed event's reason.

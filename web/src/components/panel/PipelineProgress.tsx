@@ -1,4 +1,4 @@
-import { useRunStore } from '../../state/runStore';
+import { useActiveRun } from '../../hooks/useActiveRun';
 import { color } from '../../theme';
 
 const AGENTS = ['decomposer', 'statute_retriever', 'case_retriever', 'synthesizer', 'validator'] as const;
@@ -13,7 +13,7 @@ const LABELS: Record<(typeof AGENTS)[number], string> = {
 type AgentStatus = 'pending' | 'active' | 'done';
 
 export default function PipelineProgress() {
-  const traceLog = useRunStore((s) => s.traceLog);
+  const { traceLog } = useActiveRun();
 
   const statusByAgent: Record<string, AgentStatus> = {};
   for (const agent of AGENTS) statusByAgent[agent] = 'pending';

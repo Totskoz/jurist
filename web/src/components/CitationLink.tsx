@@ -1,4 +1,4 @@
-import { useRunStore } from '../state/runStore';
+import { useActiveRun } from '../hooks/useActiveRun';
 
 interface Props {
   kind: 'artikel' | 'uitspraak';
@@ -7,7 +7,8 @@ interface Props {
 }
 
 export default function CitationLink({ kind, id, children }: Props) {
-  const resolved = useRunStore((s) => s.resolutions.find((r) => r.kind === kind && r.id === id));
+  const { resolutions } = useActiveRun();
+  const resolved = resolutions.find((r) => r.kind === kind && r.id === id);
   if (!resolved) {
     return (
       <span style={{
