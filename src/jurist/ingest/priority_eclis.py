@@ -21,7 +21,10 @@ from jurist.schemas import CaseChunkRow
 from jurist.vectorstore import CaseStore
 
 _log = logging.getLogger(__name__)
-_ECLI_RE = re.compile(r"^ECLI:NL:[A-Z]+:\d{4}:\d+$")
+# Post-2012 ECLIs have a numeric tail (e.g. `2024:1780`); pre-2012 ECLIs
+# preserve the legacy LJN identifier, which is uppercase alphanumeric
+# (e.g. `2008:BF3928`). Accept both.
+_ECLI_RE = re.compile(r"^ECLI:NL:[A-Z]+:\d{4}:[A-Z0-9]+$")
 
 
 @dataclass(frozen=True)

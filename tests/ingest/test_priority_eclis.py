@@ -16,3 +16,10 @@ def test_load_eclis_rejects_invalid_lines(tmp_path):
     p.write_text("not-an-ecli\nECLI:NL:HR:2024:1761\n")
     with pytest.raises(ValueError, match="invalid ECLI"):
         load_eclis(p)
+
+
+def test_load_eclis_accepts_legacy_alphanumeric_tail(tmp_path):
+    # Pre-2012 ECLIs keep the LJN-style alphanumeric tail (e.g. BF3928).
+    p = tmp_path / "legacy.txt"
+    p.write_text("ECLI:NL:HR:2008:BF3928\nECLI:NL:HR:2024:1780\n")
+    assert load_eclis(p) == ["ECLI:NL:HR:2008:BF3928", "ECLI:NL:HR:2024:1780"]
