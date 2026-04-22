@@ -6,6 +6,7 @@ import pytest
 from jurist.agents import synthesizer
 from jurist.agents.synthesizer import CitationGroundingFailedError
 from jurist.config import RunContext
+from jurist.fakes import FAKE_DECOMPOSER_OUT
 from jurist.schemas import (
     CitedArticle,
     CitedCase,
@@ -222,3 +223,76 @@ async def test_synthesizer_regens_on_missing_tool_use_then_succeeds():
     second_content = client.calls[1]["messages"][0]["content"]
     assert isinstance(second_content, list) and len(second_content) == 2
     assert "emit_answer" in second_content[1]["text"]
+
+
+@pytest.mark.asyncio
+async def test_synthesizer_early_branch_refusal_when_both_retrievers_low_confidence():
+    """Both retrievers low_confidence → synth never calls normal-path; emits refusal answer."""
+    refusal_input = {
+        "kind": "insufficient_context",
+        "korte_conclusie": "Deze vraag valt buiten het huurrecht-corpus. " * 2,
+        "relevante_wetsartikelen": [],
+        "vergelijkbare_uitspraken": [],
+        "aanbeveling": "Raadpleeg een specialist burenrecht. " * 2,
+        "insufficient_context_reason": "Gezocht in huurrecht-corpus; niets relevants gevonden.",
+    }
+    client = MockStreamingClient([StreamScript(text_deltas=[], tool_input=refusal_input)])
+    ctx = _ctx(client)
+
+    synth_in = SynthesizerIn(
+        question="Mijn auto is stuk, wie betaalt?",
+        cited_articles=[],
+        cited_cases=[],
+        decomposer_out=FAKE_DECOMPOSER_OUT,
+        statute_low_confidence=True,
+        case_low_confidence=True,
+    )
+    events = [ev async for ev in synthesizer.run(synth_in, ctx=ctx)]
+
+    # Event shape: agent_started → answer_delta × N → agent_finished. No citation_resolved.
+    types = [e.type for e in events]
+    assert types[0] == "agent_started"
+    assert types[-1] == "agent_finished"
+    assert "citation_resolved" not in types
+    assert types.count("answer_delta") > 0
+
+    out = SynthesizerOut.model_validate(events[-1].data)
+    assert out.answer.kind == "insufficient_context"
+    assert out.answer.relevante_wetsartikelen == []
+    assert out.answer.vergelijkbare_uitspraken == []
+
+
+@pytest.mark.asyncio
+async def test_synthesizer_self_judged_refusal_when_retrievers_confident():
+    """Retrievers confident but synth emits kind=insufficient_context → no citation_resolved."""
+    refusal_input = {
+        "kind": "insufficient_context",
+        "korte_conclusie": "De meegeleverde bronnen onderbouwen deze vraag onvoldoende. " * 2,
+        "relevante_wetsartikelen": [],
+        "vergelijkbare_uitspraken": [],
+        "aanbeveling": "Raadpleeg een specialist. " * 4,
+        "insufficient_context_reason": (
+            "Gezocht in huurrecht-corpus; geen bronnen gevonden over het "
+            "specifieke geschilpunt."
+        ),
+    }
+    client = MockStreamingClient([StreamScript(text_deltas=[], tool_input=refusal_input)])
+    ctx = _ctx(client)
+
+    synth_in = SynthesizerIn(
+        question="Mag de huur met 15% omhoog?",
+        cited_articles=_articles(),
+        cited_cases=_cases(),
+        decomposer_out=FAKE_DECOMPOSER_OUT,
+        statute_low_confidence=False,
+        case_low_confidence=False,
+    )
+    events = [ev async for ev in synthesizer.run(synth_in, ctx=ctx)]
+    types = [e.type for e in events]
+    assert types[0] == "agent_started"
+    assert types[-1] == "agent_finished"
+    assert "citation_resolved" not in types
+    assert types.count("answer_delta") > 0
+
+    out = SynthesizerOut.model_validate(events[-1].data)
+    assert out.answer.kind == "insufficient_context"
