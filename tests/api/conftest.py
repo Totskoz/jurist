@@ -28,6 +28,7 @@ def _stub_case_retriever(monkeypatch):
             snippet="canned snippet for orchestrator tests",
             similarity=0.9,
             reason="Canned reason from tests/api/conftest.py stub fixture.",
+            chunk_text="canned chunk text for orchestrator tests",
             url="https://uitspraken.rechtspraak.nl/details?id=ECLI:NL:STUB:1",
         )])
         yield TraceEvent(type="agent_finished", data=out.model_dump())

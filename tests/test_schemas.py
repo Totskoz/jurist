@@ -191,3 +191,54 @@ def test_case_retriever_in_has_question_field() -> None:
 def test_case_retriever_in_requires_question() -> None:
     with pytest.raises(ValidationError):
         CaseRetrieverIn(sub_questions=["Q"], statute_context=[])
+
+
+# ---------------- M4 schema additions ----------------
+
+def test_wetartikel_citation_requires_article_id():
+    # article_id is required — missing it raises ValidationError.
+    with pytest.raises(ValidationError, match="article_id"):
+        WetArtikelCitation(
+            bwb_id="BWBR0005290",
+            article_label="Boek 7, Artikel 248",
+            quote="a" * 40,
+            explanation="b" * 40,
+        )
+
+
+def test_wetartikel_citation_accepts_article_id():
+    cit = WetArtikelCitation(
+        article_id="BWBR0005290/Boek7/Titel4/Afdeling5/Artikel248",
+        bwb_id="BWBR0005290",
+        article_label="Boek 7, Artikel 248",
+        quote="a" * 40,
+        explanation="b" * 40,
+    )
+    assert cit.article_id.endswith("/Artikel248")
+
+
+def test_cited_case_requires_chunk_text():
+    with pytest.raises(ValidationError, match="chunk_text"):
+        CitedCase(
+            ecli="ECLI:NL:HR:2020:1234",
+            court="Hoge Raad",
+            date="2020-09-11",
+            snippet="...",
+            similarity=0.8,
+            reason="Leidende uitspraak.",
+            url="https://uitspraken.rechtspraak.nl/details?id=ECLI:NL:HR:2020:1234",
+        )
+
+
+def test_cited_case_accepts_chunk_text():
+    case = CitedCase(
+        ecli="ECLI:NL:HR:2020:1234",
+        court="Hoge Raad",
+        date="2020-09-11",
+        snippet="...",
+        similarity=0.8,
+        reason="Leidende uitspraak.",
+        chunk_text="full chunk body " * 50,
+        url="https://uitspraken.rechtspraak.nl/details?id=ECLI:NL:HR:2020:1234",
+    )
+    assert len(case.chunk_text) > 400

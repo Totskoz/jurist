@@ -111,6 +111,14 @@ FAKE_CASES: list[CitedCase] = [
         snippet="De verhuurder mag de huur niet eenzijdig met een hoger percentage ...",
         similarity=0.87,
         reason="Leidende uitspraak over maximale huurverhoging bij gereguleerde huur.",
+        chunk_text=(
+            "De verhuurder mag de huur niet eenzijdig met een hoger percentage "
+            "verhogen dan het door de minister vastgestelde maximum. Een "
+            "voorstel dat dit maximum overschrijdt, is in beginsel niet "
+            "toegestaan bij gereguleerde huur. De huurder kan binnen zes weken "
+            "bezwaar maken bij de verhuurder, en vervolgens het geschil "
+            "voorleggen aan de Huurcommissie. " * 3
+        ),
         url="https://uitspraken.rechtspraak.nl/details?id=ECLI:NL:HR:2020:1234",
     ),
     CitedCase(
@@ -120,6 +128,13 @@ FAKE_CASES: list[CitedCase] = [
         snippet="Huurverhoging van 15% acht de rechtbank in dit geval buitensporig ...",
         similarity=0.81,
         reason="Feitelijk zeer vergelijkbaar — huurder bezwaart succesvol tegen 15% verhoging.",
+        chunk_text=(
+            "Huurverhoging van 15% acht de rechtbank in dit geval buitensporig. "
+            "De verhuurder heeft onvoldoende onderbouwd waarom een verhoging "
+            "van deze omvang gerechtvaardigd is. De rechtbank wijst het "
+            "voorstel af en oordeelt dat de huurder niet gehouden is de "
+            "verhoogde huur te betalen. " * 3
+        ),
         url="https://uitspraken.rechtspraak.nl/details?id=ECLI:NL:RBAMS:2022:5678",
     ),
     CitedCase(
@@ -129,6 +144,13 @@ FAKE_CASES: list[CitedCase] = [
         snippet="Bij geliberaliseerde huur geldt een andere norm, maar de redelijkheid ...",
         similarity=0.74,
         reason="Relevant voor onderscheid gereguleerd / geliberaliseerd.",
+        chunk_text=(
+            "Bij geliberaliseerde huur geldt een andere norm, maar de "
+            "redelijkheid blijft leidend. Een percentage dat in gereguleerde "
+            "huur ontoelaatbaar zou zijn, kan in geliberaliseerde huur "
+            "verdedigbaar zijn mits de huurovereenkomst dit toelaat en de "
+            "verhoging aansluit bij marktniveau. " * 3
+        ),
         url="https://uitspraken.rechtspraak.nl/details?id=ECLI:NL:GHARL:2023:9012",
     ),
 ]
@@ -143,6 +165,7 @@ FAKE_ANSWER: StructuredAnswer = StructuredAnswer(
     ),
     relevante_wetsartikelen=[
         WetArtikelCitation(
+            article_id=_A248,
             bwb_id=BWB_BW7,
             article_label="Boek 7, Artikel 248",
             quote="De verhuurder kan tot aan het tijdstip dat ...",
@@ -152,6 +175,7 @@ FAKE_ANSWER: StructuredAnswer = StructuredAnswer(
             ),
         ),
         WetArtikelCitation(
+            article_id=_UHW10,
             bwb_id=BWB_UHW,
             article_label="Uhw, Artikel 10",
             quote="Het puntenstelsel bepaalt ...",

@@ -52,6 +52,7 @@ class CitedCase(BaseModel):
     snippet: str
     similarity: float
     reason: str
+    chunk_text: str              # M4: full best-chunk text; synthesizer quote-verification surface
     url: str
 
 
@@ -118,6 +119,7 @@ class CaseRetrieverOut(BaseModel):
 # ---------------- Structured answer ----------------
 
 class WetArtikelCitation(BaseModel):
+    article_id: str              # M4: fully-qualified; closed-set enum
     bwb_id: str
     article_label: str
     quote: str
