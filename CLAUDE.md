@@ -8,7 +8,7 @@ Jurist is a portfolio multi-agent demo answering Dutch **huurrecht** (tenancy la
 
 **Authoritative design:** `docs/superpowers/specs/2026-04-17-jurist-v1-design.md`. Read this before making substantive design decisions. Milestone plans live in `docs/superpowers/plans/YYYY-MM-DD-*.md`.
 
-Current state: **M3b landed on master** — the `case_retriever` agent runs a real pipeline: embed sub-questions with bge-m3, retrieve top-150 LanceDB chunks, dedupe to 20 unique ECLIs, Haiku-rerank to 3 `CitedCase`s with Dutch reason strings. Closed-set grounding via JSON-Schema `enum` on ECLI; one regen then `run_failed{reason:"case_rerank"}` on malformed output. API startup adds an Embedder cold-load (~5-10s, one-time per process) and a fail-fast gate on `data/lancedb/cases.lance`. Decomposer and synthesizer remain M0 fakes (→ M4); validator is a permanent stub.
+Current state: **M4 landed on master** — the full agent chain runs on real LLMs for the locked question. Decomposer is a single Haiku forced-tool `emit_decomposition` call with one-regen-then-hard-fail. Synthesizer is a Sonnet streaming `messages.stream()` call: pre-tool Dutch prose flows to `agent_thinking`, forced tool `emit_answer` with per-request JSON-Schema `enum` on `article_id` / `bwb_id` / `ecli`, post-hoc `verify_citations` (NFC + whitespace-normalized, case-sensitive strict substring, 40–500 char bounds) against the article bodies and case `chunk_text`. On verification failure: one regen with a Dutch advisory listing the failing citations; still failing → `run_failed{reason:"citation_grounding"}`. Validator remains a permanent stub.
 
 ## Commands
 
@@ -34,7 +34,7 @@ Current state: **M3b landed on master** — the `case_retriever` agent runs a re
 - `uv` lives at `C:\Users\totti\.local\bin` and isn't always on `PATH`. Prepend it in bash with `export PATH="/c/Users/totti/.local/bin:$PATH"` if `uv` is not found.
 - Git's LF→CRLF warnings on Windows commits are benign; don't try to suppress them.
 - API port is **8766**, not 8000 (Django project on this host) and not 8765 (previous zombie-socket incident). If you change the backend port, also change the Vite proxy target in `web/vite.config.ts`.
-- Full run emits ~200+ events post-M3b (most are `answer_delta` tokens from the synthesizer's word-level streaming; M2 adds a variable count of `tool_call_started` / `tool_call_completed` / `node_visited` / `edge_traversed` / `agent_thinking` events depending on how many tools the statute retriever calls; M3b adds `search_started` + one `case_found` per unique ECLI (up to `caselaw_candidate_eclis`, default 20) + `reranked`). `EventBuffer.max_history` defaults to 500; `settings.max_history_per_run` matches. If you shrink these, verify the orchestrator tests still pass.
+- Full run emits ~250+ events post-M4 (most are `answer_delta` tokens from the synthesizer's word-level replay — one per word of the assembled Dutch text; M2 adds a variable `tool_call_*` / `node_visited` / `edge_traversed` / `agent_thinking` count depending on retriever iterations; M3b adds `search_started` + one `case_found` per unique ECLI (up to `caselaw_candidate_eclis`) + one `reranked`; M4 synthesizer adds `agent_thinking` deltas from Sonnet's pre-tool reasoning (typically 5-20 events depending on prompt adherence) + one `citation_resolved` per verified citation). `EventBuffer.max_history` defaults to 500; `settings.max_history_per_run` matches. The full run is sized comfortably inside this budget.
 - Env vars: copy `.env.example` → `.env` and set `ANTHROPIC_API_KEY`. All other settings have sensible defaults. `python-dotenv` loads `.env` at `jurist.config` import time.
 
 ## Architecture
@@ -109,22 +109,32 @@ All 5 run on one asyncio task. Parallelization is explicitly out of scope for v1
 - **Cost/latency:** one Haiku call per run (two on regen). System prompt + candidate list cached at one `cache_control: ephemeral` breakpoint. ~200-500ms typical; ~1-2s worst case.
 - **Tests:** 10 pure-helper tests + 2 happy-path agent tests + 7 error-path agent tests + 2 lifespan gate tests + 2 orchestrator integration tests. 1 RUN_E2E-gated e2e test (`tests/integration/test_m3b_case_retriever_e2e.py`) asserts 3 valid `CitedCase`s for the locked question.
 
-### Closed-set citation grounding (deferred to M4)
+### Decomposer (M4)
 
-The synthesizer will use **per-request `Literal[...]` enums** over retrieved IDs to force Claude to cite only from the candidate set (schema-time constraint), followed by **post-hoc resolution** that confirms every ID + quote survives in the knowledge base, with **regenerate-once-then-hard-fail** on mismatch. Three-layer defense; no silent fallback. Detailed in spec §15.
+- **Call shape:** `src/jurist/agents/decomposer.py::run` — one non-streaming `ctx.llm.messages.create` with `tool_choice={"type":"tool","name":"emit_decomposition"}`. Haiku 4.5; `max_tokens=1000`; short inline Dutch system prompt (`llm/prompts.py::render_decomposer_system`).
+- **Failure shape:** `InvalidDecomposerOutput` on missing tool_use / pydantic-invalid → one regen with Dutch advisory. Second failure → `DecomposerFailedError` → orchestrator `run_failed{reason:"decomposition"}`. Generic exceptions (network, 5xx) → `run_failed{reason:"llm_error"}`.
+- **Events:** `agent_started` + `agent_finished{DecomposerOut}`. No `agent_thinking` — system prompt forbids free text, so Haiku goes straight to the tool call.
 
-### What's fake vs. real after M3b
+### Synthesizer (M4)
+
+- **Call shape:** `src/jurist/agents/synthesizer.py::run` — `ctx.llm.messages.stream()` with forced tool `emit_answer`. Pre-tool Dutch reasoning flows live as `agent_thinking`. Sonnet 4.6; `max_tokens=8192`; system prompt loaded from `llm/prompts/synthesizer.system.md` (file-based, cacheable).
+- **Closed-set grounding (three layers):** (1) JSON-Schema `enum` on `article_id` / `bwb_id` / `ecli` at the tool-schema level — SDK rejects out-of-set before generation; (2) `StructuredAnswer.model_validate` catches schema bypass; (3) `verify_citations()` strict-substring check against the article `body_text` and case `chunk_text`. One regen with Dutch advisory enumerating `FailedCitation` records. Second failure → `CitationGroundingFailedError` → `run_failed{reason:"citation_grounding"}`.
+- **Events:** `agent_started` → `agent_thinking` × N (Sonnet prose, both attempts' prose flows through) → `citation_resolved` × (articles + cases) → `answer_delta` × many (synthetic word-level replay of `korte_conclusie + explanations + aanbeveling`) → `agent_finished{SynthesizerOut}`.
+- **Helpers:** `src/jurist/agents/synthesizer_tools.py` — pure sync: `build_synthesis_tool_schema`, `build_synthesis_user_message`, `verify_citations`, `_normalize`, `_validate_attempt`, `_format_regen_advisory`, `FailedCitation`.
+- **Tests:** `tests/agents/test_synthesizer_tools.py` (24 pure-helper), `tests/agents/test_synthesizer.py` (4 agent), `tests/agents/test_synthesizer_grounding.py` (3 spec-guard). 1 RUN_E2E-gated at `tests/integration/test_m4_e2e.py`.
+
+### What's fake vs. real after M4
 
 | Component | State | Becomes real in |
 |---|---|---|
-| `decomposer` | M0 fake — yields canned thinking + fixed DecomposerOut | M4 (Haiku) |
+| `decomposer` | **Real** — Haiku forced-tool `emit_decomposition`, one-regen-then-hard-fail | — |
 | `statute_retriever` | **Real** — Claude Sonnet tool-use loop over the 218-node KG (5 tools) | — |
 | `case_retriever` | **Real** — bge-m3 + LanceDB top-150→20 ECLIs + Haiku rerank to 3 | — |
-| `synthesizer` | M0 fake — streams `FAKE_ANSWER` token-by-token | M4 (Sonnet + closed-set grounding) |
+| `synthesizer` | **Real** — Sonnet streaming `messages.stream()`, forced-tool `emit_answer` with per-request `Literal[...]` enums, post-hoc `verify_citations`, one-regen-then-hard-fail to `run_failed{citation_grounding}` | — |
 | `validator_stub` | Permanent stub — always returns `valid=True` | — (real validator is v2 scope) |
-| `/api/kg` | Real — loads `data/kg/huurrecht.json` at startup (built by `jurist.ingest.statutes`) | — |
+| `/api/kg` | Real — loads `data/kg/huurrecht.json` at startup | — |
 
-The validator is the only intentional stub; the two remaining fakes (`decomposer`, `synthesizer`) still emit realistic event streams so the frontend can be exercised end-to-end without the live LLM/vector-store dependencies they'll gain in M4.
+The validator is the only remaining intentional stub; the full agent chain runs on real LLMs end-to-end on the locked question.
 
 ## Conventions worth knowing
 
