@@ -11,6 +11,7 @@ import { drawNode, type RenderableNode } from './nodeRender';
 import { drawEdge, type RenderableEdge } from './edgeRender';
 import type { ClusterKey } from '../../theme';
 import type { EdgeState, NodeState } from '../../state/runStore';
+import { computePanelWidth, PANEL_GUTTER } from '../../layout';
 import NodeTooltip from './NodeTooltip';
 
 interface GraphNode {
@@ -48,8 +49,6 @@ const BOOK_ROOT_TITLE: Record<string, string> = {
 // Tuned for two clusters filling the screen side-by-side.
 const BOOK_X_STRENGTH = 0.22;
 const BOOK_Y_STRENGTH = 0.18;
-// Visual area excludes the 560px right panel + 16px margin.
-const PANEL_RESERVE = 560 + 32;
 
 // Edge sweeps in-flight: key = "from::to", value = start-timestamp (ms).
 const SWEEP_DURATION_MS = 200;
@@ -189,7 +188,10 @@ export default function Graph() {
     if (!fgRef.current || !data || size.w === 0) return;
     // Cluster separation — each cluster sits ±this offset from the effective centerline.
     const clusterOffset = Math.min(size.w * 0.07, 210);
-    const effectiveCenterX = -PANEL_RESERVE / 2;
+    // Reserve tracks the live panel width so the open area stays honest as
+    // the panel widens on large viewports.
+    const panelReserve = computePanelWidth(size.w) + PANEL_GUTTER;
+    const effectiveCenterX = -panelReserve / 2;
     const leftX = effectiveCenterX - clusterOffset;
     const rightX = effectiveCenterX + clusterOffset;
 

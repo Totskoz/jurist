@@ -40,6 +40,7 @@ export default function PipelineProgress() {
         return (
           <div
             key={agent}
+            className={st === 'active' ? 'pipeline-pill--active' : undefined}
             style={{
               flex: 1,
               padding: '9px 6px',

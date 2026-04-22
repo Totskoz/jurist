@@ -43,3 +43,33 @@ body {
   background: linear-gradient(to bottom, var(--bg-gradient-top), var(--bg-gradient-bot));
   color: var(--text-primary);
 }
+
+/* Active-agent liveness pulse — used on the active pipeline pill so the user
+   always has proof the run is not hanging, even when the agent is silent
+   between tool calls. */
+@keyframes pipeline-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 194, 74, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(245, 194, 74, 0);
+  }
+}
+.pipeline-pill--active {
+  animation: pipeline-pulse 1.6s ease-in-out infinite;
+}
+
+/* Tiny rotating dot next to the active agent header. */
+@keyframes agent-spin {
+  to { transform: rotate(360deg); }
+}
+.agent-spin {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  border-top-color: transparent;
+  animation: agent-spin 0.9s linear infinite;
+  vertical-align: -1px;
+}

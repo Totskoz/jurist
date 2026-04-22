@@ -1,21 +1,29 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRunStore } from '../../state/runStore';
 import { usePhase } from '../../hooks/usePhase';
+import { computePanelWidth, PANEL_COLLAPSE_OVERSHOOT } from '../../layout';
 import CollapseHandle from './CollapseHandle';
 import IdlePhase from './phases/IdlePhase';
 import RunningPhase from './phases/RunningPhase';
 import AnswerReadyPhase from './phases/AnswerReadyPhase';
 import InspectNodePhase from './phases/InspectNodePhase';
 
-const PANEL_WIDTH = 560;
-const COLLAPSE_OFFSET = PANEL_WIDTH + 48;
-
 export default function Panel() {
   const phase = usePhase();
   const collapsed = useRunStore((s) => s.panelCollapsed);
   const inspectedNode = useRunStore((s) => s.inspectedNode);
   const closeInspector = useRunStore((s) => s.closeInspector);
+
+  // Panel width tracks ~1/3 of the viewport, clamped to a sensible band.
+  const [panelWidth, setPanelWidth] = useState(() =>
+    computePanelWidth(typeof window !== 'undefined' ? window.innerWidth : 1280),
+  );
+  useEffect(() => {
+    const onResize = () => setPanelWidth(computePanelWidth(window.innerWidth));
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     if (!inspectedNode) return;
@@ -26,16 +34,18 @@ export default function Panel() {
     return () => window.removeEventListener('keydown', handler);
   }, [inspectedNode, closeInspector]);
 
+  const collapseOffset = panelWidth + PANEL_COLLAPSE_OVERSHOOT;
+
   return (
     <motion.aside
-      animate={{ x: collapsed ? COLLAPSE_OFFSET : 0 }}
+      animate={{ x: collapsed ? collapseOffset : 0 }}
       transition={{ type: 'spring', stiffness: 180, damping: 22 }}
       style={{
         position: 'fixed',
         top: 16,
         right: 16,
         bottom: 16,
-        width: PANEL_WIDTH,
+        width: panelWidth,
         background: 'var(--panel-surface)',
         backdropFilter: 'blur(20px)',
         border: '1px solid var(--panel-border)',
