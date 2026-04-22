@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { StructuredAnswer, TraceEvent } from '../types/events';
-import type { HistoryEntry } from './historyApi';
+import { getHistory, putHistory, type HistoryEntry } from './historyApi';
+import { toSnapshot } from './snapshot';
 
 export type NodeState = 'default' | 'current' | 'visited' | 'cited';
 export type EdgeState = 'default' | 'traversed';
@@ -48,7 +49,13 @@ interface RunState {
   toggleHistoryDrawer: () => void;
   viewHistory: (id: string) => void;
   exitHistory: () => void;
+  archiveCurrent: (status: 'finished' | 'failed') => void;
+  deleteHistory: (id: string) => void;
+  clearHistory: () => void;
+  hydrateHistory: () => Promise<void>;
 }
+
+const HISTORY_CAP = 15;
 
 const edgeKey = (from: string, to: string): string => `${from}::${to}`;
 
@@ -107,6 +114,7 @@ export const useRunStore = create<RunState>((set, get) => ({
       panelCollapsed: false,
       viewingHistoryId: null,
       citedSet: new Set(),
+      history: [],
     }),
 
   inspectNode: (articleId) => set({ inspectedNode: articleId }),
@@ -115,6 +123,67 @@ export const useRunStore = create<RunState>((set, get) => ({
   toggleHistoryDrawer: () => set((s) => ({ historyDrawerOpen: !s.historyDrawerOpen })),
   viewHistory: (id) => set({ viewingHistoryId: id, historyDrawerOpen: false }),
   exitHistory: () => set({ viewingHistoryId: null }),
+
+  archiveCurrent: (status) => {
+    const s = get();
+    if (!s.runId) return;  // nothing to archive
+
+    const snapshot = toSnapshot({
+      kgState: s.kgState,
+      edgeState: s.edgeState,
+      traceLog: s.traceLog,
+      thinkingByAgent: s.thinkingByAgent,
+      answerText: s.answerText,
+      finalAnswer: s.finalAnswer,
+      cases: s.cases,
+      resolutions: s.resolutions,
+      citedSet: s.citedSet,
+    });
+
+    const entry: HistoryEntry = {
+      id: s.runId,
+      question: s.question,
+      timestamp: Date.now(),
+      status,
+      snapshot,
+    };
+
+    const next = [entry, ...s.history.slice(-(HISTORY_CAP - 1))];
+    set({ history: next });
+
+    // Fire-and-forget PUT; errors are logged, local state is authoritative.
+    void putHistory(next).catch((err) => {
+      console.warn('history PUT failed:', err);
+    });
+  },
+
+  deleteHistory: (id) => {
+    const s = get();
+    const next = s.history.filter((e) => e.id !== id);
+    const patch: Partial<RunState> = { history: next };
+    if (s.viewingHistoryId === id) patch.viewingHistoryId = null;
+    set(patch);
+    void putHistory(next).catch((err) => {
+      console.warn('history PUT failed:', err);
+    });
+  },
+
+  clearHistory: () => {
+    set({ history: [], viewingHistoryId: null });
+    void putHistory([]).catch((err) => {
+      console.warn('history PUT failed:', err);
+    });
+  },
+
+  hydrateHistory: async () => {
+    try {
+      const entries = await getHistory();
+      set({ history: entries });
+    } catch (err) {
+      console.warn('history GET failed:', err);
+      set({ history: [] });
+    }
+  },
 
   apply: (ev) => {
     const s = get();

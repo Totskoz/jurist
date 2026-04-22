@@ -95,6 +95,7 @@ describe('runStore — run_finished populates citedSet', () => {
 });
 
 import type { HistoryEntry } from './historyApi';
+import { vi } from 'vitest';
 
 describe('runStore — history slice (Task 7)', () => {
   beforeEach(() => {
@@ -135,8 +136,8 @@ describe('runStore — history slice (Task 7)', () => {
     expect(useRunStore.getState().viewingHistoryId).toBeNull();
   });
 
-  it('reset() clears viewingHistoryId but preserves history array', () => {
-    // Manually seed history (no public setter yet — direct setState).
+  it('reset() clears viewingHistoryId and history array', () => {
+    // Manually seed history via direct setState.
     const entry: HistoryEntry = {
       id: 'run_1', question: 'q', timestamp: 0, status: 'finished',
       snapshot: {
@@ -148,6 +149,126 @@ describe('runStore — history slice (Task 7)', () => {
     useRunStore.getState().reset();
     const s = useRunStore.getState();
     expect(s.viewingHistoryId).toBeNull();
-    expect(s.history).toEqual([entry]);  // preserved
+    expect(s.history).toEqual([]);  // cleared; hydrateHistory() repopulates on mount
+  });
+});
+
+function mockFetchOk(): ReturnType<typeof vi.fn> {
+  const fn = vi.fn(async () => new Response(
+    JSON.stringify({ version: 1, entries: [] }),
+    { status: 200, headers: { 'Content-Type': 'application/json' } },
+  ));
+  globalThis.fetch = fn as unknown as typeof fetch;
+  return fn;
+}
+
+describe('runStore — archive/hydrate/delete/clear (Task 8)', () => {
+  beforeEach(() => {
+    useRunStore.getState().reset();
+  });
+
+  it('archiveCurrent prepends entry, caps at 15, strips answer_delta', async () => {
+    const fetchMock = mockFetchOk();
+    const store = useRunStore.getState();
+    store.start('run_new', 'question?');
+    store.apply(ev('answer_delta', { text: 'hello' }, 'synthesizer'));
+    store.apply(ev('answer_delta', { text: ' world' }, 'synthesizer'));
+    store.apply(ev('node_visited', { article_id: 'A' }, 'statute_retriever'));
+
+    store.archiveCurrent('finished');
+
+    const s = useRunStore.getState();
+    expect(s.history).toHaveLength(1);
+    expect(s.history[0].id).toBe('run_new');
+    expect(s.history[0].question).toBe('question?');
+    expect(s.history[0].status).toBe('finished');
+    expect(s.history[0].snapshot.answerText).toBe('hello world');
+    expect(s.history[0].snapshot.traceLog.map((e) => e.type))
+      .toEqual(['node_visited']);  // answer_delta stripped
+
+    // PUT fired (fire-and-forget; allow microtask).
+    await Promise.resolve();
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/history',
+      expect.objectContaining({ method: 'PUT' }),
+    );
+  });
+
+  it('archiveCurrent FIFO-caps at 15', () => {
+    mockFetchOk();
+    const mkEntry = (id: string): HistoryEntry => ({
+      id, question: id, timestamp: 0, status: 'finished',
+      snapshot: {
+        kgState: [], edgeState: [], traceLog: [], thinkingByAgent: {},
+        answerText: '', finalAnswer: null, cases: [], resolutions: [], citedSet: [],
+      },
+    });
+    // Seed 15 existing entries.
+    useRunStore.setState({ history: Array.from({ length: 15 }, (_, i) => mkEntry(`old_${i}`)) });
+
+    const store = useRunStore.getState();
+    store.start('run_new', 'q');
+    store.archiveCurrent('finished');
+
+    const s = useRunStore.getState();
+    expect(s.history).toHaveLength(15);
+    expect(s.history[0].id).toBe('run_new');  // newest first
+    expect(s.history.some((e) => e.id === 'old_0')).toBe(false);  // oldest evicted
+    expect(s.history.some((e) => e.id === 'old_14')).toBe(true);  // kept
+  });
+
+  it('archiveCurrent with status=failed sets status=failed', () => {
+    mockFetchOk();
+    const store = useRunStore.getState();
+    store.start('run_f', 'q');
+    store.archiveCurrent('failed');
+    expect(useRunStore.getState().history[0].status).toBe('failed');
+  });
+
+  it('deleteHistory removes entry and exits history when id is active', () => {
+    mockFetchOk();
+    const e1 = { id: '1', question: 'a', timestamp: 0, status: 'finished' as const,
+      snapshot: { kgState: [], edgeState: [], traceLog: [], thinkingByAgent: {},
+        answerText: '', finalAnswer: null, cases: [], resolutions: [], citedSet: [] }};
+    const e2 = { ...e1, id: '2' };
+    useRunStore.setState({ history: [e1, e2], viewingHistoryId: '1' });
+
+    useRunStore.getState().deleteHistory('1');
+    const s = useRunStore.getState();
+    expect(s.history.map((e) => e.id)).toEqual(['2']);
+    expect(s.viewingHistoryId).toBeNull();  // auto-exited
+  });
+
+  it('clearHistory empties history and exits view', () => {
+    mockFetchOk();
+    const e1 = { id: '1', question: 'a', timestamp: 0, status: 'finished' as const,
+      snapshot: { kgState: [], edgeState: [], traceLog: [], thinkingByAgent: {},
+        answerText: '', finalAnswer: null, cases: [], resolutions: [], citedSet: [] }};
+    useRunStore.setState({ history: [e1], viewingHistoryId: '1' });
+
+    useRunStore.getState().clearHistory();
+    const s = useRunStore.getState();
+    expect(s.history).toEqual([]);
+    expect(s.viewingHistoryId).toBeNull();
+  });
+
+  it('hydrateHistory populates history from GET /api/history', async () => {
+    const e1 = { id: '1', question: 'a', timestamp: 0, status: 'finished',
+      snapshot: { kgState: [], edgeState: [], traceLog: [], thinkingByAgent: {},
+        answerText: '', finalAnswer: null, cases: [], resolutions: [], citedSet: [] }};
+    globalThis.fetch = vi.fn(async () => new Response(
+      JSON.stringify({ version: 1, entries: [e1] }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )) as unknown as typeof fetch;
+
+    await useRunStore.getState().hydrateHistory();
+    expect(useRunStore.getState().history.map((e) => e.id)).toEqual(['1']);
+  });
+
+  it('hydrateHistory sets history=[] when API fails', async () => {
+    globalThis.fetch = vi.fn(async () => new Response('nope', { status: 500 })) as unknown as typeof fetch;
+    useRunStore.setState({ history: [/* junk */] as HistoryEntry[] });
+    await useRunStore.getState().hydrateHistory();
+    expect(useRunStore.getState().history).toEqual([]);
   });
 });
