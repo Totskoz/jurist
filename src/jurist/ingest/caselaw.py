@@ -26,6 +26,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 
+from tqdm import tqdm
+
 from jurist.config import settings
 from jurist.embedding import Embedder
 from jurist.ingest import caselaw_fetch
@@ -225,14 +227,19 @@ def run_refilter_cache(
     """
     store = CaseStore(lance_path)
     store.open_or_create()
+    # One upfront scan of indexed ECLIs → O(1) set membership per iteration.
+    # On a 47k-row table, per-call contains_ecli() adds minutes over 20k XMLs.
+    indexed = store.all_eclis()
     counts = {
         "scanned": 0, "parsed": 0, "passed_fence": 0,
         "chunked": 0, "embedded": 0, "written": 0,
     }
-    for xml_path in sorted(cache_dir.glob("*.xml")):
+    xml_paths = sorted(cache_dir.glob("*.xml"))
+    bar = tqdm(xml_paths, desc="refilter", unit="xml", mininterval=0.5)
+    for xml_path in bar:
         counts["scanned"] += 1
         ecli = xml_path.stem.replace("_", ":")
-        if store.contains_ecli(ecli):
+        if ecli in indexed:
             continue
         try:
             meta = parse_case(xml_path.read_bytes())
@@ -270,6 +277,10 @@ def run_refilter_cache(
         ]
         store.add_rows(rows)
         counts["written"] += len(rows)
+        bar.set_postfix(
+            passed=counts["passed_fence"],
+            written=counts["written"],
+        )
     return counts
 
 

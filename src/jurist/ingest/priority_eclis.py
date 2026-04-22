@@ -11,6 +11,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from tqdm import tqdm
+
 from jurist.embedding import Embedder
 from jurist.ingest.caselaw_fetch import fetch_content
 from jurist.ingest.caselaw_parser import ParseError, parse_case
@@ -65,8 +67,10 @@ def run_priority_ingest(
     store.open_or_create()
 
     fetched = parsed = chunked = embedded = written = 0
-    for ecli in eclis:
-        if store.contains_ecli(ecli):
+    indexed = store.all_eclis()
+    bar = tqdm(eclis, desc="priority", unit="ecli", mininterval=0.5)
+    for ecli in bar:
+        if ecli in indexed:
             continue
         try:
             xml_path = fetch_content(ecli, cache_dir=cache_dir)
@@ -107,6 +111,7 @@ def run_priority_ingest(
         ]
         store.add_rows(rows)
         written += len(rows)
+        bar.set_postfix(fetched=fetched, written=written)
 
     return PriorityIngestResult(
         fetched=fetched, parsed=parsed, chunked=chunked,
