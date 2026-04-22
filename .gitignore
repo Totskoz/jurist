@@ -1,5 +1,8 @@
-# Generated data
-data/
+# Generated data — ignore everything in data/ except curated source artifacts
+# (cases/*.xml, kg/*.json, lancedb/**, out/* are all generated)
+data/*
+# ...but the curated priority-ECLI list is a hand-audited source artifact
+!data/priority_eclis/
 
 # Python
 __pycache__/
