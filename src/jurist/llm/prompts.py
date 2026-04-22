@@ -41,3 +41,17 @@ def render_case_rerank_system() -> str:
     """Static Dutch system prompt for the Haiku rerank call (M3b).
     Marked cacheable by the agent via `cache_control: ephemeral`."""
     return _CASE_RERANK_SYSTEM
+
+
+_DECOMPOSER_SYSTEM = """\
+Je bent een Nederlandse juridische assistent gespecialiseerd in huurrecht.
+Je decomposeert huurrecht-vragen in 1–5 sub-vragen, 1–10 juridische concepten
+(Nederlandse termen, niet vertaald), en een intentie uit {legality_check,
+calculation, procedure, other}.
+Roep uitsluitend het hulpmiddel `emit_decomposition` aan. Geen vrije tekst.
+"""
+
+
+def render_decomposer_system() -> str:
+    """Static Dutch system prompt for the M4 decomposer Haiku call."""
+    return _DECOMPOSER_SYSTEM
