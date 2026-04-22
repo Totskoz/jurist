@@ -91,6 +91,10 @@ class Settings:
     def cases_dir(self) -> Path:
         return self.data_dir / "cases"
 
+    @property
+    def history_path(self) -> Path:
+        return self.data_dir / "history.json"
+
 
 settings = Settings()
 
