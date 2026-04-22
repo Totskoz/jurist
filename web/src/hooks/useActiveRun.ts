@@ -16,10 +16,11 @@ export function selectActiveRun(
   if (viewingHistoryId === null) return liveView;
   const entry = history.find((e) => e.id === viewingHistoryId);
   if (!entry) return liveView;
-  return fromSnapshot(entry.snapshot);
+  return fromSnapshot(entry.snapshot, entry.question);
 }
 
 export function useActiveRun(): ActiveRunView {
+  const question = useRunStore((s) => s.question);
   const kgState = useRunStore((s) => s.kgState);
   const edgeState = useRunStore((s) => s.edgeState);
   const traceLog = useRunStore((s) => s.traceLog);
@@ -33,14 +34,14 @@ export function useActiveRun(): ActiveRunView {
   const history = useRunStore((s) => s.history);
 
   const liveView: ActiveRunView = {
-    kgState, edgeState, traceLog, thinkingByAgent,
+    question, kgState, edgeState, traceLog, thinkingByAgent,
     answerText, finalAnswer, cases, resolutions, citedSet,
   };
 
   return useMemo(
     () => selectActiveRun(liveView, viewingHistoryId, history),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [viewingHistoryId, history, kgState, edgeState, traceLog, thinkingByAgent,
+    [viewingHistoryId, history, question, kgState, edgeState, traceLog, thinkingByAgent,
      answerText, finalAnswer, cases, resolutions, citedSet],
   );
 }

@@ -7,6 +7,7 @@ import type { CaseHit, CitationResolution, EdgeState, NodeState } from './runSto
  * `useActiveRun` hook can swap between them.
  */
 export interface ActiveRunView {
+  question: string;
   kgState: Map<string, NodeState>;
   edgeState: Map<string, EdgeState>;
   traceLog: TraceEvent[];
@@ -49,8 +50,9 @@ export function toSnapshot(view: ActiveRunView): RunSnapshot {
   };
 }
 
-export function fromSnapshot(snap: RunSnapshot): ActiveRunView {
+export function fromSnapshot(snap: RunSnapshot, question: string): ActiveRunView {
   return {
+    question,
     kgState: new Map(snap.kgState),
     edgeState: new Map(snap.edgeState),
     traceLog: snap.traceLog,

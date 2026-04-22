@@ -129,6 +129,7 @@ export const useRunStore = create<RunState>((set, get) => ({
     if (!s.runId) return;  // nothing to archive
 
     const snapshot = toSnapshot({
+      question: s.question,
       kgState: s.kgState,
       edgeState: s.edgeState,
       traceLog: s.traceLog,

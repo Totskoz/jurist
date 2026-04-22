@@ -13,6 +13,7 @@ describe('toSnapshot', () => {
     const citedSet = new Set(['A', 'B']);
 
     const snap = toSnapshot({
+      question: 'q',
       kgState,
       edgeState,
       traceLog: [],
@@ -37,6 +38,7 @@ describe('toSnapshot', () => {
       ev('agent_finished', {}, 'synthesizer'),
     ];
     const snap = toSnapshot({
+      question: 'q',
       kgState: new Map(),
       edgeState: new Map(),
       traceLog: trace,
@@ -64,7 +66,8 @@ describe('fromSnapshot', () => {
       resolutions: [],
       citedSet: ['A', 'B'],
     };
-    const view = fromSnapshot(snap);
+    const view = fromSnapshot(snap, 'q');
+    expect(view.question).toBe('q');
     expect(view.kgState instanceof Map).toBe(true);
     expect(view.kgState.get('A')).toBe('cited');
     expect(view.edgeState.get('A::B')).toBe('traversed');
@@ -74,12 +77,13 @@ describe('fromSnapshot', () => {
 });
 
 describe('toSnapshot → fromSnapshot round-trip', () => {
-  it('preserves all fields', () => {
+  it('preserves all fields except question (sourced from HistoryEntry)', () => {
     const kgState = new Map([['A', 'current' as const]]);
     const edgeState = new Map([['A::B', 'traversed' as const]]);
     const citedSet = new Set(['A']);
 
     const view1 = {
+      question: 'original question',
       kgState,
       edgeState,
       traceLog: [ev('agent_started', {}, 'decomposer')],
@@ -90,8 +94,11 @@ describe('toSnapshot → fromSnapshot round-trip', () => {
       resolutions: [{ kind: 'artikel' as const, id: 'A', resolved_url: 'http://x' }],
       citedSet,
     };
-    const view2 = fromSnapshot(toSnapshot(view1));
+    // question isn't part of RunSnapshot — it's sourced from HistoryEntry.question
+    // by the caller (selectActiveRun). Pass it explicitly on the from side.
+    const view2 = fromSnapshot(toSnapshot(view1), view1.question);
 
+    expect(view2.question).toEqual(view1.question);
     expect([...view2.kgState.entries()]).toEqual([...kgState.entries()]);
     expect([...view2.edgeState.entries()]).toEqual([...edgeState.entries()]);
     expect([...view2.citedSet]).toEqual([...citedSet]);

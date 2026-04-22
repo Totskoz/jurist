@@ -12,9 +12,8 @@ const AGENT_ORDER = ['decomposer', 'statute_retriever', 'case_retriever', 'synth
 
 export default function AnswerReadyPhase() {
   const status = useRunStore((s) => s.status);
-  const question = useRunStore((s) => s.question);
   const reset = useRunStore((s) => s.reset);
-  const { finalAnswer, traceLog, thinkingByAgent } = useActiveRun();
+  const { question, finalAnswer, traceLog, thinkingByAgent } = useActiveRun();
 
   const [showReasoning, setShowReasoning] = useState(false);
 

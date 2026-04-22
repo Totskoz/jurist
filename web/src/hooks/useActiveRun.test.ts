@@ -18,12 +18,13 @@ function makeSnapshot(overrides: Partial<RunSnapshot> = {}): RunSnapshot {
   };
 }
 
-function makeEntry(id: string, snap: RunSnapshot): HistoryEntry {
-  return { id, question: 'q', timestamp: 0, status: 'finished', snapshot: snap };
+function makeEntry(id: string, snap: RunSnapshot, question = 'snapshot-question'): HistoryEntry {
+  return { id, question, timestamp: 0, status: 'finished', snapshot: snap };
 }
 
 describe('selectActiveRun', () => {
   const liveView = {
+    question: 'live-question',
     kgState: new Map([['LIVE_A', 'current' as const]]),
     edgeState: new Map(),
     traceLog: [],
@@ -37,6 +38,7 @@ describe('selectActiveRun', () => {
 
   it('returns live view when viewingHistoryId is null', () => {
     const out = selectActiveRun(liveView, null, []);
+    expect(out.question).toBe('live-question');
     expect(out.answerText).toBe('live-answer');
     expect(out.kgState.get('LIVE_A')).toBe('current');
   });
@@ -44,6 +46,7 @@ describe('selectActiveRun', () => {
   it('returns rehydrated snapshot when viewingHistoryId matches an entry', () => {
     const entry = makeEntry('run_1', makeSnapshot());
     const out = selectActiveRun(liveView, 'run_1', [entry]);
+    expect(out.question).toBe('snapshot-question');
     expect(out.answerText).toBe('snapshot-answer');
     expect(out.kgState.get('SNAP_A')).toBe('cited');
     expect(out.kgState.has('LIVE_A')).toBe(false);
@@ -51,6 +54,7 @@ describe('selectActiveRun', () => {
 
   it('falls back to live view when viewingHistoryId does not match any entry', () => {
     const out = selectActiveRun(liveView, 'nonexistent', []);
+    expect(out.question).toBe('live-question');
     expect(out.answerText).toBe('live-answer');
   });
 });
