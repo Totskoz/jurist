@@ -10,6 +10,8 @@ Jurist is a portfolio multi-agent demo answering Dutch **huurrecht** (tenancy la
 
 Current state: **M4 landed on master** — the full agent chain runs on real LLMs for the locked question. Decomposer is a single Haiku forced-tool `emit_decomposition` call with one-regen-then-hard-fail. Synthesizer is a Sonnet streaming `messages.stream()` call with forced tool `emit_answer`, per-request JSON-Schema `enum` on `article_id` / `bwb_id` / `ecli`, and post-hoc `verify_citations` (NFC + whitespace-normalized, case-sensitive strict substring, 40–500 char bounds) against the article bodies and case `chunk_text`. The forced-tool constraint means Sonnet typically calls the tool immediately with **no pre-tool text** — `agent_thinking` from the synthesizer is rare (0–few events per run). On verification failure: one regen with a Dutch advisory listing the failing citations, corpus block marked `cache_control: ephemeral` so regen hits cache; still failing → `run_failed{reason:"citation_grounding"}`. Orchestrator distinguishes `anthropic.RateLimitError` from generic LLM errors, emitting `run_failed{reason:"rate_limit"}` for 429s (SDK `max_retries=8` absorbs transient bursts first). Validator remains a permanent stub.
 
+M5 adds segment-aware procedure routing, EU-directive escalation, graceful refusal, and a broader huur case coverage. Decomposer emits `huurtype_hypothese`; statute/case retrievers emit `low_confidence`; synthesizer emits `StructuredAnswer.kind ∈ {answer, insufficient_context}`. Fence expansion (`huurverhoging`, `huurprijs`, `indexering`, `oneerlijk beding`, `onredelijk beding`) + curated priority-ECLI top-up improve HR surface on huur questions. Five-question eval suite (`scripts/eval_suite.py`) runs against `tests/eval/questions.yaml` and emits `docs/evaluations/2026-04-22-m5-suite-{pre,post}.md`.
+
 ## Commands
 
 ### Backend (Python 3.11, `uv`)
@@ -17,6 +19,10 @@ Current state: **M4 landed on master** — the full agent chain runs on real LLM
 - Install deps: `uv sync --extra dev`
 - Build KG (prerequisite for API start): `uv run python -m jurist.ingest --refresh -v` (dispatches via `src/jurist/ingest/__main__.py`).
 - Build caselaw index: `uv run python -m jurist.ingest.caselaw -v` (one-time ~20–40 min; downloads ~2.3 GB bge-m3 on first run; uses `data/cases/` disk cache + `data/lancedb/cases.lance`).
+- Run eval suite: `uv run python scripts/eval_suite.py --label {pre|post}` — manifest-driven (5 questions); writes `docs/evaluations/2026-04-22-m5-suite-{pre,post}.md`.
+- Run HR coverage audit: `uv run python scripts/audit_hr_coverage.py` — live rechtspraak.nl query + fence filter; emits audit doc + `data/priority_eclis/huurrecht.txt`.
+- Priority-ECLI ingest: `uv run python -m jurist.ingest.caselaw --priority-eclis data/priority_eclis/huurrecht.txt` — fetches + chunks + embeds curated ECLIs.
+- Refilter-cache ingest: `uv run python -m jurist.ingest.caselaw --refilter-cache` — re-runs fence→chunk→embed over existing `data/cases/*.xml` without re-fetching.
 - Run full test suite: `uv run pytest -v` (~75s due to `asyncio.sleep` in fake agents)
 - Run a single test: `uv run pytest tests/api/test_orchestrator.py::test_orchestrator_runs_agents_in_expected_order -v`
 - Lint: `uv run ruff check .`
@@ -34,7 +40,7 @@ Current state: **M4 landed on master** — the full agent chain runs on real LLM
 - `uv` lives at `C:\Users\totti\.local\bin` and isn't always on `PATH`. Prepend it in bash with `export PATH="/c/Users/totti/.local/bin:$PATH"` if `uv` is not found.
 - Git's LF→CRLF warnings on Windows commits are benign; don't try to suppress them.
 - API port is **8766**, not 8000 (Django project on this host) and not 8765 (previous zombie-socket incident). If you change the backend port, also change the Vite proxy target in `web/vite.config.ts`.
-- Full run emits ~700 events on the locked question (observed 720 on the 2026-04-22 eval run; see `docs/evaluations/`). Most are `answer_delta` tokens from the synthesizer's word-level replay — one per word of the assembled Dutch text (~620 on a typical full answer). M2 adds a variable `tool_call_*` / `node_visited` / `edge_traversed` / `agent_thinking` count depending on retriever iterations (~30 events). M3b adds `search_started` + one `case_found` per unique ECLI (up to `caselaw_candidate_eclis`) + one `reranked` (~23 events). M4 synthesizer rarely emits `agent_thinking` (forced tool_choice generally skips pre-tool text) but does emit one `citation_resolved` per verified citation. `EventBuffer.max_history` defaults to **2000**; `settings.max_history_per_run` matches. That gives headroom for longer answers without evicting early-pipeline events.
+- Full run emits ~700 events on the locked huur question post-M5 (similar ceiling to M4 — the observed 720 on 2026-04-22 is the same order of magnitude; most events are `answer_delta` tokens). Refusal runs (out-of-scope questions) emit ~150-250 events: no `citation_resolved`, shorter `answer_delta` replay of the refusal text. `EventBuffer.max_history` defaults to **2000**; `settings.max_history_per_run` matches. That gives headroom for longer answers without evicting early-pipeline events.
 - Env vars: copy `.env.example` → `.env` and set `ANTHROPIC_API_KEY`. All other settings have sensible defaults. `python-dotenv` loads `.env` at `jurist.config` import time.
 
 ## Architecture
@@ -123,18 +129,16 @@ All 5 run on one asyncio task. Parallelization is explicitly out of scope for v1
 - **Helpers:** `src/jurist/agents/synthesizer_tools.py` — pure sync: `build_synthesis_tool_schema`, `build_synthesis_corpus_block`, `build_synthesis_instructions_block`, `build_synthesis_user_message` (thin wrapper kept for tests), `verify_citations`, `_normalize`, `_validate_attempt`, `_format_regen_advisory`, `FailedCitation`.
 - **Tests:** `tests/agents/test_synthesizer_tools.py` (24 pure-helper), `tests/agents/test_synthesizer.py` (4 agent), `tests/agents/test_synthesizer_grounding.py` (3 spec-guard). 1 RUN_E2E-gated at `tests/integration/test_m4_e2e.py`.
 
-### What's fake vs. real after M4
+### What's fake vs. real after M5
 
-| Component | State | Becomes real in |
+| Component | State | Notes |
 |---|---|---|
-| `decomposer` | **Real** — Haiku forced-tool `emit_decomposition`, one-regen-then-hard-fail | — |
-| `statute_retriever` | **Real** — Claude Sonnet tool-use loop over the 218-node KG (5 tools) | — |
-| `case_retriever` | **Real** — bge-m3 + LanceDB top-150→20 ECLIs + Haiku rerank to 3 | — |
-| `synthesizer` | **Real** — Sonnet streaming `messages.stream()`, forced-tool `emit_answer` with per-request `Literal[...]` enums, post-hoc `verify_citations`, one-regen-then-hard-fail to `run_failed{citation_grounding}` | — |
-| `validator_stub` | Permanent stub — always returns `valid=True` | — (real validator is v2 scope) |
+| `decomposer` | **Real** — Haiku forced-tool `emit_decomposition`, emits `huurtype_hypothese`, one-regen-then-hard-fail | — |
+| `statute_retriever` | **Real** — Sonnet tool-use loop over 218-node KG (5 tools); emits `low_confidence` when `<3` selected | — |
+| `case_retriever` | **Real** — bge-m3 + LanceDB top-150→20 ECLIs + Haiku rerank to 3; emits `low_confidence` when all top-3 similarity `<0.55` | — |
+| `synthesizer` | **Real** — Sonnet streaming `messages.stream()`; early-branch refusal when both retrievers flag low-confidence; forced-tool `emit_answer` with `allow_refusal=True` schema; per-request `Literal[...]` enums on `article_id`/`bwb_id`/`ecli` (when `kind="answer"`); post-hoc `verify_citations` (skipped when `kind="insufficient_context"`); one-regen-then-hard-fail to `run_failed{citation_grounding}` | — |
+| `validator_stub` | Permanent stub — always returns `valid=True` | — (real validator is v2) |
 | `/api/kg` | Real — loads `data/kg/huurrecht.json` at startup | — |
-
-The validator is the only remaining intentional stub; the full agent chain runs on real LLMs end-to-end on the locked question.
 
 ## Conventions worth knowing
 
