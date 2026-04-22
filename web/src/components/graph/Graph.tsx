@@ -188,7 +188,7 @@ export default function Graph() {
   useEffect(() => {
     if (!fgRef.current || !data || size.w === 0) return;
     // Cluster separation — each cluster sits ±this offset from the effective centerline.
-    const clusterOffset = Math.min(size.w * 0.13, 360);
+    const clusterOffset = Math.min(size.w * 0.07, 210);
     const effectiveCenterX = -PANEL_RESERVE / 2;
     const leftX = effectiveCenterX - clusterOffset;
     const rightX = effectiveCenterX + clusterOffset;
