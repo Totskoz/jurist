@@ -9,6 +9,7 @@ import { drawNode, type RenderableNode } from './nodeRender';
 import { drawEdge, type RenderableEdge } from './edgeRender';
 import type { ClusterKey } from '../../theme';
 import type { EdgeState, NodeState } from '../../state/runStore';
+import NodeTooltip from './NodeTooltip';
 
 interface GraphNode {
   id: string;
@@ -35,6 +36,7 @@ export default function Graph() {
   const fgRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
+  const [hover, setHover] = useState<{ label: string; title: string; x: number; y: number } | null>(null);
 
   // Subscribe narrowly.
   const kgState = useRunStore((s) => s.kgState);
@@ -144,7 +146,13 @@ export default function Graph() {
   const totalNodes = graphData.nodes.length;
 
   return (
-    <div ref={containerRef} style={{ position: 'fixed', inset: 0, background: 'transparent' }}>
+    <div
+      ref={containerRef}
+      onMouseMove={(e) => {
+        if (hover) setHover((h) => (h ? { ...h, x: e.clientX, y: e.clientY } : null));
+      }}
+      style={{ position: 'fixed', inset: 0, background: 'transparent' }}
+    >
       <ForceGraph2D
         ref={fgRef}
         graphData={graphData as any}
@@ -181,6 +189,13 @@ export default function Graph() {
           ctx.fill();
         }}
         onNodeClick={(node: any) => inspectNode(node.id)}
+        onNodeHover={(node: any, _prev: any) => {
+          if (node) {
+            setHover({ label: node.label, title: node.title, x: 0, y: 0 });
+          } else {
+            setHover(null);
+          }
+        }}
         linkCanvasObject={(link: any, ctx, globalScale) => {
           const key = `${link.source.id ?? link.source}::${link.target.id ?? link.target}`;
           const state: EdgeState = edgeState.get(key) ?? 'default';
@@ -196,6 +211,7 @@ export default function Graph() {
           drawEdge(renderable, ctx, globalScale);
         }}
       />
+      {hover && <NodeTooltip label={hover.label} title={hover.title} x={hover.x} y={hover.y} />}
     </div>
   );
 }
